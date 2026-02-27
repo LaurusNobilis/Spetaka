@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 // ignore_for_file: directives_ordering
+import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/shared/theme/app_tokens.dart';
@@ -146,7 +147,7 @@ void main() {
         ProviderScope(
           overrides: [
             if (stubFriendsList)
-              allFriendsFutureProvider.overrideWith((ref) async => []),
+              allFriendsProvider.overrideWith((ref) => Stream<List<Friend>>.value(const <Friend>[])),
           ],
           child: MaterialApp.router(
             theme: AppTheme.light(),
@@ -165,7 +166,7 @@ void main() {
 
     testWidgets('can navigate to /friends (Friends)', (tester) async {
       final router = createAppRouter();
-      // Override allFriendsFutureProvider to avoid real DB access in this
+      // Override allFriendsProvider to avoid real DB access in this
       // navigation-only test. Story 2.2 AC5 is covered by widget tests.
       await pumpAppWithRouter(tester, router, stubFriendsList: true);
       router.go(const FriendsRoute().location);
@@ -175,7 +176,7 @@ void main() {
 
     testWidgets('can navigate to /friends/new (Add Friend)', (tester) async {
       final router = createAppRouter();
-      await pumpAppWithRouter(tester, router);
+      await pumpAppWithRouter(tester, router, stubFriendsList: true);
       router.go(const NewFriendRoute().location);
       await tester.pumpAndSettle();
       expect(find.text('Add Friend'), findsAtLeastNWidgets(1));
@@ -183,7 +184,7 @@ void main() {
 
     testWidgets('can navigate to /friends/:id (Friend <id>)', (tester) async {
       final router = createAppRouter();
-      await pumpAppWithRouter(tester, router);
+      await pumpAppWithRouter(tester, router, stubFriendsList: true);
 
       const id = 'abc-123';
       router.go(const FriendDetailRoute(id).location);

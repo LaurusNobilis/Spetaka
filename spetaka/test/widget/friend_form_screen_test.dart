@@ -9,11 +9,9 @@ import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
-import 'package:spetaka/features/friends/data/friends_providers.dart';
 
 /// Builds the full router-test scaffold with an in-memory repo.
-/// [allFriendsFutureProvider] is overridden to use the same repo instance,
-/// ensuring the FutureProvider resolves synchronously-ish after navigation.
+/// Friends list data is reactive via repository watchAll() (StreamProvider).
 Future<_TestHarness> _buildHarness(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
 
@@ -29,9 +27,6 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         friendRepositoryProvider.overrideWithValue(repo),
-        // Override allFriendsFutureProvider to avoid real-async timing in tests.
-        // It delegates to the real repo so save → list round-trips work.
-        allFriendsFutureProvider.overrideWith((ref) => repo.findAll()),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -84,14 +79,17 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pump(); // dispatch tap
 
-    // runAsync lets the full async chain complete:
-    // PhoneNormalizer → Friend() → repo.insert() → context.go()
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    // runAsync lets the full async chain complete in one pass:
+    // PhoneNormalizer → Friend() → repo.insert() → context.go() → StreamProvider emit.
+    // 500 ms is generous; real work is <10 ms on any CI machine.
+    // TODO(2.5): replace with a FakeRepository once mock infra exists,
+    //            eliminating real-async timing entirely.
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 500)));
 
-    // Pump to render the navigation to /friends and the loading indicator.
+    // Process any pending frames queued during runAsync before settling.
+    // Without this intermediate pump, pumpAndSettle can hang on the live
+    // Drift StreamProvider which never "completes".
     await tester.pump();
-    // Allow the FutureProvider (findAll) which runs in real async to resolve.
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
     await tester.pumpAndSettle();
 
     // AC5 — navigated back to the Friends list screen.
@@ -138,15 +136,12 @@ void main() {
       ProviderScope(
         overrides: [
           friendRepositoryProvider.overrideWithValue(repo),
-          allFriendsFutureProvider.overrideWith((ref) => repo.findAll()),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
     );
 
     router.go(const FriendsRoute().location);
-    // runAsync lets the FutureProvider complete its findAll() DB call.
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
     await tester.pumpAndSettle();
 
     expect(find.text('Friends'), findsAtLeastNWidgets(1));

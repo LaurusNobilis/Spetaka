@@ -186,8 +186,10 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       final rawName = _nameController.text.trim();
       final rawMobile = _mobileController.text.trim();
 
-      // Normalize phone; guaranteed to succeed because the Form validator
-      // already confirmed parseability above, but we catch defensively.
+      // Normalize phone — guaranteed to succeed: the Form validator already
+      // confirmed parseability via PhoneNormalizer.normalize() on the same
+      // trimmed value. No defensive try/catch here; an unexpected error will
+      // fall through to the outer AppError / catch-all handlers below.
       final normalizedMobile = const PhoneNormalizer().normalize(rawMobile);
 
       final now = DateTime.now().millisecondsSinceEpoch;

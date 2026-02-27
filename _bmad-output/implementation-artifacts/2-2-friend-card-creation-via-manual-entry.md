@@ -1,6 +1,6 @@
 # Story 2.2: Friend Card Creation via Manual Entry
 
-Status: review
+Status: done
 
 ## Story
 
@@ -101,13 +101,13 @@ Claude Sonnet 4.6
 - **AC1/AC2**: `Form` + `TextFormField` validators render inline errors via `errorMessageFor()`. `SnackBar` is now only used for non-validation failures (contact import, permissions, unexpected exceptions). Validated: empty name shows "Please enter a name.", invalid phone shows "Invalid phone number. Please check and try again.", empty mobile shows "Please enter a mobile number."
 - **AC3**: `Friend` created with UUID v4, E.164 mobile (`PhoneNormalizer.normalize()`), `careScore: 0.0`, Unix-epoch timestamps. Persisted via `FriendRepository.insert()`.
 - **AC4**: All primary buttons (`FilledButton`, `OutlinedButton`, `TextButton`) now have `minimumSize: const Size(double.infinity, 48)` satisfying NFR15.
-- **AC5**: `FriendsListScreen` upgraded from `StatelessWidget` with static empty-state to `ConsumerWidget` reading `allFriendsFutureProvider`. After save and navigation, the saved friend's name appears in a `ListView.builder`.
+- **AC5**: `FriendsListScreen` upgraded from `StatelessWidget` with static empty-state to `ConsumerWidget` reading `allFriendsProvider` (StreamProvider — reactive to inserts; GoRouter keeps `/friends` mounted so a FutureProvider would not auto-refresh). After save and navigation, the saved friend's name appears in a `ListView.builder`. Mobile number intentionally omitted from tile (PII; Story 2.5 owns tile design).
 - **128/128 tests green**, `flutter analyze` clean.
 
 ### File List
 
 #### New / Created
-- `spetaka/lib/features/friends/data/friends_providers.dart` — `allFriendsFutureProvider` (FutureProvider.autoDispose<List<Friend>>)
+- `spetaka/lib/features/friends/data/friends_providers.dart` — `allFriendsProvider` (StreamProvider.autoDispose<List<Friend>> via `watchAll()` — reactive to inserts without re-navigation)
 
 #### Modified
 - `spetaka/lib/features/friends/presentation/friend_form_screen.dart` — Form + TextFormField inline validation, 48dp buttons, renamed `_showError` → `_showSnackBar`, split build into `_buildManualForm` / `_buildChoiceButtons`
@@ -120,3 +120,4 @@ Claude Sonnet 4.6
 ### Change Log
 
 - 2026-02-27: Story 2.2 implemented — inline validation form, minimal friends list rendering, AC1–AC5 satisfied, 128/128 tests green
+- 2026-02-27: Code review (AI) — 3 HIGH/MEDIUM issues fixed: StreamProvider correct in File List, PII mobile removed from ListTile subtitle, defensive double-normalize SnackBar path removed; test delays consolidated to single 500 ms runAsync; story status → done

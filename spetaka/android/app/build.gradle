@@ -23,7 +23,11 @@ android {
         // Spetaka requires API 26+ for AES-256-GCM (javax.crypto) and
         // full Drift/SQLite support without shimming.
         minSdk = 26
-        targetSdk = flutter.targetSdkVersion
+        // Pin targetSdk to 35 (Android 15) — Flutter 3.41.2 defaults to 36
+        // (Android 16 preview) which causes silent install failures on some
+        // Samsung devices whose package installer doesn't recognise API 36 yet.
+        // Bump to 36 once Android 16 is stable and widely deployed.
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
