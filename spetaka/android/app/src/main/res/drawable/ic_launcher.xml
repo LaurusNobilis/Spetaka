@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal launcher icon defined in XML (no PNGs) to keep CI builds reproducible.
+  This avoids relying on missing mipmap/ic_launcher assets.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer circle -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@android:color/black" />
+        </shape>
+    </item>
+
+    <!-- Inner circle -->
+    <item
+        android:bottom="24dp"
+        android:left="24dp"
+        android:right="24dp"
+        android:top="24dp">
+        <shape android:shape="oval">
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+
+    <!-- Center dot -->
+    <item
+        android:bottom="44dp"
+        android:left="44dp"
+        android:right="44dp"
+        android:top="44dp">
+        <shape android:shape="oval">
+            <solid android:color="@android:color/black" />
+        </shape>
+    </item>
+
+</layer-list>
