@@ -29,7 +29,7 @@ so that regressions are caught immediately and a release-ready APK artifact is a
   - [x] Configure Flutter and pub cache reuse
 - [x] Publish build artifacts (AC: 5)
   - [x] Upload generated APK to workflow artifacts
-- [ ] Validate green execution on main (AC: 6)
+- [x] Validate green execution on main (AC: 6)
 
 ## Dev Notes
 
@@ -57,7 +57,7 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - Workflow file initially created inside `spetaka/.github/` by mistake → moved to repo root `.github/workflows/ci.yml`.
 - `pubspec.lock` confirmed present and not gitignored → cache key `hashFiles('spetaka/pubspec.lock')` will be stable.
 - `android/local.properties` is gitignored → not shipped to CI; `subosito/flutter-action@v2` configures `ANDROID_HOME` automatically.
-- AC 6 (first green run on `main`) requires a `git push origin main` — cannot be validated in dev container. Will be confirmed on first push.
+- AC 6 (first green run on `main`) confirmed after `git push -u origin main`.
 
 ### Completion Notes List
 
@@ -68,7 +68,7 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - ✅ Pub packages cached via `actions/cache@v4` keyed on `pubspec.lock` hash (AC 3).
 - ✅ APK uploaded as `spetaka-release-{run_number}` artifact, retained 30 days (AC 5).
 - ✅ Fail-fast: GitHub Actions stops the job on first failed step by default (AC 4).
-- ⏳ AC 6 (first green CI run): pending first `git push origin main`.
+- ✅ AC 6 (first green CI run): confirmed on `main`.
 
 ### File List
 
@@ -79,3 +79,4 @@ Claude Sonnet 4.6 (GitHub Copilot)
 ## Change Log
 
 - 2026-02-26: CI/CD pipeline implemented — `.github/workflows/ci.yml` created with flutter analyze, flutter test, flutter build apk --release, pub/Flutter SDK caching, and APK artifact upload. Runs on push/pull_request to main on ubuntu-latest (x86_64). AC 6 pending first push to main.
+- 2026-02-27: CI validation — first green run on `main` confirmed; release APK built successfully and published as workflow artifact.
