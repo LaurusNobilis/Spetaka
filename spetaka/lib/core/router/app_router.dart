@@ -55,42 +55,44 @@ class SettingsSyncRoute extends AppRoute {
   String get location => '/settings/sync';
 }
 
-final GoRouter appRouter = GoRouter(
-  routes: <RouteBase>[
-    GoRoute(
-      path: const HomeRoute().location,
-      builder: (context, state) => const DailyViewScreen(),
+GoRouter createAppRouter() => GoRouter(
       routes: <RouteBase>[
         GoRoute(
-          path: 'friends',
-          builder: (context, state) => const FriendsListScreen(),
+          path: const HomeRoute().location,
+          builder: (context, state) => const DailyViewScreen(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'new',
-              builder: (context, state) => const FriendFormScreen(),
+              path: 'friends',
+              builder: (context, state) => const FriendsListScreen(),
+              routes: <RouteBase>[
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => const FriendFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) => FriendCardScreen(
+                    id: state.pathParameters['id'] ?? '',
+                  ),
+                ),
+              ],
             ),
             GoRoute(
-              path: ':id',
-              builder: (context, state) => FriendCardScreen(
-                id: state.pathParameters['id'] ?? '',
-              ),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: 'settings',
-          builder: (context, state) => const SettingsScreen(),
-          routes: <RouteBase>[
-            GoRoute(
-              path: 'sync',
-              builder: (context, state) => const WebDavSetupScreen(),
+              path: 'settings',
+              builder: (context, state) => const SettingsScreen(),
+              routes: <RouteBase>[
+                GoRoute(
+                  path: 'sync',
+                  builder: (context, state) => const WebDavSetupScreen(),
+                ),
+              ],
             ),
           ],
         ),
       ],
-    ),
-  ],
-);
+    );
+
+final GoRouter appRouter = createAppRouter();
 
 class DailyViewScreen extends StatelessWidget {
   const DailyViewScreen({super.key});

@@ -132,6 +132,66 @@ void main() {
     });
   });
 
+  group('appRouter navigation', () {
+    Future<void> pumpAppWithRouter(WidgetTester tester, GoRouter router) async {
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('can navigate to / (Daily)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+      expect(find.text('Daily'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('can navigate to /friends (Friends)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+      router.go(const FriendsRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.text('Friends'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('can navigate to /friends/new (New Friend)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+      router.go(const NewFriendRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.text('New Friend'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('can navigate to /friends/:id (Friend <id>)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+
+      const id = 'abc-123';
+      router.go(const FriendDetailRoute(id).location);
+      await tester.pumpAndSettle();
+      expect(find.text('Friend $id'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('can navigate to /settings (Settings)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+      router.go(const SettingsRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.text('Settings'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('can navigate to /settings/sync (Sync)', (tester) async {
+      final router = createAppRouter();
+      await pumpAppWithRouter(tester, router);
+      router.go(const SettingsSyncRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.text('Sync'), findsAtLeastNWidgets(1));
+    });
+  });
+
   // ── LoadingWidget ───────────────────────────────────────────────────────
 
   group('LoadingWidget', () {
