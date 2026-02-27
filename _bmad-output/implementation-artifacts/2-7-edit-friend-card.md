@@ -1,6 +1,6 @@
 # Story 2.7: Edit Friend Card
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -34,4 +34,23 @@ so that my relationship data stays accurate.
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6
+
+---
+
+## Handoff
+
+**Story 2.7 — Edit Friend Card — DONE**
+
+**Files changed:**
+- `lib/features/friends/presentation/friend_form_screen.dart` — full edit mode:
+  `editFriendId` triggers `_loadEditFriend()` (async prefill), `_saveFriend` calls
+  `repo.update()` with preserved UUID+createdAt, notes field added (AC2), AppBar title
+  "Edit Friend" (AC1), Back pops instead of resetting (AC4/navigation).
+
+**Tests:** 3 new repo tests in `test/repositories/friend_repository_test.dart` —
+`update` preserves UUID/createdAt, persists tags change, persists notes (encrypted field).
+
+**AC coverage:** AC1 ✓ AC2 ✓ AC3 ✓ AC4 ✓ AC5 ✓
+
+**103/103 tests green. flutter analyze clean.**
