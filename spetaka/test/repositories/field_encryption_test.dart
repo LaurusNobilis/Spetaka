@@ -15,6 +15,7 @@
 //   - AC4: DAOs are encryption-agnostic (raw stored values accessed directly)
 //   - AC5: typed errors propagate correctly
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +27,17 @@ import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:uuid/uuid.dart';
+
+class _NoopAppLifecycleService extends AppLifecycleService {
+  _NoopAppLifecycleService({required super.binding});
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // No-op: some widget-test environments emit lifecycle events that would
+    // clear the in-memory key (intended production behavior). For format/wrong-
+    // key tests we want a stable key to assert error types deterministically.
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -414,6 +426,118 @@ void main() {
       );
 
       uninitService.dispose();
+    });
+
+    test('FriendRepository.findById throws CiphertextFormatAppError for invalid stored ciphertext',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final noopLifecycle = _NoopAppLifecycleService(binding: WidgetsBinding.instance);
+      final service = EncryptionService(lifecycleService: noopLifecycle);
+      await service.initialize(testPass);
+      final repo = FriendRepository(db: db, encryptionService: service);
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final id = uuid.v4();
+      await db.friendDao.insertFriend(
+        FriendsCompanion(
+          id: Value(id),
+          name: const Value('Alice'),
+          mobile: const Value('+33601020304'),
+          notes: const Value('this-is-not-base64url'),
+          careScore: const Value(0.5),
+          isConcernActive: const Value(false),
+          concernNote: const Value(null),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      await expectLater(
+        repo.findById(id),
+        throwsA(isA<CiphertextFormatAppError>()),
+      );
+
+      service.dispose();
+      noopLifecycle.dispose();
+    });
+
+    test('FriendRepository.findById throws DecryptionFailedAppError when key is wrong',
+        () async {
+      // Keep the same salt in prefs for both services.
+      SharedPreferences.setMockInitialValues({});
+
+      final lifecycleA = _NoopAppLifecycleService(binding: WidgetsBinding.instance);
+      final serviceA = EncryptionService(lifecycleService: lifecycleA);
+      await serviceA.initialize('pass-A');
+      final ciphertext = serviceA.encrypt('Secret payload');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final id = uuid.v4();
+      await db.friendDao.insertFriend(
+        FriendsCompanion(
+          id: Value(id),
+          name: const Value('Alice'),
+          mobile: const Value('+33601020304'),
+          notes: Value(ciphertext),
+          careScore: const Value(0.5),
+          isConcernActive: const Value(false),
+          concernNote: const Value(null),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      final lifecycleB = _NoopAppLifecycleService(binding: WidgetsBinding.instance);
+      final serviceB = EncryptionService(lifecycleService: lifecycleB);
+      await serviceB.initialize('pass-B');
+      final repo = FriendRepository(db: db, encryptionService: serviceB);
+
+      await expectLater(
+        repo.findById(id),
+        throwsA(isA<DecryptionFailedAppError>()),
+      );
+
+      serviceA.dispose();
+      lifecycleA.dispose();
+      serviceB.dispose();
+      lifecycleB.dispose();
+    });
+
+    test('AcquittementRepository.findById throws DecryptionFailedAppError when key is wrong',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+
+      final lifecycleA = _NoopAppLifecycleService(binding: WidgetsBinding.instance);
+      final serviceA = EncryptionService(lifecycleService: lifecycleA);
+      await serviceA.initialize('pass-A');
+      final ciphertext = serviceA.encrypt('Sensitive note');
+
+      final id = uuid.v4();
+      final friendId = uuid.v4();
+      await db.acquittementDao.insertAcquittement(
+        AcquittementsCompanion(
+          id: Value(id),
+          friendId: Value(friendId),
+          type: const Value('call'),
+          note: Value(ciphertext),
+          createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+        ),
+      );
+
+      final lifecycleB = _NoopAppLifecycleService(binding: WidgetsBinding.instance);
+      final serviceB = EncryptionService(lifecycleService: lifecycleB);
+      await serviceB.initialize('pass-B');
+      final repo = AcquittementRepository(db: db, encryptionService: serviceB);
+
+      await expectLater(
+        repo.findById(id),
+        throwsA(isA<DecryptionFailedAppError>()),
+      );
+
+      serviceA.dispose();
+      lifecycleA.dispose();
+      serviceB.dispose();
+      lifecycleB.dispose();
     });
   });
 }
