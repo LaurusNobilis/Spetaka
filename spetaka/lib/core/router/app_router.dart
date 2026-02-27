@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/friends/presentation/friend_form_screen.dart';
+import '../../features/friends/presentation/friends_list_screen.dart';
+
 sealed class AppRoute {
   const AppRoute();
 
@@ -103,23 +106,6 @@ class DailyViewScreen extends StatelessWidget {
   }
 }
 
-class FriendsListScreen extends StatelessWidget {
-  const FriendsListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'Friends');
-  }
-}
-
-class FriendFormScreen extends StatelessWidget {
-  const FriendFormScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'New Friend');
-  }
-}
 
 class FriendCardScreen extends StatelessWidget {
   const FriendCardScreen({super.key, required this.id});

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -135,9 +136,11 @@ void main() {
   group('appRouter navigation', () {
     Future<void> pumpAppWithRouter(WidgetTester tester, GoRouter router) async {
       await tester.pumpWidget(
-        MaterialApp.router(
-          theme: AppTheme.light(),
-          routerConfig: router,
+        ProviderScope(
+          child: MaterialApp.router(
+            theme: AppTheme.light(),
+            routerConfig: router,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -157,12 +160,12 @@ void main() {
       expect(find.text('Friends'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('can navigate to /friends/new (New Friend)', (tester) async {
+    testWidgets('can navigate to /friends/new (Add Friend)', (tester) async {
       final router = createAppRouter();
       await pumpAppWithRouter(tester, router);
       router.go(const NewFriendRoute().location);
       await tester.pumpAndSettle();
-      expect(find.text('New Friend'), findsAtLeastNWidgets(1));
+      expect(find.text('Add Friend'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('can navigate to /friends/:id (Friend <id>)', (tester) async {
