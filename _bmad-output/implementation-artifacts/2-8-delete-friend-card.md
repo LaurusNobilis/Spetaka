@@ -1,6 +1,6 @@
 # Story 2.8: Delete Friend Card
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -35,4 +35,25 @@ so that I can keep my circle relevant and clean.
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6
+
+---
+
+## Handoff
+
+**Story 2.8 — Delete Friend Card — DONE**
+
+**Files changed:**
+- `lib/core/database/daos/acquittement_dao.dart` — `deleteByFriendId()` added (AC2)
+- `lib/features/friends/data/friend_repository.dart` — `delete()` now async, cascades
+  acquittements before deleting friend row (AC2, AC5)
+- `lib/features/friends/presentation/friend_card_screen.dart` — `_FriendDetailBody`
+  is now `ConsumerWidget`; delete `IconButton` in AppBar; `_confirmDelete()` AlertDialog
+  with friend name + warning text (AC1, AC3); `_handleDelete()` → FriendsRoute() (AC4)
+
+**Tests:** 4 new repo tests — friend removed from DB, 0 rows for unknown id,
+acquittements cascade, cascade only own acquittements (AC2, AC5).
+
+**AC coverage:** AC1 ✓ AC2 ✓ AC3 ✓ AC4 ✓ AC5 ✓
+
+**103/103 tests green. flutter analyze clean.**
