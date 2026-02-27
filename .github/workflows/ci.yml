@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel any in-progress run for the same branch to avoid wasted minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Analyze · Test · Build
+    runs-on: ubuntu-latest  # x86_64 — required for gen_snapshot / AAPT2
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Java (Android toolchain) ──────────────────────────────────────────
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # ── Flutter SDK (cached) ──────────────────────────────────────────────
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true           # caches ~/flutter across runs (AC: 3)
+
+      # ── Pub package cache ─────────────────────────────────────────────────
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            spetaka/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('spetaka/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      # ── Dependencies ──────────────────────────────────────────────────────
+      - name: Install dependencies
+        working-directory: spetaka
+        run: flutter pub get
+
+      # ── Code generation ───────────────────────────────────────────────────
+      - name: Generate code (Riverpod + Drift)
+        working-directory: spetaka
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # ── Quality gate 1: Analyze (AC: 2, 4) ───────────────────────────────
+      - name: flutter analyze
+        working-directory: spetaka
+        run: flutter analyze --no-color
+
+      # ── Quality gate 2: Tests (AC: 2, 4) ─────────────────────────────────
+      - name: flutter test
+        working-directory: spetaka
+        run: flutter test --no-color
+
+      # ── Build release APK (AC: 1, 2) ─────────────────────────────────────
+      - name: Build release APK
+        working-directory: spetaka
+        run: flutter build apk --release
+
+      # ── Upload APK artifact (AC: 5) ───────────────────────────────────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: spetaka-release-${{ github.run_number }}
+          path: spetaka/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug overlay manifest — no additional permissions. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Allows Flutter tools to use the Flutter driver extension -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application
+        android:usesCleartextTraffic="true">
+    </application>
+</manifest>

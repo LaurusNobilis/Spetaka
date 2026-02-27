@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spetaka — UX Design Directions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Lora:wght@400;500&display=swap');
+
+  :root {
+    --bg: #FAF7F2;
+    --surface: #F5F1EC;
+    --primary: #C47B5A;
+    --secondary: #7D9E8C;
+    --text: #2C2620;
+    --text-muted: #8C7B70;
+    --muted: #C4B8B0;
+    --dark-bg: #1E1A17;
+    --dark-surface: #2A2420;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #E8E4DF;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    padding: 32px 16px;
+  }
+
+  h1 {
+    font-family: 'Lora', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+  }
+
+  .directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .direction {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .direction-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+
+  .direction-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    padding: 0 4px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 320px;
+    min-height: 600px;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(44,38,32,0.18), 0 4px 16px rgba(44,38,32,0.10);
+    position: relative;
+    margin: 0 auto;
+  }
+
+  .phone-inner {
+    height: 100%;
+    min-height: 600px;
+    padding: 52px 0 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── DIRECTION A: Clean Minimal ─── */
+  .dir-a .phone { background: var(--bg); }
+  .dir-a .status-bar { padding: 0 20px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .dir-a .status-text { font-size: 11px; color: var(--text-muted); }
+  .dir-a .greeting { padding: 0 20px 24px; }
+  .dir-a .greeting-line { font-family: 'Lora', serif; font-size: 18px; font-weight: 400; color: var(--text); line-height: 1.4; }
+  .dir-a .greeting-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .dir-a .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 0 20px 8px; }
+  .dir-a .card { background: var(--surface); margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.25s ease; }
+  .dir-a .card:hover { background: #EDE9E3; }
+  .dir-a .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .dir-a .card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-a .card-event { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .dir-a .card-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+  .dir-a .card-dot.urgent { background: var(--primary); }
+  .dir-a .card-dot.important { background: var(--secondary); }
+  .dir-a .card-expanded { background: var(--surface); margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; border: 1.5px solid var(--primary); }
+  .dir-a .expanded-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .dir-a .expanded-event { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+  .dir-a .action-row { display: flex; gap: 8px; }
+  .dir-a .action-btn { flex: 1; padding: 10px 4px; border-radius: 10px; background: var(--primary); color: white; font-size: 12px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-a .action-btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--muted); }
+  .dir-a .divider { height: 1px; background: var(--muted); margin: 16px 20px 12px; opacity: 0.4; }
+  .dir-a .show-more { text-align: center; font-size: 11px; color: var(--text-muted); padding: 8px; cursor: pointer; }
+
+  /* ─── DIRECTION B: Warm Cards with Photo ─── */
+  .dir-b .phone { background: var(--bg); }
+  .dir-b .greeting { padding: 4px 20px 20px; }
+  .dir-b .greeting-line { font-family: 'Lora', serif; font-size: 17px; font-weight: 400; color: var(--text); line-height: 1.45; }
+  .dir-b .card { background: var(--surface); margin: 0 16px 8px; border-radius: 16px; padding: 14px 14px; cursor: pointer; }
+  .dir-b .card-inner { display: flex; align-items: center; gap: 12px; }
+  .dir-b .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, #D4956A 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: white; }
+  .dir-b .avatar.sage { background: linear-gradient(135deg, var(--secondary) 0%, #9BB8A8 100%); }
+  .dir-b .card-info { flex: 1; }
+  .dir-b .card-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .dir-b .card-event { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .dir-b .card-badge { background: var(--primary); color: white; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .dir-b .card-badge.soon { background: var(--secondary); }
+  .dir-b .card-expanded { background: var(--surface); margin: 0 16px 8px; border-radius: 16px; padding: 14px 14px; }
+  .dir-b .expanded-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .dir-b .expanded-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, #D4956A 100%); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: white; }
+  .dir-b .expanded-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-b .expanded-event { font-size: 11px; color: var(--text-muted); }
+  .dir-b .action-row { display: flex; gap: 6px; }
+  .dir-b .action-btn { flex: 1; padding: 11px 4px; border-radius: 12px; background: var(--primary); color: white; font-size: 12px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-b .action-btn.wa { background: #25D366; }
+  .dir-b .last-contact { font-size: 11px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+
+  /* ─── DIRECTION C: Dark Mode ─── */
+  .dir-c .phone { background: var(--dark-bg); }
+  .dir-c .greeting { padding: 4px 20px 20px; }
+  .dir-c .greeting-line { font-family: 'Lora', serif; font-size: 18px; font-weight: 400; color: #F0EBE4; line-height: 1.4; }
+  .dir-c .greeting-sub { font-size: 11px; color: #6B5E56; margin-top: 4px; }
+  .dir-c .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #4A3E38; padding: 0 20px 8px; }
+  .dir-c .card { background: var(--dark-surface); margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; cursor: pointer; }
+  .dir-c .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .dir-c .card-name { font-size: 15px; font-weight: 600; color: #F0EBE4; }
+  .dir-c .card-event { font-size: 11px; color: #6B5E56; margin-top: 3px; }
+  .dir-c .card-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+  .dir-c .card-dot.sage { background: var(--secondary); }
+  .dir-c .card-expanded { background: var(--dark-surface); margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; border: 1.5px solid #3D2E26; }
+  .dir-c .expanded-name { font-size: 15px; font-weight: 600; color: #F0EBE4; margin-bottom: 2px; }
+  .dir-c .expanded-event { font-size: 11px; color: #6B5E56; margin-bottom: 12px; }
+  .dir-c .action-row { display: flex; gap: 8px; }
+  .dir-c .action-btn { flex: 1; padding: 10px 4px; border-radius: 10px; background: var(--primary); color: white; font-size: 12px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-c .action-btn.wa { background: #25D366; }
+  .dir-c .action-btn.msg { background: #3A3028; color: #C4B8B0; border: 1px solid #4A3E38; }
+  .dir-c .divider { height: 1px; background: #3A3028; margin: 16px 20px 12px; }
+  .dir-c .show-more { text-align: center; font-size: 11px; color: #4A3E38; padding: 8px; }
+
+  /* ─── DIRECTION D: Sage-dominant ─── */
+  .dir-d .phone { background: #F2F6F4; }
+  .dir-d .greeting { padding: 4px 20px 24px; }
+  .dir-d .greeting-accent { width: 28px; height: 3px; background: var(--secondary); border-radius: 2px; margin-bottom: 10px; }
+  .dir-d .greeting-line { font-family: 'Lora', serif; font-size: 18px; font-weight: 400; color: var(--text); line-height: 1.4; }
+  .dir-d .urgent-section { margin: 0 12px 4px; background: #E8F0EC; border-radius: 14px; padding: 12px 14px; }
+  .dir-d .urgent-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--secondary); margin-bottom: 8px; }
+  .dir-d .card { background: white; margin: 0 12px 6px; border-radius: 12px; padding: 12px 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(44,38,32,0.06); }
+  .dir-d .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .dir-d .card-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .dir-d .card-event { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .dir-d .card-tag { background: #E8F0EC; color: var(--secondary); font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .dir-d .card-tag.warm { background: #F5EDE7; color: var(--primary); }
+  .dir-d .card-expanded { background: white; margin: 0 12px 6px; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 12px rgba(125,158,140,0.15); border: 1.5px solid var(--secondary); }
+  .dir-d .expanded-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .dir-d .expanded-event { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+  .dir-d .action-row { display: flex; gap: 6px; }
+  .dir-d .action-btn { flex: 1; padding: 10px 4px; border-radius: 10px; background: var(--secondary); color: white; font-size: 12px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-d .action-btn.terra { background: var(--primary); }
+  .dir-d .action-btn.wa { background: #25D366; }
+
+  /* ─── DIRECTION E: Full Card with soft shadows ─── */
+  .dir-e .phone { background: var(--bg); }
+  .dir-e .greeting { padding: 4px 20px 24px; }
+  .dir-e .greeting-line { font-family: 'Lora', serif; font-size: 18px; font-weight: 400; color: var(--text); line-height: 1.4; }
+  .dir-e .card { background: var(--surface); margin: 0 16px 10px; border-radius: 18px; padding: 16px; box-shadow: 0 2px 12px rgba(196,123,90,0.08); cursor: pointer; }
+  .dir-e .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .dir-e .card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-e .card-event { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .dir-e .card-days { font-size: 20px; font-weight: 300; color: var(--primary); line-height: 1; }
+  .dir-e .card-days-label { font-size: 9px; color: var(--text-muted); text-align: right; }
+  .dir-e .card-bar { height: 2px; background: var(--muted); border-radius: 1px; margin: 12px 0 0; overflow: hidden; }
+  .dir-e .card-bar-fill { height: 100%; background: var(--primary); width: 75%; border-radius: 1px; }
+  .dir-e .card-expanded { background: var(--surface); margin: 0 16px 10px; border-radius: 18px; padding: 16px; box-shadow: 0 4px 20px rgba(196,123,90,0.15); border: 1.5px solid rgba(196,123,90,0.3); cursor: pointer; }
+  .dir-e .expanded-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .dir-e .expanded-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-e .expanded-event { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .dir-e .action-row { display: flex; gap: 8px; }
+  .dir-e .action-btn { flex: 1; padding: 11px 4px; border-radius: 12px; background: var(--primary); color: white; font-size: 12px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-e .action-btn.wa { background: #25D366; }
+  .dir-e .action-btn.outline { background: transparent; color: var(--text-muted); border: 1px solid var(--muted); }
+
+  /* ─── DIRECTION F: Acquittement State ─── */
+  .dir-f .phone { background: var(--bg); }
+  .dir-f .greeting { padding: 4px 20px 24px; }
+  .dir-f .greeting-line { font-family: 'Lora', serif; font-size: 18px; font-weight: 400; color: var(--text); line-height: 1.4; }
+  .dir-f .card-done { background: #EBF3EF; margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; border-left: 3px solid var(--secondary); }
+  .dir-f .card-done-row { display: flex; justify-content: space-between; align-items: center; }
+  .dir-f .card-done-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-f .card-done-label { font-size: 11px; color: var(--secondary); font-weight: 500; }
+  .dir-f .card-done-event { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .dir-f .card { background: var(--surface); margin: 0 12px 6px; border-radius: 14px; padding: 14px 16px; cursor: pointer; }
+  .dir-f .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .dir-f .card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .dir-f .card-event { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .dir-f .card-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+  .dir-f .prompt-sheet { background: var(--surface); margin: 16px 12px 0; border-radius: 20px; padding: 20px 16px; box-shadow: 0 -4px 24px rgba(44,38,32,0.10); }
+  .dir-f .prompt-text { font-family: 'Lora', serif; font-size: 15px; color: var(--text); text-align: center; margin-bottom: 16px; line-height: 1.4; }
+  .dir-f .prompt-name { font-weight: 600; color: var(--secondary); }
+  .dir-f .prompt-row { display: flex; gap: 8px; }
+  .dir-f .prompt-btn { flex: 1; padding: 12px; border-radius: 12px; background: var(--secondary); color: white; font-size: 13px; font-weight: 500; text-align: center; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; }
+  .dir-f .prompt-btn.dismiss { background: transparent; color: var(--text-muted); border: 1px solid var(--muted); }
+
+  .nav-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px 4px;
+    margin-top: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+
+  .nav-dot {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--muted);
+  }
+
+  .nav-dot.active {
+    background: var(--primary);
+  }
+
+  .nav-label {
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .nav-label.active {
+    color: var(--primary);
+  }
+
+  .nav-bar-dark .nav-dot { background: #3A3028; }
+  .nav-bar-dark .nav-dot.active { background: #C47B5A; }
+  .nav-bar-dark .nav-label { color: #4A3E38; }
+  .nav-bar-dark .nav-label.active { color: #C47B5A; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .status-bar-dark {
+    color: #4A3E38;
+  }
+
+  /* Comparison note */
+  .direction-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 0 4px;
+    line-height: 1.5;
+  }
+
+  .chosen-badge {
+    display: inline-block;
+    background: var(--secondary);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-muted);
+    text-align: center;
+    margin: 48px 0 24px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Spetaka — Design Directions</h1>
+<p class="subtitle">Daily view exploration · Warm neutral palette · Terracotta + Sage · DM Sans + Lora</p>
+
+<h2>Light Mode Directions</h2>
+
+<div class="directions-grid">
+
+  <!-- DIRECTION A: Clean Minimal -->
+  <div class="direction dir-a">
+    <div class="direction-label">Direction A</div>
+    <div class="direction-name">Clean Minimal — Inline Expansion</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-line">Two people could use<br>your warmth today, Laurus.</div>
+          <div class="greeting-sub">Thursday, 26 February</div>
+        </div>
+        <div class="section-label">Urgent · Today</div>
+        <div class="card-expanded">
+          <div class="expanded-name">Sophie</div>
+          <div class="expanded-event">Important appointment · in 2 days</div>
+          <div class="action-row">
+            <button class="action-btn">📞 Call</button>
+            <button class="action-btn">💬 SMS</button>
+            <button class="action-btn" style="background:#25D366;">🟢 WhatsApp</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Marc</div>
+              <div class="card-event">Birthday · today</div>
+            </div>
+            <div class="card-dot urgent"></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-label">Important · This week</div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in overdue · 5 days</div>
+            </div>
+            <div class="card-dot important"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Thomas</div>
+              <div class="card-event">Anniversary · in 3 days</div>
+            </div>
+            <div class="card-dot important"></div>
+          </div>
+        </div>
+        <div class="show-more">Show more ↓</div>
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-dot active"></div><div class="nav-label active">Today</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Friends</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Cleanest layout. Section labels add structure. Dot priority indicator is subtle. Expanded card stays in list context.</div>
+  </div>
+
+  <!-- DIRECTION B: Warm Cards with Photo -->
+  <div class="direction dir-b">
+    <div class="direction-label">Direction B</div>
+    <div class="direction-name">Warm Cards — Avatar + Badge</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-line">Two people could use<br>your warmth today, Laurus.</div>
+        </div>
+        <div class="card-expanded">
+          <div class="expanded-header">
+            <div class="expanded-avatar">S</div>
+            <div>
+              <div class="expanded-name">Sophie</div>
+              <div class="expanded-event">Important appointment · in 2 days</div>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="action-btn">📞 Call</button>
+            <button class="action-btn">💬 SMS</button>
+            <button class="action-btn wa">🟢 WhatsApp</button>
+          </div>
+          <div class="last-contact">Last contact 3 weeks ago — "before her exam"</div>
+        </div>
+        <div class="card">
+          <div class="card-inner">
+            <div class="avatar">M</div>
+            <div class="card-info">
+              <div class="card-name">Marc</div>
+              <div class="card-event">Birthday · today</div>
+            </div>
+            <div class="card-badge">Today</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-inner">
+            <div class="avatar sage">J</div>
+            <div class="card-info">
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in overdue · 5 days</div>
+            </div>
+            <div class="card-badge soon">5 days</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-inner">
+            <div class="avatar sage">T</div>
+            <div class="card-info">
+              <div class="card-name">Thomas</div>
+              <div class="card-event">Anniversary · in 3 days</div>
+            </div>
+            <div class="card-badge soon">3 days</div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-dot active"></div><div class="nav-label active">Today</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Friends</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Avatar initials make cards feel human immediately. Badge strips show urgency at a glance. Most visually rich direction.</div>
+  </div>
+
+  <!-- DIRECTION D: Sage-dominant -->
+  <div class="direction dir-d">
+    <div class="direction-label">Direction D</div>
+    <div class="direction-name">Sage-dominant — Grouped Sections</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-accent"></div>
+          <div class="greeting-line">Two people could use<br>your warmth today, Laurus.</div>
+        </div>
+        <div class="urgent-section">
+          <div class="urgent-label">Urgent</div>
+          <div class="card" style="margin: 0 0 6px; border-radius: 10px;">
+            <div class="card-row">
+              <div>
+                <div class="card-name">Sophie</div>
+                <div class="card-event">Important appointment · 2 days</div>
+              </div>
+              <div class="card-tag warm">2 days</div>
+            </div>
+          </div>
+          <div class="card" style="margin: 0; border-radius: 10px;">
+            <div class="card-row">
+              <div>
+                <div class="card-name">Marc</div>
+                <div class="card-event">Birthday · today</div>
+              </div>
+              <div class="card-tag warm">Today</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-expanded" style="margin-top: 8px;">
+          <div class="expanded-name">Sophie</div>
+          <div class="expanded-event">Important appointment · in 2 days</div>
+          <div class="action-row">
+            <button class="action-btn terra">📞 Call</button>
+            <button class="action-btn">💬 SMS</button>
+            <button class="action-btn wa">🟢</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 8px;">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in · 5 days overdue</div>
+            </div>
+            <div class="card-tag">5 days</div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-dot active"></div><div class="nav-label active">Today</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Friends</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Sage accent strip above greeting grounds the visual hierarchy. Grouped urgent section reinforces the 2+2 concept structurally.</div>
+  </div>
+
+  <!-- DIRECTION E: Full Card with days counter -->
+  <div class="direction dir-e">
+    <div class="direction-label">Direction E</div>
+    <div class="direction-name">Expressive Cards — Days Counter</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-line">Two people could use<br>your warmth today, Laurus.</div>
+        </div>
+        <div class="card-expanded">
+          <div class="expanded-top">
+            <div>
+              <div class="expanded-name">Sophie</div>
+              <div class="expanded-event">Important appointment · in 2 days</div>
+            </div>
+            <div style="text-align:right;"><div class="card-days">2</div><div class="card-days-label" style="color:#C47B5A;">days</div></div>
+          </div>
+          <div class="action-row">
+            <button class="action-btn">📞 Call</button>
+            <button class="action-btn">💬 SMS</button>
+            <button class="action-btn wa">🟢 WhatsApp</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-name">Marc</div>
+              <div class="card-event">Birthday · today</div>
+            </div>
+            <div><div class="card-days" style="font-size:16px;">0</div><div class="card-days-label">days</div></div>
+          </div>
+          <div class="card-bar"><div class="card-bar-fill" style="width:100%; background:#C47B5A;"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in overdue · 5 days</div>
+            </div>
+            <div><div class="card-days" style="font-size:16px; color:#7D9E8C;">+5</div><div class="card-days-label">overdue</div></div>
+          </div>
+          <div class="card-bar"><div class="card-bar-fill" style="width:60%; background:#7D9E8C;"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-name">Thomas</div>
+              <div class="card-event">Anniversary · in 3 days</div>
+            </div>
+            <div><div class="card-days" style="font-size:16px;">3</div><div class="card-days-label">days</div></div>
+          </div>
+          <div class="card-bar"><div class="card-bar-fill" style="width:40%;"></div></div>
+        </div>
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-dot active"></div><div class="nav-label active">Today</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Friends</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Large day counter gives visual depth. Progress bar shows urgency proportionally. Most expressive direction — more visual information per card.</div>
+  </div>
+
+</div>
+
+<h2>Acquittement & Dark Mode</h2>
+
+<div class="directions-grid">
+
+  <!-- DIRECTION F: Acquittement State -->
+  <div class="direction dir-f">
+    <div class="direction-label">Direction F</div>
+    <div class="direction-name">Acquittement State — Post-Action</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-line">Well done, Laurus.<br>Sophie is taken care of.</div>
+        </div>
+        <div class="card-done">
+          <div class="card-done-row">
+            <div>
+              <div class="card-done-name">Sophie</div>
+              <div class="card-done-event">Important appointment · reached out today</div>
+            </div>
+            <div class="card-done-label">✓ Done</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Marc</div>
+              <div class="card-event">Birthday · today</div>
+            </div>
+            <div class="card-dot"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in overdue · 5 days</div>
+            </div>
+            <div class="card-dot" style="background:#7D9E8C;"></div>
+          </div>
+        </div>
+        <div class="prompt-sheet">
+          <div class="prompt-text">Anyone else on your mind? <span class="prompt-name">Marc's birthday</span> is today.</div>
+          <div class="prompt-row">
+            <button class="prompt-btn">Reach out to Marc</button>
+            <button class="prompt-btn dismiss">Not now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Shows the post-acquittement state: Sophie's card turns sage-green, greeting adapts, gentle next-person prompt appears as bottom sheet. Coach tone throughout.</div>
+  </div>
+
+  <!-- DIRECTION C: Dark Mode -->
+  <div class="direction dir-c">
+    <div class="direction-label">Direction C</div>
+    <div class="direction-name">Dark Mode — Warm Brown Palette</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="status-bar status-bar-dark"><span style="color:#6B5E56;">9:41</span><span style="color:#6B5E56;">● ● ●</span></div>
+        <div class="greeting">
+          <div class="greeting-line">Two people could use<br>your warmth today, Laurus.</div>
+          <div class="greeting-sub" style="color:#4A3E38;">Thursday, 26 February</div>
+        </div>
+        <div class="section-label">Urgent · Today</div>
+        <div class="card-expanded">
+          <div class="expanded-name">Sophie</div>
+          <div class="expanded-event">Important appointment · in 2 days</div>
+          <div class="action-row">
+            <button class="action-btn">📞 Call</button>
+            <button class="action-btn msg">💬 SMS</button>
+            <button class="action-btn wa">🟢 WhatsApp</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Marc</div>
+              <div class="card-event">Birthday · today</div>
+            </div>
+            <div class="card-dot urgent"></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-label">Important · This week</div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Julie</div>
+              <div class="card-event">Check-in overdue · 5 days</div>
+            </div>
+            <div class="card-dot sage"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-name">Thomas</div>
+              <div class="card-event">Anniversary · in 3 days</div>
+            </div>
+            <div class="card-dot sage"></div>
+          </div>
+        </div>
+        <div class="show-more" style="color:#4A3E38;">Show more ↓</div>
+        <div class="nav-bar nav-bar-dark">
+          <div class="nav-item"><div class="nav-dot active"></div><div class="nav-label active">Today</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Friends</div></div>
+          <div class="nav-item"><div class="nav-dot"></div><div class="nav-label">Settings</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="direction-note">Dark mode using deep warm brown — not cold Android grey. Preserves the intimate, evening-reading quality. Terracotta and sage both work beautifully.</div>
+  </div>
+
+</div>
+
+<div style="max-width: 700px; margin: 48px auto 0; background: white; border-radius: 20px; padding: 28px 32px;">
+  <div style="font-family: 'Lora', serif; font-size: 16px; color: #2C2620; margin-bottom: 12px;">Token Reference</div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#FAF7F2;border:1px solid #C4B8B0;"></div>Background #FAF7F2</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#F5F1EC;border:1px solid #C4B8B0;"></div>Surface #F5F1EC</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#C47B5A;"></div>Terracotta #C47B5A</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#7D9E8C;"></div>Sage #7D9E8C</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#2C2620;"></div>Ink #2C2620</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#8C7B70;"></div>Muted #8C7B70</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#1E1A17;"></div>Dark bg #1E1A17</div>
+    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#8C7B70;"><div style="width:28px;height:28px;border-radius:50%;background:#2A2420;"></div>Dark surface #2A2420</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+name: spetaka
+description: "Spetaka — private friend relationship intelligence app."
+# Prevent accidental publish
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management — code-generated providers only (@riverpod annotation)
+  flutter_riverpod: ^3.2.1
+  riverpod_annotation: ^4.0.0
+
+  # Local persistence
+  drift: ^2.31.0
+  sqlite3_flutter_libs: ^0.5.0
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # Navigation
+  go_router: ^14.7.2
+
+  # Encryption
+  encrypt: ^5.0.3
+
+  # WebDAV sync
+  # Note: webdav_client latest stable is 1.2.2 (^3.0.1 from spec doesn't exist yet)
+  webdav_client: ^1.2.2
+
+  # Contacts
+  flutter_contacts: ^1.1.9+2
+
+  # External actions
+  url_launcher: ^6.3.1
+
+  # Utilities
+  uuid: ^4.5.1
+  shared_preferences: ^2.3.5
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code generation
+  riverpod_generator: ^4.0.0
+  drift_dev: ^2.31.0
+  build_runner: ^2.4.13
+
+  # Linting
+  flutter_lints: ^4.0.0
+  test: ^1.25.0
+
+flutter:
+  uses-material-design: true

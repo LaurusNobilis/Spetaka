@@ -1,0 +1,13 @@
+targets:
+  $default:
+    builders:
+      # Riverpod code generation — @riverpod annotations only
+      riverpod_generator:
+        options:
+          riverpod_version: 2
+
+      # Drift code generation
+      drift_dev:
+        options: {}
+
+    auto_apply_builders: true
