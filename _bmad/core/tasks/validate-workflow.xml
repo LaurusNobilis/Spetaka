@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+	Story validation task used by BMM create-story workflow.
+
+	NOTE: Despite the name "validate-workflow", this task validates a generated STORY
+	file against the create-story checklist and applies improvements when in YOLO.
+-->
+<task id="_bmad/core/tasks/validate-workflow.xml" name="Validate Story Context (Checklist)">
+	<objective>Validate and harden a generated story context file against the create-story checklist, preventing common LLM dev-agent mistakes.</objective>
+
+	<inputs>
+		<input name="story_file_path" required="true" desc="Path to the story markdown file to validate and improve" />
+		<input name="checklist_path" required="true" desc="Path to the checklist markdown used for validation" />
+		<input name="workflow_yaml_path" required="false" desc="Path to the workflow.yaml that produced the story (used to resolve variables and locate sources)" />
+		<input name="mode" required="false" default="#yolo" desc="'#yolo' to auto-apply improvements, otherwise interactive (critical/selected/none)" />
+	</inputs>
+
+	<llm critical="true">
+		<i>MANDATORY: Execute ALL steps in the flow section IN EXACT ORDER</i>
+		<i>DO NOT skip steps or change the sequence</i>
+		<i>HALT immediately when halt-conditions are met</i>
+		<i>Each action xml tag within step xml tag is a REQUIRED action to complete that step</i>
+
+		<i>You are an independent quality validator in a fresh context</i>
+		<i>Your purpose is to PREVENT LLM developer mistakes, omissions, or disasters</i>
+		<i>Prefer concrete, repo-specific guidance over generic advice</i>
+		<i>Do not invent new UX beyond the story scope; only clarify and harden requirements</i>
+
+		<i critical="true">When mode is '#yolo', apply ALL improvements directly to the story file so it reads as if it was perfect initially.</i>
+		<i critical="true">When mode is not '#yolo', present improvements and WAIT for user selection.</i>
+	</llm>
+
+	<flow>
+		<step n="1" title="Validate Inputs">
+			<action>Verify story_file_path is provided and points to a readable .md file</action>
+			<action>Verify checklist_path is provided and points to a readable .md file</action>
+			<action>If workflow_yaml_path is provided, verify it is readable</action>
+			<action if="story_file_path is missing OR unreadable">HALT with error: "Missing or unreadable story_file_path"</action>
+			<action if="checklist_path is missing OR unreadable">HALT with error: "Missing or unreadable checklist_path"</action>
+		</step>
+
+		<step n="2" title="Load Target Story and Checklist" critical="true">
+			<action>Load the full story markdown from story_file_path</action>
+			<action>Load the full checklist markdown from checklist_path</action>
+			<action>Extract metadata from the story file: story key, story id (epic.story), story title, Status line</action>
+			<action if="Status is missing">Record a critical issue: "Story Status missing (expected ready-for-dev)"</action>
+		</step>
+
+		<step n="3" title="Resolve Context (Optional)" optional="true">
+			<action>If workflow_yaml_path provided: load it and resolve variables for planning_artifacts and implementation_artifacts paths</action>
+			<action>Identify likely source documents for this story (epics, architecture, ux) based on resolved variables</action>
+			<action>If sources exist, load the minimal relevant sections for this story (do not skim: load the full file if unsure)</action>
+		</step>
+
+		<step n="4" title="Checklist-Based Gap Analysis" critical="true">
+			<action>Systematically check the story file against checklist expectations, looking for omissions and disaster risks</action>
+			<action>At minimum, evaluate these categories:
+				- Reinvention risks (existing code/utilities that should be reused)
+				- Wrong library/version risks
+				- Wrong file location / structure risks
+				- Regression risks (what could break)
+				- UX/spec alignment (inline vs snackbar, navigation expectations, touch targets)
+				- Testing requirements (what tests must exist / be updated)
+			</action>
+			<action>Produce three lists: Critical Issues (must fix), Enhancements (should add), Optimizations (nice to have)</action>
+		</step>
+
+		<step n="5" title="Apply Improvements">
+			<check if="mode == '#yolo'">
+				<action>Apply all Critical Issues, Enhancements, and Optimizations directly to the story markdown</action>
+				<action>Ensure the final story is coherent, scannable, and reads naturally (no meta commentary)</action>
+				<action>Ensure tasks are actionable and map to acceptance criteria</action>
+				<action>Ensure References cite concrete repo paths and upstream planning docs</action>
+				<action>Save the updated story back to story_file_path</action>
+			</check>
+
+			<check if="mode != '#yolo'">
+				<action>Present the findings lists to the user</action>
+				<action>Ask user which improvements to apply (all/critical/select/none/details)</action>
+				<action>Apply selected improvements and save story file</action>
+			</check>
+		</step>
+
+		<step n="6" title="Completion">
+			<action>Output a concise validation summary: counts of critical/enhancement/optimization changes, and confirmation the file is saved</action>
+			<action>Recommend next step: run dev-story for implementation</action>
+		</step>
+	</flow>
+
+	<halt-conditions>
+		<condition>HALT with error if story_file_path is missing or unreadable</condition>
+		<condition>HALT with error if checklist_path is missing or unreadable</condition>
+	</halt-conditions>
+
+</task>
