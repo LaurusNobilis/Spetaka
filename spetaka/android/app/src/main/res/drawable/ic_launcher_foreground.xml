@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Spetaka adaptive icon foreground — concentric circles (dev placeholder).
+  108dp canvas, icon safe zone 66dp centered.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- White ring -->
+    <item
+        android:bottom="24dp"
+        android:left="24dp"
+        android:right="24dp"
+        android:top="24dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <!-- Center dot -->
+    <item
+        android:bottom="40dp"
+        android:left="40dp"
+        android:right="40dp"
+        android:top="40dp">
+        <shape android:shape="oval">
+            <solid android:color="#1A1A1A" />
+        </shape>
+    </item>
+</layer-list>
