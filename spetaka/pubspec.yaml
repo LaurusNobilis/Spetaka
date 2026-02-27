@@ -39,6 +39,9 @@ dependencies:
   # External actions
   url_launcher: ^6.3.1
 
+  # Fonts
+  google_fonts: ^6.2.1
+
   # Utilities
   uuid: ^4.5.1
   shared_preferences: ^2.3.5

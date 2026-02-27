@@ -1,6 +1,6 @@
 # Story 1.4: App Shell, GoRouter Navigation & Design System
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -20,20 +20,20 @@ so that every feature screen has a consistent navigation framework and visual fo
 
 ## Tasks / Subtasks
 
-- [ ] Build app shell entrypoint (AC: 1)
-  - [ ] Wire `ProviderScope`
-  - [ ] Configure `MaterialApp.router`
-- [ ] Define router map and placeholders (AC: 2, 6)
-  - [ ] Implement route tree in `app_router.dart`
-  - [ ] Create placeholder screens for all declared routes
-- [ ] Implement theme foundation (AC: 3, 4, 7)
-  - [ ] Create tokens in `app_tokens.dart`
-  - [ ] Build light/dark theme from tokens in `app_theme.dart`
-- [ ] Add reusable UI states (AC: 5)
-  - [ ] Create loading and error shared widgets
-- [ ] Validate shell readiness (AC: 6)
-  - [ ] Run app boot smoke test
-  - [ ] Run `flutter analyze`
+- [x] Build app shell entrypoint (AC: 1)
+  - [x] Wire `ProviderScope`
+  - [x] Configure `MaterialApp.router`
+- [x] Define router map and placeholders (AC: 2, 6)
+  - [x] Implement route tree in `app_router.dart`
+  - [x] Create placeholder screens for all declared routes
+- [x] Implement theme foundation (AC: 3, 4, 7)
+  - [x] Create tokens in `app_tokens.dart`
+  - [x] Build light/dark theme from tokens in `app_theme.dart`
+- [x] Add reusable UI states (AC: 5)
+  - [x] Create loading and error shared widgets
+- [x] Validate shell readiness (AC: 6)
+  - [x] Run app boot smoke test
+  - [x] Run `flutter analyze`
 
 ## Dev Notes
 
@@ -57,16 +57,46 @@ so that every feature screen has a consistent navigation framework and visual fo
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6 (GitHub Copilot)
 
 ### Debug Log References
 
-- Story generated in yolo batch progression for Epic 1.
+- `AppTheme._build` initially called `GoogleFonts.dmSansTextTheme()` directly, triggering async
+  HTTP fetches in tests → moved to `AppTheme.loadFonts()` startup helper; theme build now uses
+  `TextStyle(fontFamily: AppTokens.fontBody)` — test-safe and production-correct.
+- `widget_test.dart` had pre-existing broken import (`main.dart` does not export `SpetakaApp`)
+  and unreachable text assertion (`MaterialApp.title` is OS-level, not rendered) → fixed both.
+- `Color.red`/`.blue` deprecated in Flutter 3.x → replaced with `.r`/`.b` float getters.
 
 ### Completion Notes List
 
-- Story 1.4 prepared in `ready-for-dev` format with explicit routing/theming guardrails.
+- AC1: `lib/app.dart` — `MaterialApp.router` + outer `ProviderScope` + `AppTheme.light/dark` wired (pre-existing, verified).
+- AC2: `lib/core/router/app_router.dart` — typed route tree with all 6 paths + `_PlaceholderScreen` (pre-existing, verified).
+- AC3: `lib/shared/theme/app_tokens.dart` — full token set: palette (calm/warm + dark brown), spacing, radius (14dp card), typography (DM Sans + Lora), motion (300ms easeInOutCubic).
+- AC4: `lib/shared/theme/app_theme.dart` — `AppTheme.light()` + `AppTheme.dark()` from tokens; `AppTheme.loadFonts()` startup helper.
+- AC5: `lib/shared/widgets/loading_widget.dart` + `app_error_widget.dart` — reusable loading/error state widgets.
+- AC6: Boot smoke test passes — `Daily` placeholder renders, app launches with no crash.
+- AC7: Dark theme uses `darkBackground: Color(0xFF1E1A17)` (deep warm brown) seeded through `ColorScheme.fromSeed(...).copyWith(surface: ...)` — cold grey avoided.
+- `google_fonts: ^6.2.1` added to `pubspec.yaml` (resolved to 6.3.3).
+- `lib/shared/shared.dart` barrel updated.
+- 25 new tests added; `widget_test.dart` fixed; 63/63 tests green; `flutter analyze` clean.
 
 ### File List
 
-- _bmad-output/implementation-artifacts/1-4-app-shell-gorouter-navigation-design-system.md
+- spetaka/lib/app.dart
+- spetaka/lib/core/router/app_router.dart
+- spetaka/lib/main.dart
+- spetaka/lib/shared/shared.dart
+- spetaka/lib/shared/theme/app_tokens.dart
+- spetaka/lib/shared/theme/app_theme.dart
+- spetaka/lib/shared/widgets/loading_widget.dart
+- spetaka/lib/shared/widgets/app_error_widget.dart
+- spetaka/pubspec.yaml
+- spetaka/test/unit/app_shell_theme_test.dart
+- spetaka/test/widget_test.dart
+
+### Change Log
+
+- 2026-02-27: Story 1.4 implemented — app shell shell verified, tokens + theme + shared widgets
+  created, google_fonts added, 25 tests written, widget_test.dart boot regression fixed,
+  63/63 tests green, flutter analyze clean. Status → review.

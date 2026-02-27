@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:spetaka/main.dart';
+import 'package:spetaka/app.dart';
 
 void main() {
   group('SpetakaApp — scaffold smoke tests', () {
@@ -22,7 +22,7 @@ void main() {
       expect(find.byType(MaterialApp), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('Placeholder screen contains Spetaka branding text (AC: 3)',
+    testWidgets('Placeholder daily-view screen is visible after boot (AC: 6)',
         (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
@@ -30,8 +30,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // App shell renders the placeholder with the app name
-      expect(find.textContaining('Spetaka'), findsWidgets);
+      // Root route renders the Daily placeholder — confirms navigation scaffold boots
+      expect(find.text('Daily'), findsAtLeastNWidgets(1));
     });
   });
 }

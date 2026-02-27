@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'features/app_shell/app_shell.dart';
+import 'app.dart';
+import 'shared/theme/app_theme.dart';
 
-void main() {
-  runApp(
-    const ProviderScope(
-      child: SpetakaApp(),
-    ),
-  );
-}
-
-class SpetakaApp extends ConsumerWidget {
-  const SpetakaApp({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return const AppShell();
-  }
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Pre-fetch DM Sans and Lora via google_fonts cache so the first frame
+  // already renders the correct typefaces.
+  await AppTheme.loadFonts();
+  runApp(const SpetakaApp());
 }
