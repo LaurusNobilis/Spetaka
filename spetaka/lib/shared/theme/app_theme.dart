@@ -18,12 +18,14 @@ abstract final class AppTheme {
   /// Pre-fetches DM Sans and Lora via google_fonts cache.
   /// Call once in `main()` before `runApp()`.
   static Future<void> loadFonts() async {
-    await Future.wait([
-      GoogleFonts.pendingFonts([
+    try {
+      await GoogleFonts.pendingFonts([
         GoogleFonts.dmSans(),
         GoogleFonts.lora(),
-      ]),
-    ]);
+      ]);
+    } catch (_) {
+      // Best-effort only: app startup must not fail if fonts cannot be fetched.
+    }
   }
 
   /// Light theme — warm cream palette.
@@ -35,7 +37,6 @@ abstract final class AppTheme {
         onPrimary: AppTokens.lightOnPrimary,
         secondary: AppTokens.lightSecondary,
         onSecondary: AppTokens.lightOnSecondary,
-        onBackground: AppTokens.lightOnBackground,
         onSurface: AppTokens.lightOnSurface,
         outline: AppTokens.lightOutline,
       );
@@ -51,7 +52,6 @@ abstract final class AppTheme {
         onPrimary: AppTokens.darkOnPrimary,
         secondary: AppTokens.darkSecondary,
         onSecondary: AppTokens.darkOnSecondary,
-        onBackground: AppTokens.darkOnBackground,
         onSurface: AppTokens.darkOnSurface,
         outline: AppTokens.darkOutline,
       );
@@ -64,7 +64,6 @@ abstract final class AppTheme {
     required Color onPrimary,
     required Color secondary,
     required Color onSecondary,
-    required Color onBackground,
     required Color onSurface,
     required Color outline,
   }) {
@@ -73,7 +72,7 @@ abstract final class AppTheme {
       brightness: brightness,
     ).copyWith(
       // Override seed-generated colours with our hand-crafted warm palette.
-      surface: background,
+      surface: surface,
       surfaceContainerLowest: background,
       surfaceContainerHighest: surface,
       primary: primary,
@@ -91,6 +90,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: background,
       fontFamily: AppTokens.fontBody,
       textTheme: textTheme,
       cardTheme: CardThemeData(
