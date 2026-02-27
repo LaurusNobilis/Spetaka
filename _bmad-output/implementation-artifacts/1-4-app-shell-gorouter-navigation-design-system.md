@@ -1,6 +1,6 @@
 # Story 1.4: App Shell, GoRouter Navigation & Design System
 
-Status: review
+Status: in-progress
 
 ## Story
 
@@ -34,6 +34,17 @@ so that every feature screen has a consistent navigation framework and visual fo
 - [x] Validate shell readiness (AC: 6)
   - [x] Run app boot smoke test
   - [x] Run `flutter analyze`
+
+### Review Follow-ups (AI)
+
+- [ ] [AI-Review][HIGH] AC5 mismatch: story requires `lib/shared/widgets/error_widget.dart`, but implementation uses `lib/shared/widgets/app_error_widget.dart` (either align filename/exports or update AC/spec) [spetaka/lib/shared/widgets/app_error_widget.dart:5-12] [_bmad-output/implementation-artifacts/1-4-app-shell-gorouter-navigation-design-system.md:17]
+- [ ] [AI-Review][HIGH] App startup blocks on runtime font fetching (`await AppTheme.loadFonts()`), which risks slow/cold-start and offline failure; prefer bundling fonts as assets or make prefetch best-effort (no await / guarded) [spetaka/lib/main.dart:6-11] [spetaka/lib/shared/theme/app_theme.dart:18-27]
+- [ ] [AI-Review][MEDIUM] `onBackground` is passed into `AppTheme._build` but never applied to the `ColorScheme`; additionally `colorScheme.surface` is set to `background`, which may break M3 semantics (surface vs background) [spetaka/lib/shared/theme/app_theme.dart:59-85]
+- [ ] [AI-Review][MEDIUM] “Typed route tree” is only partially delivered: `AppRoute` classes exist but are not integrated for nested paths/navigation helpers; consider aligning typed route contracts with future screen widgets [spetaka/lib/core/router/app_router.dart:4-89]
+- [ ] [AI-Review][MEDIUM] Epic spec names placeholder screens (DailyViewScreen/FriendsListScreen/etc) but implementation uses `_PlaceholderScreen` titles only; decide whether to introduce named placeholder widgets to stabilize downstream imports [spetaka/lib/core/router/app_router.dart:56-108]
+- [ ] [AI-Review][MEDIUM] Dev Agent Record File List is incomplete vs git: `spetaka/pubspec.lock` changed in the implementation commit but is not listed here; add it for auditability [git show f0f6da6] [_bmad-output/implementation-artifacts/1-4-app-shell-gorouter-navigation-design-system.md:84-96]
+- [ ] [AI-Review][LOW] Route tests assert route presence but not navigability/expected placeholder titles per route; add navigation tests for `/friends/new`, `/settings/sync`, etc [spetaka/test/unit/app_shell_theme_test.dart:92-133]
+- [ ] [AI-Review][LOW] Widget smoke tests wrap `SpetakaApp` in an extra `ProviderScope` even though the app already provides one; this can mask provider-scope mistakes [spetaka/test/widget_test.dart:16-31] [spetaka/lib/app.dart:12-20]
 
 ## Dev Notes
 
@@ -92,6 +103,7 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - spetaka/lib/shared/widgets/loading_widget.dart
 - spetaka/lib/shared/widgets/app_error_widget.dart
 - spetaka/pubspec.yaml
+- spetaka/pubspec.lock
 - spetaka/test/unit/app_shell_theme_test.dart
 - spetaka/test/widget_test.dart
 
@@ -100,3 +112,25 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - 2026-02-27: Story 1.4 implemented — app shell shell verified, tokens + theme + shared widgets
   created, google_fonts added, 25 tests written, widget_test.dart boot regression fixed,
   63/63 tests green, flutter analyze clean. Status → review.
+
+## Senior Developer Review (AI)
+
+Reviewer: Laurus · Date: 2026-02-27
+
+Outcome: Changes requested (action items added; no auto-fix applied)
+
+Summary:
+- Git vs story discrepancies: 1 (pubspec.lock changed but missing from File List prior to this review)
+- Issues found: 2 High, 4 Medium, 2 Low
+
+AC validation (against repo state at commit `f0f6da6`):
+- AC1: IMPLEMENTED (ProviderScope + MaterialApp.router) [spetaka/lib/app.dart:12-20]
+- AC2: IMPLEMENTED (route tree paths + placeholder titles) [spetaka/lib/core/router/app_router.dart:56-108]
+- AC3: IMPLEMENTED (palette/spacing/radius/typography families/motion durations present) [spetaka/lib/shared/theme/app_tokens.dart]
+- AC4: IMPLEMENTED (ThemeData from tokens) [spetaka/lib/shared/theme/app_theme.dart:29-110]
+- AC5: PARTIAL (error widget exists but filename in AC/spec mismatches) [spetaka/lib/shared/widgets/app_error_widget.dart:5-12] [_bmad-output/implementation-artifacts/1-4-app-shell-gorouter-navigation-design-system.md:17]
+- AC6: IMPLEMENTED (analyze clean; tests green; daily placeholder renders) [spetaka/test/widget_test.dart:25-35]
+- AC7: IMPLEMENTED (warm dark background token used) [spetaka/lib/shared/theme/app_tokens.dart]
+
+Notes:
+- No external doc search performed; review relies on in-repo specs (epics/architecture/UX) and code.
