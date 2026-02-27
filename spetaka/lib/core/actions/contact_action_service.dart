@@ -39,7 +39,7 @@ class ContactActionService {
       _lifecycleService.setPendingFriendId(friendId);
     }
     final uri = Uri.parse('tel:$e164');
-    if (!await launchUrl(uri)) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       // Rollback pending state — launch failed so the user never left the app.
       if (friendId != null) {
         _lifecycleService.setPendingFriendId(null);
@@ -55,7 +55,7 @@ class ContactActionService {
       _lifecycleService.setPendingFriendId(friendId);
     }
     final uri = Uri.parse('sms:$e164');
-    if (!await launchUrl(uri)) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (friendId != null) {
         _lifecycleService.setPendingFriendId(null);
       }
@@ -73,7 +73,7 @@ class ContactActionService {
       _lifecycleService.setPendingFriendId(friendId);
     }
     final uri = Uri.parse('https://wa.me/$digitsOnly');
-    if (!await launchUrl(uri)) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (friendId != null) {
         _lifecycleService.setPendingFriendId(null);
       }

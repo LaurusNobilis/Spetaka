@@ -26,10 +26,17 @@ class AppLifecycleService with WidgetsBindingObserver {
   String? _pendingFriendId;
 
   final _controller = StreamController<String?>.broadcast();
+  final _lifecycleController = StreamController<AppLifecycleState>.broadcast();
 
   /// Emits the pending friend ID each time the app resumes and a friend ID is
   /// set.  Emits `null` when there is nothing pending (cleared state).
   Stream<String?> get pendingAcquittementFriendId => _controller.stream;
+
+  /// Emits raw lifecycle events for cross-cutting services.
+  ///
+  /// Other services must NOT implement [WidgetsBindingObserver]; they should
+  /// subscribe here instead.
+  Stream<AppLifecycleState> get lifecycleStates => _lifecycleController.stream;
 
   /// Stores [friendId] as the next acquittement candidate.
   /// Pass `null` to clear (e.g. on rollback).
@@ -42,6 +49,7 @@ class AppLifecycleService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycleController.add(state);
     if (state == AppLifecycleState.resumed) {
       // Emit even if null so listeners can react to app resumes.
       _controller.add(_pendingFriendId);
@@ -55,6 +63,9 @@ class AppLifecycleService with WidgetsBindingObserver {
     _binding.removeObserver(this);
     if (!_controller.isClosed) {
       _controller.close();
+    }
+    if (!_lifecycleController.isClosed) {
+      _lifecycleController.close();
     }
   }
 }

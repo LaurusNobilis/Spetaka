@@ -1,15 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:encrypt/encrypt.dart' as encrypt_pkg;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../errors/app_error.dart';
+import '../lifecycle/app_lifecycle_service.dart';
 
-class EncryptionService with WidgetsBindingObserver {
+class EncryptionService {
   static const String saltPrefsKey = 'spetaka_pbkdf2_salt';
 
   static const int _pbkdf2Iterations = 100000;
@@ -20,13 +23,15 @@ class EncryptionService with WidgetsBindingObserver {
 
   static final Random _secureRandom = Random.secure();
 
-  final WidgetsBinding _binding;
+  final AppLifecycleService _lifecycleService;
+  StreamSubscription<AppLifecycleState>? _lifecycleSub;
 
   Uint8List? _keyBytes;
-  bool _isObserverAttached = false;
 
-  EncryptionService({WidgetsBinding? widgetsBinding})
-      : _binding = widgetsBinding ?? WidgetsBinding.instance;
+  EncryptionService({required AppLifecycleService lifecycleService})
+      : _lifecycleService = lifecycleService {
+    _lifecycleSub = _lifecycleService.lifecycleStates.listen(_onLifecycleState);
+  }
 
   Future<void> initialize(String passphrase) async {
     final passwordBytes = Uint8List.fromList(utf8.encode(passphrase));
@@ -41,12 +46,6 @@ class EncryptionService with WidgetsBindingObserver {
       );
 
       _setKeyBytes(derivedKey);
-
-      if (!_isObserverAttached) {
-        // TODO(1.5): replace with AppLifecycleService once Story 1.5 is implemented.
-        _binding.addObserver(this);
-        _isObserverAttached = true;
-      }
     } catch (e, st) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -152,15 +151,12 @@ class EncryptionService with WidgetsBindingObserver {
   }
 
   void dispose() {
-    if (_isObserverAttached) {
-      _binding.removeObserver(this);
-      _isObserverAttached = false;
-    }
+    _lifecycleSub?.cancel();
+    _lifecycleSub = null;
     clearKey();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void _onLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||

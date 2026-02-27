@@ -36,9 +36,13 @@ class PhoneNormalizer {
 
     // Reject any character that is not a digit or a leading '+'.
     if (RegExp(r'[^+\d]').hasMatch(stripped)) {
-      throw PhoneNormalizationAppError(
-        'invalid_characters: "${stripped.replaceAll(RegExp(r'[^+\d]'), '*')}"',
-      );
+      // Do not include the raw number (PII) in error details.
+      throw const PhoneNormalizationAppError('invalid_characters');
+    }
+
+    // '+' is only valid as the very first character.
+    if (stripped.contains('+') && !stripped.startsWith('+')) {
+      throw const PhoneNormalizationAppError('misplaced_plus');
     }
 
     // Already E.164 — starts with '+' followed by digits only.
@@ -56,6 +60,7 @@ class PhoneNormalizer {
     }
 
     // Pure digits but unrecognisable format.
-    throw PhoneNormalizationAppError('unrecognized_format: "$stripped"');
+    // Do not include the raw number (PII) in error details.
+    throw const PhoneNormalizationAppError('unrecognized_format');
   }
 }

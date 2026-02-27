@@ -1,6 +1,6 @@
 # Story 1.5: Core Utilities — AppLifecycle, PhoneNormalizer & ContactActionService
 
-Status: review
+Status: done
 
 ## Story
 
@@ -127,11 +127,41 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - spetaka/lib/core/lifecycle/app_lifecycle_service.dart (new)
 - spetaka/lib/core/lifecycle/app_lifecycle_service.g.dart (generated)
 - spetaka/lib/core/core.dart (modified — alphabetically sorted exports, added actions + lifecycle)
+- spetaka/lib/core/encryption/encryption_service.dart (modified — lifecycle observer centralized via AppLifecycleService)
+- spetaka/lib/core/encryption/encryption_service_provider.dart (modified — inject AppLifecycleService)
 - spetaka/test/unit/phone_normalizer_test.dart (new)
 - spetaka/test/unit/core_utilities_test.dart (new)
+- spetaka/test/unit/encryption_service_test.dart (modified — inject AppLifecycleService)
 - _bmad-output/implementation-artifacts/1-5-core-utilities-applifecycle-phonenormalizer-contactactionservice.md (this file)
 - _bmad-output/implementation-artifacts/sprint-status.yaml (modified)
+
+## Senior Developer Review (AI)
+
+Date: 2026-02-27
+Outcome: Approved (changes applied)
+
+### Findings
+
+**HIGH** — Architecture/AC violation: `WidgetsBindingObserver` was used outside `AppLifecycleService`.
+- Evidence: `lib/core/encryption/encryption_service.dart` implemented `WidgetsBindingObserver` (Story 1.3 legacy TODO).
+- Risk: Violates AC1 / architecture guardrail (single lifecycle observer), increases lifecycle side-effects and makes reasoning harder.
+- Fix applied: Centralized lifecycle events in `AppLifecycleService` (`lifecycleStates` stream) and refactored `EncryptionService` to subscribe instead of observing.
+
+**MEDIUM** — Potential PII leak in error reasons.
+- Evidence: `PhoneNormalizer` embedded raw digits in `PhoneNormalizationAppError.reason` for some cases.
+- Risk: Error reasons may end up in logs/debug output; phone numbers are sensitive.
+- Fix applied: Replaced reasons with non-PII stable codes (`invalid_characters`, `misplaced_plus`, `unrecognized_format`).
+
+**MEDIUM** — External action launch mode not forced.
+- Evidence: `launchUrl(uri)` used with default mode; `https://wa.me/...` may open in a webview/browser rather than the target app.
+- Fix applied: Use `LaunchMode.externalApplication` for `tel:`, `sms:`, and `wa.me` launches.
+
+### Verification
+
+- `flutter analyze` clean.
+- `flutter test` green (94/94).
 
 ## Change Log
 
 - 2026-02-27: Story 1.5 implemented — AppLifecycleService, PhoneNormalizer, ContactActionService; 25 new tests; 94/94 green; flutter analyze clean → review
+- 2026-02-27: Code review fixes applied — centralize lifecycle observer; prevent PII in phone errors; force external launch mode; tests updated → done
