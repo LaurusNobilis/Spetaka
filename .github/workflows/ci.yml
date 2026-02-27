@@ -76,7 +76,7 @@ jobs:
       # ── Build release APK (AC: 1, 2) ─────────────────────────────────────
       - name: Build release APK
         working-directory: spetaka
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64
 
       # ── Upload APK artifact (AC: 5) ───────────────────────────────────────
       - name: Upload APK
