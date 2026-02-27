@@ -7,6 +7,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/acquittement/domain/acquittement.dart';
+import '../../features/friends/domain/friend.dart';
 import 'daos/acquittement_dao.dart';
 import 'daos/event_dao.dart';
 import 'daos/friend_dao.dart';
@@ -16,13 +18,18 @@ part 'app_database.g.dart';
 
 /// Central Drift database for Spetaka.
 ///
-/// Tables are intentionally empty at this stage (Story 1.2 scaffold).
-/// Each future story / epic will add its own table definitions and extend
-/// the matching DAO.
+/// Tables are added story-by-story. Each epic introduces its table definitions
+/// + the corresponding DAO methods.
 ///
-/// Timestamps will be stored as Unix-epoch milliseconds (INT) throughout
-/// the schema to keep SQL comparisons simple and timezone-independent.
-@DriftDatabase(daos: [FriendDao, EventDao, AcquittementDao, SettingsDao])
+/// Timestamps are stored as Unix-epoch milliseconds (INT) throughout the
+/// schema to keep SQL comparisons simple and timezone-independent.
+@DriftDatabase(
+  tables: [
+    Friends, // Story 1.7 — field encryption infrastructure
+    Acquittements, // Story 1.7 — field encryption infrastructure
+  ],
+  daos: [FriendDao, EventDao, AcquittementDao, SettingsDao],
+)
 class AppDatabase extends _$AppDatabase {
   /// Primary constructor.  If [executor] is omitted the production on-disk
   /// database is opened via [_openConnection].  Pass a [NativeDatabase.memory()]
@@ -30,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -39,9 +46,12 @@ class AppDatabase extends _$AppDatabase {
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
-          // Future migrations go here as new epics introduce tables.
-          // Example pattern (not yet needed):
-          //   if (from < 2) { await m.addColumn(friends, friends.someNewColumn); }
+          // Story 1.7 — v1→v2: introduce friends and acquittements tables.
+          if (from < 2) {
+            await m.createTable(friends);
+            await m.createTable(acquittements);
+          }
+          // Add future migrations here as new columns/tables are introduced.
         },
         beforeOpen: (details) async {
           // Enable foreign-key enforcement on every connection open.

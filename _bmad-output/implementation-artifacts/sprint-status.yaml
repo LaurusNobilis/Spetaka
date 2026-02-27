@@ -47,7 +47,7 @@ development_status:
   1-4-app-shell-gorouter-navigation-design-system: done
   1-5-core-utilities-applifecycle-phonenormalizer-contactactionservice: done
   1-6-github-actions-ci-cd-pipeline: done
-  1-7-sensitive-field-encryption-at-repository-layer-nfr6: ready-for-dev
+  1-7-sensitive-field-encryption-at-repository-layer-nfr6: review
   epic-1-retrospective: optional
 
   epic-2: in-progress

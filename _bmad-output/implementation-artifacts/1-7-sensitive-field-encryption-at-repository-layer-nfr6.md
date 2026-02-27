@@ -1,6 +1,6 @@
 # Story 1.7: Sensitive Field Encryption at Repository Layer (NFR6)
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -8,60 +8,147 @@ As a developer,
 I want sensitive narrative fields encrypted before writing to SQLite and transparently decrypted on read,
 so that NFR6 (data encrypted at rest) is satisfied without SQLCipher by relying on `EncryptionService` at repository layer.
 
+## Prerequisites / Dependencies
+
+- Story 1.3 is implemented (AES-256-GCM + PBKDF2) and `EncryptionService` is available via Riverpod.
+- The Drift tables/DAOs that contain the sensitive fields exist:
+  - `friends.notes` + `friends.concern_note` (introduced in Epic 2 Story 2.1)
+  - `acquittements.note` (introduced in Epic 5 Story 5.3)
+
+This story is intentionally repository-scoped: it does not define SQL schema by itself, but it must be implemented as soon as the above tables are introduced so that narrative fields are never persisted as plaintext.
+
 ## Acceptance Criteria
 
-1. With active in-memory key from Story 1.3, repository writes encrypt `friends.notes`, `friends.concern_note`, and `acquittements.note` before DAO persistence.
-2. Repository reads decrypt these fields before returning to providers/widgets.
-3. Non-sensitive fields remain plaintext (`friends.name`, `friends.mobile`, `friends.tags`, and other non-narrative fields).
-4. Encryption logic is centralized in repositories; DAOs remain storage-focused and encryption-agnostic.
-5. Decryption failure (e.g., missing session key) raises typed `AppError.sessionExpired`.
-6. `flutter test test/repositories/field_encryption_test.dart` passes with roundtrip checks, ciphertext-at-rest checks, and session-expired behavior.
+1. **Write path (encryption):**
+   - **Given** `EncryptionService` has an active in-memory derived key
+   - **When** a repository persists a record containing sensitive narrative text
+   - **Then** the repository encrypts `friends.notes`, `friends.concern_note`, and `acquittements.note` via `EncryptionService.encrypt()` before calling the Drift DAO.
+
+2. **Read path (decryption):**
+   - **Given** ciphertext is stored in SQLite for the fields above
+   - **When** a repository loads records from the DAO
+   - **Then** the repository decrypts those fields via `EncryptionService.decrypt()` before returning objects to providers/widgets.
+   - **And** no widget/provider ever receives ciphertext for these fields.
+
+3. **Plaintext fields remain plaintext:**
+   - **Given** the friend model includes both narrative and non-narrative fields
+   - **When** repositories write to SQLite
+   - **Then** non-sensitive fields remain plaintext (at minimum: `friends.name`, `friends.mobile`, `friends.tags`, `friends.care_score`, `friends.is_concern_active`, timestamps), preserving search/sort/phone number operations.
+
+4. **Strict layering:**
+   - **Given** the architecture repository pattern
+   - **When** encryption is implemented
+   - **Then** encryption/decryption logic lives in repositories only.
+   - **And** Drift DAOs remain encryption-agnostic and only deal with stored values.
+
+5. **Failure behavior is typed and consistent with current error system:**
+   - **Given** `EncryptionService` has no key (not initialized, or key cleared on background)
+   - **When** a repository attempts to encrypt/decrypt a sensitive field
+   - **Then** a typed `AppError` is thrown:
+     - missing key → `EncryptionNotInitializedAppError`
+     - decrypt/auth failure → `DecryptionFailedAppError`
+     - corrupted/invalid ciphertext format → `CiphertextFormatAppError`
+   - **And** repositories do not swallow these errors; UI messaging comes from `error_messages.dart`.
+
+6. **Repository tests cover roundtrip + ciphertext-at-rest:**
+   - `flutter test test/repositories/field_encryption_test.dart` passes and includes:
+     - Write a Friend with non-empty `notes` and/or `concernNote` → read back via repository → plaintext matches original
+     - Inspect the raw value as stored by the DAO → confirms stored value is NOT equal to the original plaintext
+     - Write an Acquittement with non-empty `note` → read back via repository → plaintext matches original
+     - Attempt read/write without initializing `EncryptionService` → throws `EncryptionNotInitializedAppError`
 
 ## Tasks / Subtasks
 
-- [ ] Wire repository-level encryption on write (AC: 1, 3, 4)
-  - [ ] Update friend repository mapping for narrative fields
-  - [ ] Update acquittement repository mapping for note field
-- [ ] Wire repository-level decryption on read (AC: 2, 4)
-  - [ ] Decrypt before returning domain entities/UI models
-- [ ] Implement failure handling (AC: 5)
-  - [ ] Raise `AppError.sessionExpired` when key not available or decrypt fails
-- [ ] Add repository tests (AC: 6)
-  - [ ] Validate encrypted persistence (not plaintext)
-  - [ ] Validate successful decrypt roundtrip
-  - [ ] Validate session-expired path
+- [x] Add repository-level encryption on write (AC: 1, 3, 4)
+  - [x] `FriendRepository`: encrypt narrative fields before calling DAO insert/update
+  - [x] `AcquittementRepository`: encrypt `note` before calling DAO insert
+
+- [x] Add repository-level decryption on read (AC: 2, 4)
+  - [x] `FriendRepository`: decrypt narrative fields before returning entities to providers
+  - [x] `AcquittementRepository`: decrypt `note` before returning entities/rows
+
+- [x] Implement typed failure handling (AC: 5)
+  - [x] Ensure missing-key errors propagate as `EncryptionNotInitializedAppError`
+  - [x] Ensure invalid ciphertext propagates as `CiphertextFormatAppError`
+  - [x] Ensure decrypt/auth errors propagate as `DecryptionFailedAppError`
+
+- [x] Add repository tests (AC: 6)
+  - [x] Use Drift in-memory database fixture (`NativeDatabase.memory()`)
+  - [x] Use the same `EncryptionService` test patterns as `test/unit/encryption_service_test.dart` (SharedPreferences mock + real `AppLifecycleService`)
+  - [x] Assert ciphertext-at-rest by querying DAO-stored values (not repository-mapped values)
 
 ## Dev Notes
 
 - Do not move encryption logic into Drift DAOs.
+- Follow the architecture pathing: repositories live under `lib/features/{feature}/` and DAOs under `lib/core/database/daos/`.
+- Keep ciphertext format opaque to callers (treat as `String`); do not parse or re-encode it outside `EncryptionService`.
 - Preserve search/sort behavior by keeping designated fields plaintext.
 - Keep conversion boundaries explicit to avoid accidental plaintext exposure.
 
-### Project Structure Notes
+### Expected File Targets (non-exhaustive)
 
-- Repository implementations own encryption/decryption orchestration.
-- Database layer remains unchanged except for receiving stored values.
+- `lib/features/friends/friend_repository.dart`
+- `lib/features/acquittement/acquittement_repository.dart`
+- `test/repositories/field_encryption_test.dart`
 
 ### References
 
 - Source: `_bmad-output/planning-artifacts/epics.md` — Epic 1, Story 1.7.
-- Source: `_bmad-output/planning-artifacts/architecture.md` — repository layering requirements.
-- Source: `_bmad-output/planning-artifacts/prd.md` — NFR6 data-at-rest requirements.
+- Source: `_bmad-output/planning-artifacts/architecture.md` — “Repository Pattern”, “Error Handling Patterns”, “Test Patterns”.
+- Source: `_bmad-output/planning-artifacts/prd.md` — NFR6.
 
 ## Dev Agent Record
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6 (GitHub Copilot)
 
 ### Debug Log References
 
-- Story generated in yolo batch progression for Epic 1.
+- Story executed 2026-02-27 in YOLO mode.
+- `schemaVersion` bumped from 1 → 2; existing `database_foundation_test.dart` test updated accordingly.
+- `Insertable<T>` used in DAO signatures (vs hardcoded companion class names) to avoid Drift companion name ambiguity.
+- Drift requires tables listed in both `@DriftAccessor(tables: [...])` AND `@DriftDatabase(tables: [...])` — warning triggered on first build_runner run; resolved by adding `Friends` and `Acquittements` to `@DriftDatabase`.
+- Companion class for `Acquittements` table is `AcquittementsCompanion` (confirmed from generated code).
 
 ### Completion Notes List
 
-- Story 1.7 prepared with explicit NFR6 guardrails and tests.
+- `lib/features/friends/domain/friend.dart` — `Friends` Drift table class; schema aligned with Epic 2 Story 2.1 spec; `notes` and `concernNote` columns annotated as ENCRYPTED.
+- `lib/features/acquittement/domain/acquittement.dart` — `Acquittements` Drift table class; minimal schema for Story 1.7 encryption infrastructure; `note` column annotated as ENCRYPTED.
+- `lib/core/database/daos/friend_dao.dart` — updated with `Friends` table reference, CRUD queries (`insertFriend`, `findById`, `watchAll`, `updateFriend`, `deleteFriend`, `selectAll`); encryption-agnostic.
+- `lib/core/database/daos/acquittement_dao.dart` — updated with `Acquittements` table reference, CRUD queries (`insertAcquittement`, `findById`, `selectByFriendId`, `watchAll`); encryption-agnostic.
+- `lib/core/database/app_database.dart` — `@DriftDatabase(tables: [Friends, Acquittements], daos: [...])` added; `schemaVersion` bumped to 2; v1→v2 migration creates both tables.
+- `lib/features/friends/data/friend_repository.dart` — `FriendRepository`: encrypts `notes`+`concernNote` on write via `_toEncryptedCompanion`; decrypts on read via `_decryptRow`; propagates typed `AppError` on key/crypto failures (AC1–5).
+- `lib/features/acquittement/data/acquittement_repository.dart` — `AcquittementRepository`: encrypts `note` on write; decrypts on read; plaintext fields `friendId`, `type`, `createdAt` pass through unchanged (AC1–5).
+- `test/repositories/field_encryption_test.dart` — 18 tests across 4 groups: Friend roundtrip, Friend ciphertext-at-rest, Acquittement roundtrip, typed error propagation; all 18 pass.
+- `test/unit/database_foundation_test.dart` — updated `schemaVersion` assertion from 1 → 2.
+- Codegen: `lib/core/database/daos/friend_dao.g.dart`, `lib/core/database/daos/acquittement_dao.g.dart`, `lib/core/database/app_database.g.dart` regenerated.
+- 112/112 tests green; `flutter analyze` clean.
+
+### Implementation Plan
+
+- **Drift Domain Tables**: Defined `Friends` and `Acquittements` Dart table classes in feature domain directories per architecture spec (`lib/features/{name}/domain/`). Tables are imported by `AppDatabase` for `@DriftDatabase` and by DAOs for `@DriftAccessor`.
+- **Encryption boundary**: Encryption/decryption logic lives exclusively in `FriendRepository._toEncryptedCompanion()` / `_decryptRow()` and `AcquittementRepository._toEncryptedCompanion()` / `_decryptRow()`. DAOs receive raw values and are encryption-agnostic (AC4).
+- **Error propagation**: `EncryptionService.encrypt()` throws `EncryptionNotInitializedAppError` if key is null; `decrypt()` throws `DecryptionFailedAppError` on GCM auth failure and `CiphertextFormatAppError` on format corruption. Repositories let these propagate unwrapped (AC5).
+- **Null-safe handling**: `null` narrative fields are stored as SQL NULL (not encrypted); repository skips encryption/decryption for null values, preserving round-trip nullability.
+- **Non-sensitive fields**: `name`, `mobile`, `careScore`, `isConcernActive`, `friendId`, `type`, timestamps — all stored as plaintext (AC3). Verified by direct DAO reads in test group 2.
 
 ### File List
 
-- _bmad-output/implementation-artifacts/1-7-sensitive-field-encryption-at-repository-layer-nfr6.md
+- `spetaka/lib/features/friends/domain/friend.dart` (new)
+- `spetaka/lib/features/acquittement/domain/acquittement.dart` (new)
+- `spetaka/lib/core/database/daos/friend_dao.dart` (modified)
+- `spetaka/lib/core/database/daos/acquittement_dao.dart` (modified)
+- `spetaka/lib/core/database/app_database.dart` (modified)
+- `spetaka/lib/features/friends/data/friend_repository.dart` (new)
+- `spetaka/lib/features/acquittement/data/acquittement_repository.dart` (new)
+- `spetaka/lib/core/database/daos/friend_dao.g.dart` (regenerated)
+- `spetaka/lib/core/database/daos/acquittement_dao.g.dart` (regenerated)
+- `spetaka/lib/core/database/app_database.g.dart` (regenerated)
+- `spetaka/test/repositories/field_encryption_test.dart` (new)
+- `spetaka/test/unit/database_foundation_test.dart` (modified — schema version assertion)
+- `_bmad-output/implementation-artifacts/1-7-sensitive-field-encryption-at-repository-layer-nfr6.md` (this file)
+
+### Change Log
+
+- 2026-02-27: Story 1.7 implemented — repository-layer field encryption (NFR6). Created `Friends` + `Acquittements` Drift tables, updated DAOs + AppDatabase (schemaVersion 2), implemented `FriendRepository` + `AcquittementRepository` with AES-256-GCM encryption at boundary, 18 new tests all passing, 112/112 total green.
