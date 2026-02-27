@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
 
@@ -103,18 +104,6 @@ class DailyViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const _PlaceholderScreen(title: 'Daily');
-  }
-}
-
-
-class FriendCardScreen extends StatelessWidget {
-  const FriendCardScreen({super.key, required this.id});
-
-  final String id;
-
-  @override
-  Widget build(BuildContext context) {
-    return _PlaceholderScreen(title: 'Friend $id');
   }
 }
 

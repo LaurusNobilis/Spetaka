@@ -13,7 +13,7 @@ import '../../../core/encryption/encryption_service.dart';
 ///   - [Friend.concernNote] → `friends.concern_note` column
 ///
 /// Plaintext fields (never encrypted; required for search/sort/phone ops):
-///   - name, mobile, careScore, isConcernActive, createdAt, updatedAt
+///   - name, mobile, tags, careScore, isConcernActive, createdAt, updatedAt
 ///
 /// Drift DAOs are encryption-agnostic; they receive and return raw stored
 /// string values (ciphertext for sensitive fields, plaintext for others).
@@ -85,6 +85,7 @@ class FriendRepository {
       id: Value(friend.id),
       name: Value(friend.name),
       mobile: Value(friend.mobile),
+      tags: Value(friend.tags),
       notes: Value(encNotes),
       careScore: Value(friend.careScore),
       isConcernActive: Value(friend.isConcernActive),

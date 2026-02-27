@@ -4,8 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 // ignore_for_file: directives_ordering
+import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/encryption/encryption_service.dart';
+import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
+import 'package:spetaka/features/friends/data/friend_repository.dart';
+import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/shared/theme/app_tokens.dart';
 import 'package:spetaka/shared/theme/app_theme.dart';
@@ -184,12 +190,55 @@ void main() {
 
     testWidgets('can navigate to /friends/:id (Friend <id>)', (tester) async {
       final router = createAppRouter();
-      await pumpAppWithRouter(tester, router, stubFriendsList: true);
+      SharedPreferences.setMockInitialValues({});
+      final db = AppDatabase(NativeDatabase.memory());
+      final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+      final enc = EncryptionService(lifecycleService: lifecycle);
+      await enc.initialize('spetaka-router-test-pass');
+      final repo = FriendRepository(db: db, encryptionService: enc);
 
       const id = 'abc-123';
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await repo.insert(
+        Friend(
+          id: id,
+          name: 'Friend $id',
+          mobile: '+33600000000',
+          tags: null,
+          notes: null,
+          careScore: 0.0,
+          isConcernActive: false,
+          concernNote: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            friendRepositoryProvider.overrideWithValue(repo),
+            allFriendsProvider.overrideWith(
+              (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+          ],
+          child: MaterialApp.router(
+            theme: AppTheme.light(),
+            routerConfig: router,
+          ),
+        ),
+      );
+
       router.go(const FriendDetailRoute(id).location);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
+
       expect(find.text('Friend $id'), findsAtLeastNWidgets(1));
+
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
     });
 
     testWidgets('can navigate to /settings (Settings)', (tester) async {

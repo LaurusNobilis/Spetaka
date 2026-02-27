@@ -9,6 +9,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
 import '../data/friend_repository_provider.dart';
+import '../domain/friend_tags_codec.dart';
 
 /// Add Friend screen — contact import + manual entry (Stories 2.1 & 2.2).
 ///
@@ -40,6 +41,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   bool _isLoading = false;
 
   bool _isManualFormVisible = false;
+  final Set<String> _selectedTags = <String>{};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
@@ -160,6 +162,9 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   void _showManualForm({String? prefillName, String? prefillMobile}) {
     if (!mounted) return;
     setState(() {
+      if (!_isManualFormVisible) {
+        _selectedTags.clear();
+      }
       _isManualFormVisible = true;
       if (prefillName != null) {
         _nameController.text = prefillName;
@@ -193,10 +198,12 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       final normalizedMobile = const PhoneNormalizer().normalize(rawMobile);
 
       final now = DateTime.now().millisecondsSinceEpoch;
+      final encodedTags = encodeFriendTags(_selectedTags);
       final friend = Friend(
         id: const Uuid().v4(),
         name: rawName,
         mobile: normalizedMobile,
+        tags: encodedTags,
         notes: null,
         careScore: 0.0,
         isConcernActive: false,
@@ -270,6 +277,38 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           ),
           const SizedBox(height: 24),
 
+          // Category tags — Story 2.3.
+          Text(
+            'Category tags',
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Semantics(
+            container: true,
+            label: 'Category tags',
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (final tag in predefinedFriendTags)
+                  _TagChip(
+                    tag: tag,
+                    selected: _selectedTags.contains(tag),
+                    onChanged: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedTags.add(tag);
+                        } else {
+                          _selectedTags.remove(tag);
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Name field — 2.2/AC1: non-empty check.
           TextFormField(
             controller: _nameController,
@@ -339,6 +378,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                       _isManualFormVisible = false;
                       _nameController.clear();
                       _mobileController.clear();
+                      _selectedTags.clear();
                       _formKey.currentState?.reset();
                     });
                   },
@@ -397,6 +437,35 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           label: const Text('Enter manually'),
         ),
       ],
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  const _TagChip({
+    required this.tag,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final String tag;
+  final bool selected;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Tag: $tag, ${selected ? 'selected' : 'not selected'}',
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: FilterChip(
+          label: Text(tag),
+          selected: selected,
+          onSelected: onChanged,
+        ),
+      ),
     );
   }
 }

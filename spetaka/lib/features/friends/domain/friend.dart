@@ -21,6 +21,14 @@ class Friends extends Table {
   /// Normalised E.164 mobile number — plaintext; required for phone actions.
   TextColumn get mobile => text()();
 
+  /// Category tags — plaintext.
+  ///
+  /// Stored as a stable, explicit serialization format (Story 2.3):
+  /// recommended JSON array string (e.g. ["Family","Work"]).
+  ///
+  /// Null means "no tags".
+  TextColumn get tags => text().nullable()();
+
   /// Free-text narrative note — ENCRYPTED at repository layer.
   TextColumn get notes => text().nullable()();
 

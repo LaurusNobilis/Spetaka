@@ -7,6 +7,7 @@ import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../data/friends_providers.dart';
+import '../domain/friend_tags_codec.dart';
 
 /// Friends list screen — minimal list rendering for Story 2.2.
 ///
@@ -45,9 +46,22 @@ class FriendsListScreen extends ConsumerWidget {
             itemCount: friends.length,
             itemBuilder: (context, index) {
               final friend = friends[index];
+              final tags = decodeFriendTags(friend.tags);
               // Mobile omitted — PII; Story 2.5 owns the full tile design.
               return ListTile(
                 title: Text(friend.name),
+                subtitle: tags.isEmpty
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final tag in tags) Chip(label: Text(tag)),
+                          ],
+                        ),
+                      ),
               );
             },
           );

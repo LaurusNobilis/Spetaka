@@ -10,6 +10,7 @@ import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
+import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
 
 /// Builds the full router-test scaffold with an in-memory repo.
 /// Friends list data is reactive via repository watchAll() (StreamProvider).
@@ -137,6 +138,7 @@ void main() {
       id: '00000000-0000-4000-8000-000000000001',
       name: 'Alice',
       mobile: '+33612345678',
+      tags: null,
       notes: null,
       careScore: 0.0,
       isConcernActive: false,
@@ -161,6 +163,77 @@ void main() {
 
     expect(find.text('Friends'), findsAtLeastNWidgets(1));
     expect(find.text('Alice'), findsAtLeastNWidgets(1));
+
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('Story 2.3 — selecting tags persists and renders chips in /friends list', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+
+    final router = createAppRouter();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          friendRepositoryProvider.overrideWithValue(repo),
+          // Keep the real StreamProvider so the list updates after insert.
+          // Do NOT use pumpAndSettle in this test (live Drift stream).
+          allFriendsProvider.overrideWith(
+            (ref) => ref.watch(friendRepositoryProvider).watchAll(),
+          ),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Enter manually'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(find.byType(TextField).at(0), 'Charlie');
+    await tester.enterText(find.byType(TextField).at(1), '06 12 34 56 78');
+
+    // Select two tags.
+    await tester.tap(find.text('Family'));
+    await tester.pump();
+    await tester.tap(find.text('Work'));
+    await tester.pump();
+
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
+    );
+
+    // Allow navigation + provider rebuilds.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Friends'), findsAtLeastNWidgets(1));
+    expect(find.text('Charlie'), findsAtLeastNWidgets(1));
+
+    // Chips must be rendered (AC4).
+    expect(find.widgetWithText(Chip, 'Family'), findsAtLeastNWidgets(1));
+    expect(find.widgetWithText(Chip, 'Work'), findsAtLeastNWidgets(1));
+
+    // Also sanity-check persistence format is stable JSON.
+    final all = await repo.findAll();
+    expect(all, hasLength(1));
+    expect(decodeFriendTags(all.first.tags), <String>['Family', 'Work']);
 
     await db.close();
     enc.dispose();

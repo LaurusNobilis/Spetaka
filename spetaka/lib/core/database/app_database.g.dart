@@ -23,6 +23,11 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
   late final GeneratedColumn<String> mobile = GeneratedColumn<String>(
       'mobile', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+      'tags', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -69,6 +74,7 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
         id,
         name,
         mobile,
+        tags,
         notes,
         careScore,
         isConcernActive,
@@ -102,6 +108,10 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
           mobile.isAcceptableOrUnknown(data['mobile']!, _mobileMeta));
     } else if (isInserting) {
       context.missing(_mobileMeta);
+    }
+    if (data.containsKey('tags')) {
+      context.handle(
+          _tagsMeta, tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta));
     }
     if (data.containsKey('notes')) {
       context.handle(
@@ -150,6 +160,8 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       mobile: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}mobile'])!,
+      tags: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tags']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
       careScore: attachedDatabase.typeMapping
@@ -181,6 +193,14 @@ class Friend extends DataClass implements Insertable<Friend> {
   /// Normalised E.164 mobile number — plaintext; required for phone actions.
   final String mobile;
 
+  /// Category tags — plaintext.
+  ///
+  /// Stored as a stable, explicit serialization format (Story 2.3):
+  /// recommended JSON array string (e.g. ["Family","Work"]).
+  ///
+  /// Null means "no tags".
+  final String? tags;
+
   /// Free-text narrative note — ENCRYPTED at repository layer.
   final String? notes;
 
@@ -202,6 +222,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       {required this.id,
       required this.name,
       required this.mobile,
+      this.tags,
       this.notes,
       required this.careScore,
       required this.isConcernActive,
@@ -214,6 +235,9 @@ class Friend extends DataClass implements Insertable<Friend> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['mobile'] = Variable<String>(mobile);
+    if (!nullToAbsent || tags != null) {
+      map['tags'] = Variable<String>(tags);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -232,6 +256,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       id: Value(id),
       name: Value(name),
       mobile: Value(mobile),
+      tags: tags == null && nullToAbsent ? const Value.absent() : Value(tags),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       careScore: Value(careScore),
@@ -251,6 +276,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       mobile: serializer.fromJson<String>(json['mobile']),
+      tags: serializer.fromJson<String?>(json['tags']),
       notes: serializer.fromJson<String?>(json['notes']),
       careScore: serializer.fromJson<double>(json['careScore']),
       isConcernActive: serializer.fromJson<bool>(json['isConcernActive']),
@@ -266,6 +292,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'mobile': serializer.toJson<String>(mobile),
+      'tags': serializer.toJson<String?>(tags),
       'notes': serializer.toJson<String?>(notes),
       'careScore': serializer.toJson<double>(careScore),
       'isConcernActive': serializer.toJson<bool>(isConcernActive),
@@ -279,6 +306,7 @@ class Friend extends DataClass implements Insertable<Friend> {
           {String? id,
           String? name,
           String? mobile,
+          Value<String?> tags = const Value.absent(),
           Value<String?> notes = const Value.absent(),
           double? careScore,
           bool? isConcernActive,
@@ -289,6 +317,7 @@ class Friend extends DataClass implements Insertable<Friend> {
         id: id ?? this.id,
         name: name ?? this.name,
         mobile: mobile ?? this.mobile,
+        tags: tags.present ? tags.value : this.tags,
         notes: notes.present ? notes.value : this.notes,
         careScore: careScore ?? this.careScore,
         isConcernActive: isConcernActive ?? this.isConcernActive,
@@ -301,6 +330,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       mobile: data.mobile.present ? data.mobile.value : this.mobile,
+      tags: data.tags.present ? data.tags.value : this.tags,
       notes: data.notes.present ? data.notes.value : this.notes,
       careScore: data.careScore.present ? data.careScore.value : this.careScore,
       isConcernActive: data.isConcernActive.present
@@ -319,6 +349,7 @@ class Friend extends DataClass implements Insertable<Friend> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('mobile: $mobile, ')
+          ..write('tags: $tags, ')
           ..write('notes: $notes, ')
           ..write('careScore: $careScore, ')
           ..write('isConcernActive: $isConcernActive, ')
@@ -330,7 +361,7 @@ class Friend extends DataClass implements Insertable<Friend> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, mobile, notes, careScore,
+  int get hashCode => Object.hash(id, name, mobile, tags, notes, careScore,
       isConcernActive, concernNote, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
@@ -339,6 +370,7 @@ class Friend extends DataClass implements Insertable<Friend> {
           other.id == this.id &&
           other.name == this.name &&
           other.mobile == this.mobile &&
+          other.tags == this.tags &&
           other.notes == this.notes &&
           other.careScore == this.careScore &&
           other.isConcernActive == this.isConcernActive &&
@@ -351,6 +383,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> mobile;
+  final Value<String?> tags;
   final Value<String?> notes;
   final Value<double> careScore;
   final Value<bool> isConcernActive;
@@ -362,6 +395,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.mobile = const Value.absent(),
+    this.tags = const Value.absent(),
     this.notes = const Value.absent(),
     this.careScore = const Value.absent(),
     this.isConcernActive = const Value.absent(),
@@ -374,6 +408,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     required String id,
     required String name,
     required String mobile,
+    this.tags = const Value.absent(),
     this.notes = const Value.absent(),
     this.careScore = const Value.absent(),
     this.isConcernActive = const Value.absent(),
@@ -390,6 +425,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? mobile,
+    Expression<String>? tags,
     Expression<String>? notes,
     Expression<double>? careScore,
     Expression<bool>? isConcernActive,
@@ -402,6 +438,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (mobile != null) 'mobile': mobile,
+      if (tags != null) 'tags': tags,
       if (notes != null) 'notes': notes,
       if (careScore != null) 'care_score': careScore,
       if (isConcernActive != null) 'is_concern_active': isConcernActive,
@@ -416,6 +453,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       {Value<String>? id,
       Value<String>? name,
       Value<String>? mobile,
+      Value<String?>? tags,
       Value<String?>? notes,
       Value<double>? careScore,
       Value<bool>? isConcernActive,
@@ -427,6 +465,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       id: id ?? this.id,
       name: name ?? this.name,
       mobile: mobile ?? this.mobile,
+      tags: tags ?? this.tags,
       notes: notes ?? this.notes,
       careScore: careScore ?? this.careScore,
       isConcernActive: isConcernActive ?? this.isConcernActive,
@@ -448,6 +487,9 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     }
     if (mobile.present) {
       map['mobile'] = Variable<String>(mobile.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -479,6 +521,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('mobile: $mobile, ')
+          ..write('tags: $tags, ')
           ..write('notes: $notes, ')
           ..write('careScore: $careScore, ')
           ..write('isConcernActive: $isConcernActive, ')
@@ -826,6 +869,7 @@ typedef $$FriendsTableCreateCompanionBuilder = FriendsCompanion Function({
   required String id,
   required String name,
   required String mobile,
+  Value<String?> tags,
   Value<String?> notes,
   Value<double> careScore,
   Value<bool> isConcernActive,
@@ -838,6 +882,7 @@ typedef $$FriendsTableUpdateCompanionBuilder = FriendsCompanion Function({
   Value<String> id,
   Value<String> name,
   Value<String> mobile,
+  Value<String?> tags,
   Value<String?> notes,
   Value<double> careScore,
   Value<bool> isConcernActive,
@@ -864,6 +909,9 @@ class $$FriendsTableFilterComposer
 
   ColumnFilters<String> get mobile => $composableBuilder(
       column: $table.mobile, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tags => $composableBuilder(
+      column: $table.tags, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
@@ -903,6 +951,9 @@ class $$FriendsTableOrderingComposer
   ColumnOrderings<String> get mobile => $composableBuilder(
       column: $table.mobile, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get tags => $composableBuilder(
+      column: $table.tags, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
@@ -940,6 +991,9 @@ class $$FriendsTableAnnotationComposer
 
   GeneratedColumn<String> get mobile =>
       $composableBuilder(column: $table.mobile, builder: (column) => column);
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -986,6 +1040,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String> mobile = const Value.absent(),
+            Value<String?> tags = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<double> careScore = const Value.absent(),
             Value<bool> isConcernActive = const Value.absent(),
@@ -998,6 +1053,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             id: id,
             name: name,
             mobile: mobile,
+            tags: tags,
             notes: notes,
             careScore: careScore,
             isConcernActive: isConcernActive,
@@ -1010,6 +1066,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             required String id,
             required String name,
             required String mobile,
+            Value<String?> tags = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<double> careScore = const Value.absent(),
             Value<bool> isConcernActive = const Value.absent(),
@@ -1022,6 +1079,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             id: id,
             name: name,
             mobile: mobile,
+            tags: tags,
             notes: notes,
             careScore: careScore,
             isConcernActive: isConcernActive,

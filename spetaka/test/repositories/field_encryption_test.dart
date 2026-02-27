@@ -66,6 +66,7 @@ void main() {
 
   Friend makeTestFriend({
     String? id,
+    String? tags,
     String? notes = 'Private note',
     String? concernNote = 'Concern detail',
   }) {
@@ -74,6 +75,7 @@ void main() {
       id: id ?? uuid.v4(),
       name: 'Alice',
       mobile: '+33601020304',
+      tags: tags,
       notes: notes,
       careScore: 0.5,
       isConcernActive: true,
@@ -177,6 +179,7 @@ void main() {
         id: original.id,
         name: original.name,
         mobile: original.mobile,
+        tags: original.tags,
         notes: 'Updated note',
         careScore: original.careScore,
         isConcernActive: original.isConcernActive,
@@ -279,6 +282,7 @@ void main() {
         id: uuid.v4(),
         name: 'Bob',
         mobile: '+33612345678',
+        tags: null,
         notes: null,
         careScore: 0.0,
         isConcernActive: false,

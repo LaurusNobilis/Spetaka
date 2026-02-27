@@ -20,6 +20,7 @@ import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
+import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -45,6 +46,7 @@ void main() {
       id: id ?? uuid.v4(),
       name: 'Bob Contact',
       mobile: '+33612345678',
+      tags: null,
       notes: null,
       careScore: 0.0,
       isConcernActive: false,
@@ -137,6 +139,28 @@ void main() {
 
       final all = await repo.findAll();
       expect(all, hasLength(2));
+    });
+
+    test('insert friend with tags → findById returns tags unchanged (plaintext)', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final friend = Friend(
+        id: uuid.v4(),
+        name: 'Bob Contact',
+        mobile: '+33612345678',
+        tags: encodeFriendTags({'Work', 'Family'}),
+        notes: null,
+        careScore: 0.0,
+        isConcernActive: false,
+        concernNote: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repo.insert(friend);
+
+      final found = await repo.findById(friend.id);
+      expect(found, isNotNull);
+      expect(decodeFriendTags(found!.tags), <String>['Family', 'Work']);
     });
   });
 }

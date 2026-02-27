@@ -37,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -50,6 +50,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.createTable(friends);
             await m.createTable(acquittements);
+          }
+          // Story 2.3 — v2→v3: add friends.tags column.
+          // Guardrail: on a fresh install Drift may upgrade from 0→3 and the
+          // createTable(friends) path above will already include the new column.
+          // In that case, calling addColumn would be redundant and can fail.
+          else if (from < 3) {
+            await m.addColumn(friends, friends.tags);
           }
           // Add future migrations here as new columns/tables are introduced.
         },

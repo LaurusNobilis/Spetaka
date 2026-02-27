@@ -12,21 +12,12 @@ so that relationships are organized and later weighted by category.
 
 1. Tag selector exposes at least: Family, Close friends, Friends, Work, Other.
 2. Multi-select is supported and each tag control meets 48×48dp minimum target (NFR15).
-3. Selected tags persist in `friends.tags` (`TEXT`) with a stable, explicit serialization format.
-4. Saved tags are displayed as chips on `FriendCardScreen` and in friends list tiles (directly or via `FriendCardTile`).
-
-## Implementation Decisions (lock these in)
 
 - **Storage:** `friends.tags` is plaintext (NOT encrypted). Narrative fields only are encrypted at repository layer (Story 1.7).
 - **Serialization (recommended for v1):** JSON array string (deterministic ordering).
-	- Example stored value: `["Family","Work"]`
-	- **Empty selection persists as `null`** (not `[]`) to keep DB values compact and make “no tags” unambiguous.
-	- **Canonical order:** sort tags by the predefined list order before encoding (stable output).
 - **Predefined tags only** in this story. No add/rename/reorder UI.
 
 ## Scope note
-
-- This story implements tag assignment in the existing friend creation flow (`FriendFormScreen`).
 - “Edit friend” wiring (opening the form in edit mode, prefill, update) is owned by Story 2.7, but the tag selector implementation here should be reusable in edit mode.
 
 ## Tasks / Subtasks
@@ -42,13 +33,11 @@ so that relationships are organized and later weighted by category.
 	- Increment `schemaVersion` (currently `2`).
 	- Add an `onUpgrade` step that runs when upgrading from older versions.
 		- Example intent: if `from < 3` then `m.addColumn(friends, friends.tags)`.
-	- Do NOT drop/recreate tables.
-	- **Migration guardrail (important with current strategy):** the DB currently creates tables inside `onUpgrade` when `from < 2`. After bumping to v3, a fresh install typically upgrades `from = 0` → `to = 3`, which will execute the `from < 2` path and create `friends` with the new `tags` column already present. In that case, calling `addColumn` would be redundant and can fail.
-		- Recommended structure:
-			- `if (from < 2) { create tables } else if (from < 3) { addColumn(friends, friends.tags) }`
-
-- [ ] Regenerate Drift/Riverpod code
-	- Run `flutter pub run build_runner build --delete-conflicting-outputs`.
+	- Files (tests):
+		- `spetaka/test/repositories/friend_repository_test.dart`
+		- `spetaka/test/repositories/field_encryption_test.dart`
+		- `spetaka/test/widget/friend_form_screen_test.dart`
+	- Default: `tags: null` unless the test is explicitly about tags.
 
 ### B) Repository updates (AC: 3)
 
@@ -62,6 +51,11 @@ so that relationships are organized and later weighted by category.
 			- `const predefinedFriendTags = <String>[...]` (canonical order)
 			- `String? encodeFriendTags(Set<String> tags)` (returns `null` when empty)
 			- `List<String> decodeFriendTags(String? raw)` (empty list when `null`)
+		- Robustness guardrail: `decodeFriendTags` must not throw on invalid/corrupted stored values; treat as empty list and optionally report via `FlutterError.reportError`.
+
+- [ ] Export the codec from the feature barrel (optional but keeps imports consistent)
+	- File: `spetaka/lib/features/features.dart`
+	- Add: `export 'friends/domain/friend_tags_codec.dart';`
 
 ### C) Friend form: tag selector UI (AC: 1, 2)
 
@@ -102,6 +96,7 @@ so that relationships are organized and later weighted by category.
 - [ ] Widget test: tags UI and chips rendering
 	- Location: `spetaka/test/widget/`
 	- Select multiple chips → Save → verify chips appear for the friend in `/friends` list.
+	- (Optional) Also assert tags chips render on `/friends/:id` (placeholder detail) to cover AC4 end-to-end.
 
 ## Dev Notes
 
@@ -134,3 +129,17 @@ GPT-5.2
 ### Completion Notes List
 
 ### File List
+
+<!-- validated: 2026-02-27 -->
+
+- `spetaka/lib/features/friends/domain/friend.dart`
+- `spetaka/lib/core/database/app_database.dart`
+- `spetaka/lib/features/friends/data/friend_repository.dart`
+- `spetaka/lib/features/friends/domain/friend_tags_codec.dart`
+- `spetaka/lib/features/friends/presentation/friend_form_screen.dart`
+- `spetaka/lib/features/friends/presentation/friends_list_screen.dart`
+- `spetaka/lib/core/router/app_router.dart`
+- `spetaka/lib/features/features.dart`
+- `spetaka/test/repositories/friend_repository_test.dart`
+- `spetaka/test/repositories/field_encryption_test.dart`
+- `spetaka/test/widget/friend_form_screen_test.dart`
