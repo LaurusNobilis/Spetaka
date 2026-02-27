@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,17 +12,15 @@ import '../../../core/router/app_router.dart';
 import '../data/friend_repository_provider.dart';
 import '../domain/friend_tags_codec.dart';
 
-/// Add / Edit Friend screen — contact import + manual entry (Stories 2.1 & 2.2).
+/// Add / Edit Friend screen — contact import + manual entry (Stories 2.1, 2.2 & 2.7).
 ///
-/// Provides two paths:
-/// - "Import from contacts": opens the system contact picker after requesting
-///   [READ_CONTACTS] at point-of-use only (AC1/2.1, NFR9).
-/// - "Enter manually": validated Form with inline field errors (Story 2.2
-///   AC1/AC2), 48 dp touch targets (AC4), UUID v4 id + E.164 mobile (AC3).
+/// **Create mode** ([editFriendId] == null): two entry paths:
+/// - "Import from contacts": system contact picker with READ_CONTACTS (2.1/AC1-5).
+/// - "Enter manually": validated Form (2.2/AC1-4).
 ///
-/// When [editFriendId] is non-null the screen is in edit mode.
-/// Story 2.7 owns pre-filling fields from the existing record; this stub only
-/// accepts the parameter to satisfy routing (Story 2.6 AC4).
+/// **Edit mode** ([editFriendId] != null): pre-fills name, mobile, tags, notes
+/// from existing record (2.7/AC1-2), calls [FriendRepository.update] on save
+/// (2.7/AC3), and returns to the detail screen reactively (2.7/AC4).
 ///
 /// AC implementation map:
 ///   2.1/AC1  — [_importFromContacts] requests permission on tap only.
@@ -34,12 +33,17 @@ import '../domain/friend_tags_codec.dart';
 ///   2.2/AC2  — Inline field errors only; no snackbar for validation failures.
 ///   2.2/AC3  — UUID v4, E.164 mobile, careScore 0.0 persisted to SQLite.
 ///   2.2/AC4  — Primary buttons/Back meet 48 dp minimum touch target (NFR15).
+///   2.7/AC1  — EditFriendRoute(id) opens this screen prefilled.
+///   2.7/AC2  — Editable fields: name, mobile, tags, notes.
+///   2.7/AC3  — [FriendRepository.update] preserves UUID + createdAt, sets updatedAt.
+///   2.7/AC4  — Returns to FriendCardScreen after save; reactive stream refreshes.
+///   2.7/AC5  — Mobile validation identical to create path (same validators).
 class FriendFormScreen extends ConsumerStatefulWidget {
   const FriendFormScreen({super.key, this.editFriendId});
 
   /// When non-null the screen is in edit mode for the friend with this id.
   ///
-  /// Story 2.7 implements pre-filling; this field is reserved for routing.
+  /// Story 2.7: pre-fills the form and calls [FriendRepository.update] on save.
   final String? editFriendId;
 
   @override
@@ -50,16 +54,68 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   bool _isLoading = false;
 
   bool _isManualFormVisible = false;
-  final Set<String> _selectedTags = <String>{};
+  Set<String> _selectedTags = <String>{};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
+  /// The original friend being edited; preserved to carry forward read-only
+  /// fields (id, careScore, isConcernActive, concernNote, createdAt).
+  Friend? _editFriend;
+
+  /// True while the existing record is being loaded in edit mode.
+  bool _editLoading = false;
+
+  bool get _isEditMode => widget.editFriendId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditMode) {
+      _editLoading = true;
+      _isManualFormVisible = true; // go straight to form in edit mode
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditFriend());
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _mobileController.dispose();
+    _notesController.dispose();
     super.dispose();
+  }
+
+  // -------------------------------------------------------------------------
+  // Edit mode — load existing friend and pre-fill form (2.7/AC1, AC2)
+  // -------------------------------------------------------------------------
+
+  Future<void> _loadEditFriend() async {
+    try {
+      final friend = await ref
+          .read(friendRepositoryProvider)
+          .findById(widget.editFriendId!);
+      if (!mounted) return;
+      if (friend == null) {
+        _showSnackBar('Friend not found.');
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
+      setState(() {
+        _editFriend = friend;
+        _nameController.text = friend.name;
+        _mobileController.text = friend.mobile;
+        _notesController.text = friend.notes ?? '';
+        _selectedTags = decodeFriendTags(friend.tags).toSet();
+        _editLoading = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        _showSnackBar('Failed to load friend. Please try again.');
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -208,23 +264,39 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
       final now = DateTime.now().millisecondsSinceEpoch;
       final encodedTags = encodeFriendTags(_selectedTags);
-      final friend = Friend(
-        id: const Uuid().v4(),
-        name: rawName,
-        mobile: normalizedMobile,
-        tags: encodedTags,
-        notes: null,
-        careScore: 0.0,
-        isConcernActive: false,
-        concernNote: null,
-        createdAt: now,
-        updatedAt: now,
-      );
+      final rawNotes = _notesController.text.trim();
 
-      await ref.read(friendRepositoryProvider).insert(friend);
-
-      if (mounted) {
-        const FriendsRoute().go(context);
+      if (_isEditMode && _editFriend != null) {
+        // 2.7/AC3: update preserves UUID + createdAt; sets updatedAt.
+        final updated = _editFriend!.copyWith(
+          name: rawName,
+          mobile: normalizedMobile,
+          tags: Value(encodedTags),
+          notes: Value(rawNotes.isEmpty ? null : rawNotes),
+          updatedAt: now,
+        );
+        await ref.read(friendRepositoryProvider).update(updated);
+        if (mounted) {
+          // 2.7/AC4: return to detail screen; reactive stream refreshes view.
+          FriendDetailRoute(widget.editFriendId!).go(context);
+        }
+      } else {
+        final friend = Friend(
+          id: const Uuid().v4(),
+          name: rawName,
+          mobile: normalizedMobile,
+          tags: encodedTags,
+          notes: rawNotes.isEmpty ? null : rawNotes,
+          careScore: 0.0,
+          isConcernActive: false,
+          concernNote: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await ref.read(friendRepositoryProvider).insert(friend);
+        if (mounted) {
+          const FriendsRoute().go(context);
+        }
       }
     } on AppError catch (e) {
       _showSnackBar(errorMessageFor(e));
@@ -260,8 +332,17 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = _isEditMode ? 'Edit Friend' : 'Add Friend';
+
+    if (_isEditMode && _editLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Friend')),
+      appBar: AppBar(title: Text(title)),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: _isManualFormVisible ? _buildManualForm(context) : _buildChoiceButtons(context),
@@ -332,11 +413,11 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Mobile field — 2.2/AC1: parseability via PhoneNormalizer.
+          // Mobile field — 2.2/AC1 + 2.7/AC5: parseability via PhoneNormalizer.
           TextFormField(
             controller: _mobileController,
             keyboardType: TextInputType.phone,
-            textInputAction: TextInputAction.done,
+            textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Mobile',
               hintText: 'e.g. 06 12 34 56 78',
@@ -349,9 +430,22 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                 const PhoneNormalizer().normalize(value.trim());
                 return null; // valid
               } on PhoneNormalizationAppError catch (e) {
-                return errorMessageFor(e); // inline error, no SnackBar (AC2)
+                return errorMessageFor(e); // inline error, no SnackBar (AC2/AC5)
               }
             },
+          ),
+          const SizedBox(height: 16),
+
+          // Notes field — 2.7/AC2: editable free-text note.
+          TextFormField(
+            controller: _notesController,
+            textInputAction: TextInputAction.newline,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Notes',
+              hintText: 'Optional context notes…',
+              alignLabelWithHint: true,
+            ),
             onFieldSubmitted: (_) => _saveFriend(),
           ),
           const SizedBox(height: 24),
@@ -376,6 +470,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           const SizedBox(height: 12),
 
           // Back — 2.2/AC4: minimumSize 48 dp height.
+          // In edit mode, pop back to the detail screen instead of resetting.
           TextButton(
             style: TextButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
@@ -383,13 +478,18 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
             onPressed: _isLoading
                 ? null
                 : () {
-                    setState(() {
-                      _isManualFormVisible = false;
-                      _nameController.clear();
-                      _mobileController.clear();
-                      _selectedTags.clear();
-                      _formKey.currentState?.reset();
-                    });
+                    if (_isEditMode) {
+                      Navigator.of(context).pop();
+                    } else {
+                      setState(() {
+                        _isManualFormVisible = false;
+                        _nameController.clear();
+                        _mobileController.clear();
+                        _notesController.clear();
+                        _selectedTags.clear();
+                        _formKey.currentState?.reset();
+                      });
+                    }
                   },
             child: const Text('Back'),
           ),
