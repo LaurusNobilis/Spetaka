@@ -43,6 +43,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Gradle local cache (must never be committed)
+android/.gradle/
+
 # Android local.properties (contains paths specific to the local machine)
 android/local.properties
 
