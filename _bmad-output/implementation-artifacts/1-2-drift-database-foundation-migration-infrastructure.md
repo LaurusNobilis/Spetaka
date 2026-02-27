@@ -1,6 +1,6 @@
 # Story 1.2: Drift Database Foundation & Migration Infrastructure
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -18,21 +18,21 @@ so that all feature stories can add their entities and queries to a stable, well
 
 ## Tasks / Subtasks
 
-- [ ] Implement AppDatabase foundation (AC: 1)
-  - [ ] Create `lib/core/database/app_database.dart`
-  - [ ] Configure `schemaVersion = 1`
-  - [ ] Implement `MigrationStrategy` with `onUpgrade` and `beforeOpen`
-- [ ] Create DAO stubs for future epics (AC: 2)
-  - [ ] Add `friend_dao.dart`
-  - [ ] Add `event_dao.dart`
-  - [ ] Add `acquittement_dao.dart`
-  - [ ] Add `settings_dao.dart`
-- [ ] Integrate Riverpod provider generation (AC: 3)
-  - [ ] Annotate database provider with `@riverpod`
-  - [ ] Run `build_runner` to generate provider code
-- [ ] Add in-memory DB verification tests (AC: 4, 5)
-  - [ ] Create `test/unit/database_foundation_test.dart`
-  - [ ] Validate database open, schema version, and migration strategy callbacks
+- [x] Implement AppDatabase foundation (AC: 1)
+  - [x] Create `lib/core/database/app_database.dart`
+  - [x] Configure `schemaVersion = 1`
+  - [x] Implement `MigrationStrategy` with `onUpgrade` and `beforeOpen`
+- [x] Create DAO stubs for future epics (AC: 2)
+  - [x] Add `friend_dao.dart`
+  - [x] Add `event_dao.dart`
+  - [x] Add `acquittement_dao.dart`
+  - [x] Add `settings_dao.dart`
+- [x] Integrate Riverpod provider generation (AC: 3)
+  - [x] Annotate database provider with `@riverpod`
+  - [x] Run `build_runner` to generate provider code
+- [x] Add in-memory DB verification tests (AC: 4, 5)
+  - [x] Create `test/unit/database_foundation_test.dart`
+  - [x] Validate database open, schema version, and migration strategy callbacks
 
 ## Dev Notes
 
@@ -60,17 +60,38 @@ so that all feature stories can add their entities and queries to a stable, well
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6
 
 ### Debug Log References
 
-- Story generated from sprint backlog continuation after Story 1.1.
+- Riverpod v3 (riverpod_generator v4) generates `Ref` as the provider function parameter type instead of the legacy `XxxRef` pattern. Updated function signature to `AppDatabase appDatabase(Ref ref)` accordingly.
+- All 5 story tests pass; full suite 33/33 green with no regressions.
 
 ### Completion Notes List
 
-- Story 1.2 context prepared for immediate `dev-story` execution.
-- Acceptance criteria normalized and mapped to concrete implementation tasks.
+- ✅ AC1: `lib/core/database/app_database.dart` created — `AppDatabase extends _$AppDatabase`, `schemaVersion = 1`, `MigrationStrategy` with `onUpgrade` (no-op, ready for future migrations) and `beforeOpen` (enables `PRAGMA foreign_keys = ON`).
+- ✅ AC2: Four DAO stubs created under `lib/core/database/daos/`: `friend_dao.dart`, `event_dao.dart`, `acquittement_dao.dart`, `settings_dao.dart` — each a `DatabaseAccessor<AppDatabase>` with `@DriftAccessor(tables: [])` + placeholder comment for the host epic.
+- ✅ AC3: `@riverpod AppDatabase appDatabase(Ref ref)` annotation generates `appDatabaseProvider` via `build_runner`.  Provider calls `ref.onDispose(db.close)` for safe resource management.
+- ✅ AC4: `AppDatabase([QueryExecutor? executor])` accepts `NativeDatabase.memory()` in tests; confirmed working in all 5 unit tests.
+- ✅ AC5: `flutter test test/unit/database_foundation_test.dart` — 5/5 pass (DB open, `schemaVersion == 1`, `onUpgrade` hook non-null, `beforeOpen` hook non-null, `PRAGMA foreign_keys = 1`).
+- `lib/core/core.dart` updated to barrel-export the new database layer.
 
 ### File List
 
-- _bmad-output/implementation-artifacts/1-2-drift-database-foundation-migration-infrastructure.md
+- spetaka/lib/core/core.dart (modified)
+- spetaka/lib/core/database/app_database.dart (created)
+- spetaka/lib/core/database/app_database.g.dart (generated)
+- spetaka/lib/core/database/daos/friend_dao.dart (created)
+- spetaka/lib/core/database/daos/friend_dao.g.dart (generated)
+- spetaka/lib/core/database/daos/event_dao.dart (created)
+- spetaka/lib/core/database/daos/event_dao.g.dart (generated)
+- spetaka/lib/core/database/daos/acquittement_dao.dart (created)
+- spetaka/lib/core/database/daos/acquittement_dao.g.dart (generated)
+- spetaka/lib/core/database/daos/settings_dao.dart (created)
+- spetaka/lib/core/database/daos/settings_dao.g.dart (generated)
+- spetaka/test/unit/database_foundation_test.dart (created)
+- _bmad-output/implementation-artifacts/sprint-status.yaml (modified)
+
+### Change Log
+
+- 2026-02-27: Implemented Story 1.2 — Drift database foundation. Created AppDatabase with schemaVersion=1 and MigrationStrategy, four DAO stubs, Riverpod @riverpod provider, barrel exports, and 5 passing unit tests. Status: ready-for-dev → review.
