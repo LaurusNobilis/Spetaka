@@ -44,4 +44,23 @@ void main() {
       throwsA(isA<DecryptionFailedAppError>()),
     );
   });
+
+  test('encrypt without initialize throws typed AppError', () {
+    final service = EncryptionService();
+
+    expect(
+      () => service.encrypt('hello'),
+      throwsA(isA<EncryptionNotInitializedAppError>()),
+    );
+  });
+
+  test('decrypt invalid ciphertext format throws typed AppError', () async {
+    final service = EncryptionService();
+    await service.initialize('correct horse battery staple');
+
+    expect(
+      () => service.decrypt('not-base64url'),
+      throwsA(isA<CiphertextFormatAppError>()),
+    );
+  });
 }

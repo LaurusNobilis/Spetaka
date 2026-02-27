@@ -1,6 +1,6 @@
 # Story 1.3: AES-256 Encryption Service
 
-Status: review
+Status: done
 
 ## Story
 
@@ -32,51 +32,51 @@ so that sync and export features can encrypt data before it leaves the device, w
 
 6. **Given** the encryption service is implemented,
    **When** `flutter test test/unit/encryption_service_test.dart` runs,
-   **Then** all three tests pass:
+  **Then** tests pass, including:
    - `encrypt(plaintext)` followed by `decrypt(ciphertext)` returns the original `plaintext`.
    - Two independent calls to `encrypt(samePlaintext)` produce different ciphertexts (GCM nonce is random per call).
    - Calling `decrypt(ciphertext)` with a different passphrase throws a typed `AppError` (not a raw Dart exception).
 
 ## Tasks / Subtasks
 
-- [ ] **Add missing `crypto` dependency** (AC: 2)
-  - [ ] In `pubspec.yaml`, add `crypto: ^3.0.5` under `dependencies`
-  - [ ] Run `flutter pub get` to resolve
+- [x] **Add missing `crypto` dependency** (AC: 2)
+  - [x] In `pubspec.yaml`, add `crypto: ^3.0.5` under `dependencies`
+  - [x] Run `flutter pub get` to resolve
 
-- [ ] **Implement core encryption service** (AC: 1, 2)
-  - [ ] Create `lib/core/encryption/encryption_service.dart`
-  - [ ] Implement `encrypt(String plaintext) → String` using AES-256-GCM
+- [x] **Implement core encryption service** (AC: 1, 2)
+  - [x] Create `lib/core/encryption/encryption_service.dart`
+  - [x] Implement `encrypt(String plaintext) → String` using AES-256-GCM
     - Generate a fresh 12-byte random IV/nonce per call (`Random.secure()`)
     - Payload format: Base64url( `iv (12 bytes)` + `tag (16 bytes)` + `ciphertext` ) — all concatenated before encoding
-  - [ ] Implement `decrypt(String ciphertext) → String`
+  - [x] Implement `decrypt(String ciphertext) → String`
     - Decode Base64url, split IV / tag / ciphertext by fixed offsets
     - On AES-GCM authentication failure, catch and rethrow as `AppError.decryptionFailed`
-  - [ ] Implement PBKDF2 key derivation (100,000 iterations, SHA-256, 32-byte output)
+  - [x] Implement PBKDF2 key derivation (100,000 iterations, SHA-256, 32-byte output)
     - Use `package:crypto` `Hmac` + manual RFC 2898 PRF loop (the `crypto` package has no `pbkdf2()` helper)
 
-- [ ] **Implement secure salt and key lifecycle** (AC: 3, 4)
-  - [ ] On first call: generate 16-byte random salt, persist to `shared_preferences` key `spetaka_pbkdf2_salt`; load on subsequent calls
-  - [ ] Store derived key in a private nullable field; keep in memory only during an active session
-  - [ ] Implement `WidgetsBindingObserver.didChangeAppLifecycleState`: zero and null the key field on `AppLifecycleState.paused`
-  - [ ] Add `// TODO(1.5): replace with AppLifecycleService once Story 1.5 is implemented` comment
+- [x] **Implement secure salt and key lifecycle** (AC: 3, 4)
+  - [x] On first call: generate 16-byte random salt, persist to `shared_preferences` key `spetaka_pbkdf2_salt`; load on subsequent calls
+  - [x] Store derived key in a private nullable field; keep in memory only during an active session
+  - [x] Implement `WidgetsBindingObserver.didChangeAppLifecycleState`: zero and null the key field on `AppLifecycleState.paused`
+  - [x] Add `// TODO(1.5): replace with AppLifecycleService once Story 1.5 is implemented` comment
 
-- [ ] **Expose Riverpod provider** (AC: 5)
-  - [ ] Annotate with `@Riverpod(keepAlive: true)` (NOT bare `@riverpod` which would set `isAutoDispose: true`)
-  - [ ] Provider function signature: `EncryptionService encryptionService(Ref ref)` (use bare `Ref`)
-  - [ ] Run `flutter pub run build_runner build --delete-conflicting-outputs`
-  - [ ] Export via `lib/core/core.dart` barrel
+- [x] **Expose Riverpod provider** (AC: 5)
+  - [x] Annotate with `@Riverpod(keepAlive: true)` (NOT bare `@riverpod` which would set `isAutoDispose: true`)
+  - [x] Provider function signature: `EncryptionService encryptionService(Ref ref)` (use bare `Ref`)
+  - [x] Run `flutter pub run build_runner build --delete-conflicting-outputs`
+  - [x] Export via `lib/core/core.dart` barrel
 
-- [ ] **Add error type** (AC: 6)
-  - [ ] Create `lib/core/errors/app_error.dart` with `AppError.decryptionFailed` variant
-  - [ ] Create `lib/core/errors/error_messages.dart` with user-facing string for decryption failure
-  - [ ] Export errors from `lib/core/core.dart`
+- [x] **Add error type** (AC: 6)
+  - [x] Create `lib/core/errors/app_error.dart` with `AppError.decryptionFailed` variant
+  - [x] Create `lib/core/errors/error_messages.dart` with user-facing string for decryption failure
+  - [x] Export errors from `lib/core/core.dart`
 
-- [ ] **Write unit tests** (AC: 6)
-  - [ ] Create `test/unit/encryption_service_test.dart`
-  - [ ] Test 1: roundtrip — `service.decrypt(service.encrypt('hello'))` == `'hello'`
-  - [ ] Test 2: nonce randomness — `service.encrypt('x') != service.encrypt('x')`
-  - [ ] Test 3: wrong passphrase — second service with different passphrase; `decrypt` throws `AppError.decryptionFailed`
-  - [ ] Run `flutter test` — confirm 100 % green, no regressions
+- [x] **Write unit tests** (AC: 6)
+  - [x] Create `test/unit/encryption_service_test.dart`
+  - [x] Test 1: roundtrip — `service.decrypt(service.encrypt('hello'))` == `'hello'`
+  - [x] Test 2: nonce randomness — `service.encrypt('x') != service.encrypt('x')`
+  - [x] Test 3: wrong passphrase — second service with different passphrase; `decrypt` throws `AppError.decryptionFailed`
+  - [x] Run `flutter test` — confirm 100 % green, no regressions
 
 ## Dev Notes
 
@@ -99,7 +99,7 @@ lib/
   core/
     encryption/
       encryption_service.dart        ← NEW (main deliverable)
-      encryption_service.g.dart      ← generated by build_runner
+      encryption_service_provider.g.dart  ← generated by build_runner
     errors/
       app_error.dart                 ← NEW: typed domain error hierarchy
       error_messages.dart            ← NEW: user-visible strings
@@ -117,7 +117,7 @@ pubspec.yaml                         ← add crypto: ^3.0.5
 | Package | Version in pubspec | Status | Notes |
 |---|---|---|---|
 | `encrypt` | `^5.0.3` | ✅ present | Use `Encrypter`, `Key`, `IV`, `AesMode.gcm` |
-| `crypto` | `^3.0.5` | ❌ **MISSING — must add** | Provides `Hmac`, `sha256` for PBKDF2 PRF |
+| `crypto` | `^3.0.5` | ✅ present | Provides `Hmac`, `sha256` for PBKDF2 PRF |
 | `shared_preferences` | `^2.3.5` | ✅ present | Persist salt only (`spetaka_pbkdf2_salt`) |
 | `flutter_riverpod` | `^3.2.1` | ✅ present | |
 | `riverpod_annotation` | `^4.0.0` | ✅ present | |
@@ -172,7 +172,7 @@ GPT-5.2 (GitHub Copilot)
 
 ### Debug Log References
 
-- Local validation (Linux ARM64 container): `flutter analyze` green, `flutter test` green (36 tests).
+- Local validation (Linux ARM64 container): `flutter analyze` green, `flutter test` green (38 tests).
 
 ### Completion Notes List
 
@@ -184,6 +184,27 @@ GPT-5.2 (GitHub Copilot)
 - ✅ Riverpod provider added with `@Riverpod(keepAlive: true)`.
 - ✅ Typed errors added (`AppError` + decryption/format/init variants) and surfaced in tests.
 - ✅ Unit tests added (3) and passing.
+- ✅ Hardened initialization and lifecycle handling: init failures are typed errors, passphrase/derivedKey temporary buffers are zeroed, and key clearing triggers on additional lifecycle states.
+- ✅ Added extra negative-path tests (uninitialized encrypt, invalid ciphertext format).
+
+## Senior Developer Review (AI)
+
+### Findings
+
+- **MEDIUM**: Story doc drift — tasks remained unchecked and dependency table still claimed `crypto` was missing despite implementation being complete.
+- **MEDIUM**: Salt corruption handling incomplete — decoded salt length was not validated; a malformed stored value could silently degrade security assumptions.
+- **MEDIUM**: Initialization error surfacing — SharedPreferences / PBKDF2 failures could bubble as raw exceptions without a typed domain error.
+- **MEDIUM**: Lifecycle hardening — key was cleared only on `paused`; clearing on other non-resumed lifecycle states reduces risk of key retention.
+- **LOW**: Test coverage gap for negative paths — missing explicit tests for “not initialized” and “invalid ciphertext format”.
+
+### Fixes Applied
+
+- Updated story artifact to reflect reality (tasks checked, dependency table corrected, AC6 wording made non-fragile).
+- Hardened `EncryptionService`:
+  - validates stored salt length and regenerates on corruption
+  - reports init failures via `FlutterError.reportError` and throws `EncryptionInitializationFailedAppError`
+  - clears key on additional lifecycle states and zeroes temporary buffers
+- Added two unit tests for negative paths.
 
 ### File List
 
@@ -201,3 +222,4 @@ GPT-5.2 (GitHub Copilot)
 ## Change Log
 
 - 2026-02-27: Story implemented — AES-256-GCM EncryptionService with PBKDF2(HMAC-SHA256, 100k, 256-bit), salt persistence in shared_preferences, keepAlive Riverpod provider, typed errors, and 3 unit tests (all green).
+- 2026-02-27: Senior Developer Review (AI) — fixed doc drift, hardened salt/init/lifecycle handling, and expanded unit tests (all green).

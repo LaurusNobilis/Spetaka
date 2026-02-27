@@ -24,3 +24,12 @@ class CiphertextFormatAppError extends AppError {
   @override
   String get code => 'ciphertext_format_invalid';
 }
+
+class EncryptionInitializationFailedAppError extends AppError {
+  const EncryptionInitializationFailedAppError([this.cause]);
+
+  final Object? cause;
+
+  @override
+  String get code => 'encryption_initialization_failed';
+}

@@ -18,6 +18,8 @@ class EncryptionService with WidgetsBindingObserver {
   static const int _ivLengthBytes = 12;
   static const int _tagLengthBytes = 16;
 
+  static final Random _secureRandom = Random.secure();
+
   final WidgetsBinding _binding;
 
   Uint8List? _keyBytes;
@@ -27,22 +29,37 @@ class EncryptionService with WidgetsBindingObserver {
       : _binding = widgetsBinding ?? WidgetsBinding.instance;
 
   Future<void> initialize(String passphrase) async {
-    final salt = await _loadOrCreateSalt();
     final passwordBytes = Uint8List.fromList(utf8.encode(passphrase));
+    Uint8List? derivedKey;
+    try {
+      final salt = await _loadOrCreateSalt();
+      derivedKey = _pbkdf2HmacSha256(
+        password: passwordBytes,
+        salt: salt,
+        iterations: _pbkdf2Iterations,
+        derivedKeyLengthBytes: _keyLengthBytes,
+      );
 
-    final derivedKey = _pbkdf2HmacSha256(
-      password: passwordBytes,
-      salt: salt,
-      iterations: _pbkdf2Iterations,
-      derivedKeyLengthBytes: _keyLengthBytes,
-    );
+      _setKeyBytes(derivedKey);
 
-    _setKeyBytes(derivedKey);
-
-    if (!_isObserverAttached) {
-      // TODO(1.5): replace with AppLifecycleService once Story 1.5 is implemented.
-      _binding.addObserver(this);
-      _isObserverAttached = true;
+      if (!_isObserverAttached) {
+        // TODO(1.5): replace with AppLifecycleService once Story 1.5 is implemented.
+        _binding.addObserver(this);
+        _isObserverAttached = true;
+      }
+    } catch (e, st) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: e,
+          stack: st,
+          library: 'spetaka/encryption',
+          context: ErrorDescription('while initializing EncryptionService'),
+        ),
+      );
+      throw EncryptionInitializationFailedAppError(e);
+    } finally {
+      passwordBytes.fillRange(0, passwordBytes.length, 0);
+      derivedKey?.fillRange(0, derivedKey.length, 0);
     }
   }
 
@@ -144,7 +161,10 @@ class EncryptionService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
       clearKey();
     }
   }
@@ -155,7 +175,11 @@ class EncryptionService with WidgetsBindingObserver {
     final existing = prefs.getString(saltPrefsKey);
     if (existing != null && existing.isNotEmpty) {
       try {
-        return Uint8List.fromList(base64Url.decode(existing));
+        final decoded = Uint8List.fromList(base64Url.decode(existing));
+        if (decoded.length == _saltLengthBytes) {
+          return decoded;
+        }
+        // If the stored value is corrupted, replace it.
       } on FormatException {
         // If the stored value is corrupted, replace it.
       }
@@ -172,10 +196,9 @@ class EncryptionService with WidgetsBindingObserver {
   }
 
   static Uint8List _randomBytes(int length) {
-    final random = Random.secure();
     final bytes = Uint8List(length);
     for (var i = 0; i < bytes.length; i++) {
-      bytes[i] = random.nextInt(256);
+      bytes[i] = _secureRandom.nextInt(256);
     }
     return bytes;
   }
