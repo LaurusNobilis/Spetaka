@@ -1,0 +1,96 @@
+Tu es en mode “Story Batch Autopilot” (BMAD BMM / implementation), objectif: terminer exactement 2 stories: 2-5 puis 2-6, sans extra.
+
+Règles de contexte:
+- Source de vérité: fichiers sur disque, pas le chat.
+- Ne charge que:
+  1) /_bmad-output/implementation-artifacts/sprint-status.yaml
+  2) /_bmad-output/implementation-artifacts/2-5-friends-list-view.md
+  3) /_bmad-output/implementation-artifacts/2-6-friend-card-detail-view.md
+  4) Les fichiers Dart strictement nécessaires + sorties de tests/analyze si échec.
+- Si un des fichiers story (2-5/2-6) n’existe pas: STOP et dis-moi “lance create-story”.
+
+Boucle d’exécution (2-5 puis 2-6):
+1) Implémente la story en respectant uniquement les AC.
+2) Mets à jour navigation/providers si nécessaire, minimalement.
+3) Tests: lance les tests pertinents + flutter analyze. Si widget tests fragiles, n’utilise pas pumpAndSettle sauf nécessité.
+4) Commit séparé par story + push.
+5) Mets à jour /_bmad-output/implementation-artifacts/sprint-status.yaml: story -> done.
+6) Écris un Handoff court (≤120 lignes) à la fin de chaque story dans un bloc “Handoff” dans le fichier story (ou à défaut à la fin du commit message).
+
+Stop conditions:
+- Stop après 2-6 done.
+- En cas de blocage: diagnostic minimal + 3 options, pas de refactor.
+
+
+
+
+##################@
+
+Mode “Story Batch Autopilot”. Objectif: terminer exactement 2 stories: 2-7 puis 2-8, sans extra.
+
+Garde-fous:
+- Ne change pas le modèle de données sauf si requis par AC.
+- Ne change pas le design system; utilise les composants existants.
+- Ne relis pas toute la codebase. Lis seulement:
+  1) /_bmad-output/implementation-artifacts/sprint-status.yaml
+  2) /_bmad-output/implementation-artifacts/2-7-edit-friend-card.md
+  3) /_bmad-output/implementation-artifacts/2-8-delete-friend-card.md
+  4) Les fichiers Dart nécessaires + outputs d’erreurs.
+
+Pré-contrôle:
+- Si 2-5/2-6 ne sont pas “done” dans sprint-status, STOP (edit/delete sans detail/list stable = risque).
+
+Exécution:
+- Implémente 2-7 (edit) puis 2-8 (delete).
+- Ajoute/ajuste tests (repo/unit/widget) uniquement là où logique.
+- À chaque story: tests -> commit -> push -> sprint-status.yaml -> done -> handoff ≤120 lignes.
+
+Stop après 2-8 done, sinon diagnostic minimal.
+
+
+
+############
+
+
+Mode “Story Batch Autopilot”. Objectif: terminer exactement 2 stories: 2-4 puis 2-9, sans extra.
+
+Règles anti-risque (DB/Drift):
+- Toute évolution de schéma doit être: migration claire + tests repo.
+- Pas d’optimisation, pas de refactor large.
+- Lis seulement:
+  1) /_bmad-output/implementation-artifacts/sprint-status.yaml
+  2) /_bmad-output/implementation-artifacts/2-4-context-notes-on-friend-card.md
+  3) /_bmad-output/implementation-artifacts/2-9-concern-preoccupation-flag.md
+  4) Fichiers Dart nécessaires + erreurs de tests/analyze.
+
+Pré-contrôle:
+- Si l’édition (2-7) ou detail (2-6) n’est pas done, STOP (notes/flag s’accrochent souvent à ces écrans).
+
+Exécution:
+1) Implémente 2-4 (notes) puis 2-9 (flag).
+2) Mets à jour repository + DAOs + migrations si requis.
+3) Tests + flutter analyze.
+4) Commit/push par story.
+5) sprint-status.yaml: stories -> done.
+6) Handoff ≤120 lignes par story.
+
+Stop après 2-9 done, sinon diagnostic minimal.
+
+
+
+#############
+
+colle le prompt directement dans le chat normal Copilot (sans workflow
+
+
+
+Sonnet 4.6 pour coder
+
+Checkpoint (2–3 min) :
+cd spetaka && flutter test && flutter analyze
+git status -sb
+git push (si pas déjà poussé)
+vérifier dans sprint-status.yaml que les 2 stories du batch sont done
+Si le chat commence à dériver : nouveau chat pour le batch suivant.
+
+GPT‑x (ou moi) pour relire/traquer les angles morts
