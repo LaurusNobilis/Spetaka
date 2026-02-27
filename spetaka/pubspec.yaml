@@ -27,6 +27,7 @@ dependencies:
 
   # Encryption
   encrypt: ^5.0.3
+  crypto: ^3.0.5
 
   # WebDAV sync
   # Note: webdav_client latest stable is 1.2.2 (^3.0.1 from spec doesn't exist yet)

@@ -1,6 +1,6 @@
 # Story 1.3: AES-256 Encryption Service
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -168,16 +168,36 @@ fd176b1  fix(1.2): code-review fixes — keepAlive provider, DAO barrel isolatio
 
 ### Agent Model Used
 
-_to be filled by dev agent_
+GPT-5.2 (GitHub Copilot)
 
 ### Debug Log References
 
-_to be filled by dev agent_
+- Local validation (Linux ARM64 container): `flutter analyze` green, `flutter test` green (36 tests).
 
 ### Completion Notes List
 
-_to be filled by dev agent_
+- ✅ Added `crypto` dependency (`crypto: ^3.0.5`) to support PBKDF2 HMAC-SHA256.
+- ✅ Implemented `EncryptionService` with AES-256-GCM using `encrypt ^5.0.3` and a stable ciphertext format: Base64url(`iv[12] + tag[16] + ciphertext`).
+- ✅ PBKDF2 implemented manually (RFC 2898) with 100,000 iterations, SHA-256, 32-byte key.
+- ✅ Salt lifecycle: 16-byte Random.secure salt persisted in `shared_preferences` under `spetaka_pbkdf2_salt` (passphrase/key never persisted).
+- ✅ Key lifecycle: in-memory key cleared on `AppLifecycleState.paused` via `WidgetsBindingObserver`.
+- ✅ Riverpod provider added with `@Riverpod(keepAlive: true)`.
+- ✅ Typed errors added (`AppError` + decryption/format/init variants) and surfaced in tests.
+- ✅ Unit tests added (3) and passing.
 
 ### File List
 
-_to be filled by dev agent_
+- spetaka/pubspec.yaml
+- spetaka/pubspec.lock
+- spetaka/lib/core/core.dart
+- spetaka/lib/core/encryption/encryption_service.dart
+- spetaka/lib/core/encryption/encryption_service_provider.dart
+- spetaka/lib/core/encryption/encryption_service_provider.g.dart
+- spetaka/lib/core/errors/app_error.dart
+- spetaka/lib/core/errors/error_messages.dart
+- spetaka/test/unit/encryption_service_test.dart
+- _bmad-output/implementation-artifacts/1-3-aes-256-encryption-service.md
+
+## Change Log
+
+- 2026-02-27: Story implemented — AES-256-GCM EncryptionService with PBKDF2(HMAC-SHA256, 100k, 256-bit), salt persistence in shared_preferences, keepAlive Riverpod provider, typed errors, and 3 unit tests (all green).
