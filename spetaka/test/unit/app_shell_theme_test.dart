@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 // ignore_for_file: directives_ordering
 import 'package:spetaka/core/router/app_router.dart';
+import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/shared/theme/app_tokens.dart';
 import 'package:spetaka/shared/theme/app_theme.dart';
 import 'package:spetaka/shared/widgets/app_error_widget.dart';
@@ -134,9 +135,19 @@ void main() {
   });
 
   group('appRouter navigation', () {
-    Future<void> pumpAppWithRouter(WidgetTester tester, GoRouter router) async {
+    /// Pump a full app with a real router; optionally pre-seed the friends
+    /// list provider so /friends renders without a real DB connection.
+    Future<void> pumpAppWithRouter(
+      WidgetTester tester,
+      GoRouter router, {
+      bool stubFriendsList = false,
+    }) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            if (stubFriendsList)
+              allFriendsFutureProvider.overrideWith((ref) async => []),
+          ],
           child: MaterialApp.router(
             theme: AppTheme.light(),
             routerConfig: router,
@@ -154,7 +165,9 @@ void main() {
 
     testWidgets('can navigate to /friends (Friends)', (tester) async {
       final router = createAppRouter();
-      await pumpAppWithRouter(tester, router);
+      // Override allFriendsFutureProvider to avoid real DB access in this
+      // navigation-only test. Story 2.2 AC5 is covered by widget tests.
+      await pumpAppWithRouter(tester, router, stubFriendsList: true);
       router.go(const FriendsRoute().location);
       await tester.pumpAndSettle();
       expect(find.text('Friends'), findsAtLeastNWidgets(1));

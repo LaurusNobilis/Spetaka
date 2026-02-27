@@ -52,7 +52,7 @@ development_status:
 
   epic-2: in-progress
   2-1-friend-card-creation-via-phone-contact-import: done
-  2-2-friend-card-creation-via-manual-entry: ready-for-dev
+  2-2-friend-card-creation-via-manual-entry: review
   2-3-category-tags-assignment: ready-for-dev
   2-4-context-notes-on-friend-card: ready-for-dev
   2-5-friends-list-view: ready-for-dev
