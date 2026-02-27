@@ -37,3 +37,39 @@ so that I can quickly navigate my relational circle.
 ### Agent Model Used
 
 GPT-5.3-Codex
+
+---
+
+## Handoff
+
+**Story:** 2.5 — Friends List View
+**Date:** 2026-02-27
+**Status:** done
+
+### Implemented
+
+| AC | Where | Notes |
+|----|-------|-------|
+| AC1 | `friends_list_screen.dart` `FriendCardTile` | Scrollable list, taps navigate to `FriendDetailRoute(friend.id)` |
+| AC2 | `FriendCardTile` | Name (titleMedium), tags as Chips, `Icons.warning_amber_rounded` when `isConcernActive` |
+| AC3 | `allFriendsProvider` (StreamProvider, existing) | Drift `watchAll()` — no change needed, already reactive |
+| AC4 | `_EmptyFriendsState` | Icon + copy + `FilledButton.icon` "Add first friend" |
+| AC5 | Stream-driven, no polling | Drift push → provider → rebuild; no 300ms overhead |
+| AC6 | `Semantics(label: '${name}, ${tags}, concern flagged')` | `button: true` for TalkBack traversal |
+
+### Files changed
+
+- `lib/features/friends/presentation/friends_list_screen.dart` — full rewrite; added `FriendCardTile` + `_EmptyFriendsState`
+- `test/widget/friends_list_screen_test.dart` — 5 widget tests (AC1/AC2/AC4/AC6)
+
+### Test results
+
+- 5/5 widget tests green (< 1s, no pumpAndSettle)
+- 96/96 unit + repository tests green
+- `flutter analyze` — No issues found
+
+### Notes for next story
+
+- `FriendDetailRoute(id).push(context)` is wired — 2-6 receives taps correctly
+- `allFriendsProvider` override pattern (stream.value) established for widget tests
+- No schema changes
