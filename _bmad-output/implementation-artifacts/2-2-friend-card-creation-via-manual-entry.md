@@ -121,3 +121,13 @@ Claude Sonnet 4.6
 
 - 2026-02-27: Story 2.2 implemented — inline validation form, minimal friends list rendering, AC1–AC5 satisfied, 128/128 tests green
 - 2026-02-27: Code review (AI) — 3 HIGH/MEDIUM issues fixed: StreamProvider correct in File List, PII mobile removed from ListTile subtitle, defensive double-normalize SnackBar path removed; test delays consolidated to single 500 ms runAsync; story status → done
+
+## Handoff
+
+Objectif: créer une friend card par saisie manuelle.
+Implémenté: `Form` + validations inline; normalisation E.164; save + retour liste.
+Points clés: erreurs via `errorMessageFor(AppError)`; boutons 48dp.
+Risques/Dettes: UX liste minimal (Story 2.5), perfs stream à surveiller.
+Tests: `flutter analyze` + `flutter test` green.
+À surveiller en prod/CI: régressions widget tests (pump timing), PII.
+Next story / TODO: Story 2.5 (UI liste), Story 2.7+ (edit/delete).

@@ -161,3 +161,13 @@ Outcome: **Changes requested → fixed (YOLO)**
 
 - 2026-02-27: Story 2.1 implemented — FriendFormScreen (contact import), FriendsListScreen (FAB), FriendRepositoryProvider, 4 repository tests. 119/119 tests green. Status → review.
 - 2026-02-27: Senior code review fixes — real manual-entry fallback, typed errors wired to `error_messages.dart`, import now pre-fills then Save persists; added widget test for manual entry.
+
+## Handoff
+
+Objectif: implémenter la création de friend card via import contact.
+Implémenté: picker contact + préremplissage + sauvegarde via repository.
+Points clés: E.164 via `PhoneNormalizer`; permission point-of-use; pas de photo.
+Risques/Dettes: UX minimal; cas sans numéro à surveiller.
+Tests: `flutter analyze` + `flutter test` green.
+À surveiller en prod/CI: permissions contacts Android, labels mobiles.
+Next story / TODO: Story 2.5 (liste), Story 2.6+ (détail), polish UX.
