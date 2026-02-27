@@ -343,9 +343,11 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: _isManualFormVisible ? _buildManualForm(context) : _buildChoiceButtons(context),
+        child: _isManualFormVisible
+            ? _buildManualForm(context)
+            : _buildChoiceButtons(context),
       ),
     );
   }

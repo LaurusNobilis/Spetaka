@@ -20,7 +20,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
-import 'package:spetaka/features/acquittement/domain/acquittement.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
 import 'package:uuid/uuid.dart';
@@ -120,7 +119,8 @@ void main() {
     // AC7 (c): insert → findAll returns the inserted friend
     // -------------------------------------------------------------------------
 
-    test('insert → findAll returns the inserted friend with correct id', () async {
+    test('insert → findAll returns the inserted friend with correct id',
+        () async {
       final friend = makeMinimalFriend();
 
       await repo.insert(friend);
@@ -143,7 +143,9 @@ void main() {
       expect(all, hasLength(2));
     });
 
-    test('insert friend with tags → findById returns tags unchanged (plaintext)', () async {
+    test(
+        'insert friend with tags → findById returns tags unchanged (plaintext)',
+        () async {
       final now = DateTime.now().millisecondsSinceEpoch;
       final friend = Friend(
         id: uuid.v4(),
@@ -188,7 +190,8 @@ void main() {
       lifecycle.dispose();
     });
 
-    test('update preserves UUID and createdAt, reflects new name + mobile', () async {
+    test('update preserves UUID and createdAt, reflects new name + mobile',
+        () async {
       final original = makeMinimalFriend();
       await repo.insert(original);
 
@@ -201,11 +204,14 @@ void main() {
 
       final found = await repo.findById(original.id);
       expect(found, isNotNull);
-      expect(found!.id, original.id);           // UUID unchanged (AC3)
+      expect(found!.id, original.id); // UUID unchanged (AC3)
       expect(found.createdAt, original.createdAt); // createdAt unchanged (AC3)
       expect(found.name, 'Alice Updated');
       expect(found.mobile, '+33699887766');
-      expect(found.updatedAt, greaterThan(original.updatedAt)); // updatedAt bumped
+      expect(
+        found.updatedAt,
+        greaterThan(original.updatedAt),
+      ); // updatedAt bumped
     });
 
     test('update persists tags change', () async {
@@ -280,20 +286,24 @@ void main() {
 
       // Insert two acquittements linked to this friend directly via DAO.
       final now = DateTime.now().millisecondsSinceEpoch;
-      await db.acquittementDao.insertAcquittement(Acquittement(
-        id: uuid.v4(),
-        friendId: friend.id,
-        type: 'call',
-        note: null,
-        createdAt: now,
-      ));
-      await db.acquittementDao.insertAcquittement(Acquittement(
-        id: uuid.v4(),
-        friendId: friend.id,
-        type: 'sms',
-        note: null,
-        createdAt: now,
-      ));
+      await db.acquittementDao.insertAcquittement(
+        Acquittement(
+          id: uuid.v4(),
+          friendId: friend.id,
+          type: 'call',
+          note: null,
+          createdAt: now,
+        ),
+      );
+      await db.acquittementDao.insertAcquittement(
+        Acquittement(
+          id: uuid.v4(),
+          friendId: friend.id,
+          type: 'sms',
+          note: null,
+          createdAt: now,
+        ),
+      );
 
       // Verify they exist before deletion.
       final before = await db.acquittementDao.selectByFriendId(friend.id);
@@ -314,12 +324,24 @@ void main() {
       await repo.insert(friendB);
 
       final now = DateTime.now().millisecondsSinceEpoch;
-      await db.acquittementDao.insertAcquittement(Acquittement(
-        id: uuid.v4(), friendId: friendA.id, type: 'call', note: null, createdAt: now,
-      ));
-      await db.acquittementDao.insertAcquittement(Acquittement(
-        id: uuid.v4(), friendId: friendB.id, type: 'sms', note: null, createdAt: now,
-      ));
+      await db.acquittementDao.insertAcquittement(
+        Acquittement(
+          id: uuid.v4(),
+          friendId: friendA.id,
+          type: 'call',
+          note: null,
+          createdAt: now,
+        ),
+      );
+      await db.acquittementDao.insertAcquittement(
+        Acquittement(
+          id: uuid.v4(),
+          friendId: friendB.id,
+          type: 'sms',
+          note: null,
+          createdAt: now,
+        ),
+      );
 
       await repo.delete(friendA.id);
 
