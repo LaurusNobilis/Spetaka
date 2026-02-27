@@ -56,6 +56,12 @@ class FriendRepository {
   Stream<List<Friend>> watchAll() =>
       db.friendDao.watchAll().map((rows) => rows.map(_decryptRow).toList());
 
+  /// Watches a single friend by [id] via a reactive stream; decrypts on each emission.
+  ///
+  /// Emits `null` when no friend with [id] exists.
+  Stream<Friend?> watchById(String id) =>
+      db.friendDao.watchById(id).map((row) => row != null ? _decryptRow(row) : null);
+
   /// Encrypts sensitive fields and replaces the existing [friend] record.
   Future<void> update(Friend friend) async {
     await db.friendDao.updateFriend(_toEncryptedCompanion(friend));

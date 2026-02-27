@@ -11,13 +11,17 @@ import '../../../core/router/app_router.dart';
 import '../data/friend_repository_provider.dart';
 import '../domain/friend_tags_codec.dart';
 
-/// Add Friend screen — contact import + manual entry (Stories 2.1 & 2.2).
+/// Add / Edit Friend screen — contact import + manual entry (Stories 2.1 & 2.2).
 ///
 /// Provides two paths:
 /// - "Import from contacts": opens the system contact picker after requesting
 ///   [READ_CONTACTS] at point-of-use only (AC1/2.1, NFR9).
 /// - "Enter manually": validated Form with inline field errors (Story 2.2
 ///   AC1/AC2), 48 dp touch targets (AC4), UUID v4 id + E.164 mobile (AC3).
+///
+/// When [editFriendId] is non-null the screen is in edit mode.
+/// Story 2.7 owns pre-filling fields from the existing record; this stub only
+/// accepts the parameter to satisfy routing (Story 2.6 AC4).
 ///
 /// AC implementation map:
 ///   2.1/AC1  — [_importFromContacts] requests permission on tap only.
@@ -31,7 +35,12 @@ import '../domain/friend_tags_codec.dart';
 ///   2.2/AC3  — UUID v4, E.164 mobile, careScore 0.0 persisted to SQLite.
 ///   2.2/AC4  — Primary buttons/Back meet 48 dp minimum touch target (NFR15).
 class FriendFormScreen extends ConsumerStatefulWidget {
-  const FriendFormScreen({super.key});
+  const FriendFormScreen({super.key, this.editFriendId});
+
+  /// When non-null the screen is in edit mode for the friend with this id.
+  ///
+  /// Story 2.7 implements pre-filling; this field is reserved for routing.
+  final String? editFriendId;
 
   @override
   ConsumerState<FriendFormScreen> createState() => _FriendFormScreenState();

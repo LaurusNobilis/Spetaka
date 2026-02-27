@@ -24,3 +24,11 @@ final friendByIdProvider = FutureProvider.autoDispose.family<Friend?, String>((
   return ref.watch(friendRepositoryProvider).findById(id);
 });
 
+/// Watches a single friend by id — reactive stream for Story 2.6 AC5.
+///
+/// Emits null when the friend no longer exists (e.g. after deletion).
+final watchFriendByIdProvider =
+    StreamProvider.autoDispose.family<Friend?, String>((ref, id) {
+  return ref.watch(friendRepositoryProvider).watchById(id);
+});
+

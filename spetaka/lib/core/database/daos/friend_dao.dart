@@ -28,6 +28,12 @@ class FriendDao extends DatabaseAccessor<AppDatabase> with _$FriendDaoMixin {
   /// Watches all friends; emits a new list on every database change.
   Stream<List<Friend>> watchAll() => select(friends).watch();
 
+  /// Watches a single friend by UUID [id]; emits on every database change.
+  ///
+  /// Emits `null` when no friend with [id] exists in the table.
+  Stream<Friend?> watchById(String id) =>
+      (select(friends)..where((f) => f.id.equals(id))).watchSingleOrNull();
+
   /// Replaces the existing friend row identified by the companion's primary key.
   Future<bool> updateFriend(Insertable<Friend> entry) =>
       update(friends).replace(entry);

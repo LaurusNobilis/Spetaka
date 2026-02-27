@@ -45,6 +45,15 @@ class FriendDetailRoute extends AppRoute {
   String get location => '/friends/$id';
 }
 
+class EditFriendRoute extends AppRoute {
+  const EditFriendRoute(this.id);
+
+  final String id;
+
+  @override
+  String get location => '/friends/$id/edit';
+}
+
 class SettingsRoute extends AppRoute {
   const SettingsRoute();
 
@@ -78,6 +87,14 @@ GoRouter createAppRouter() => GoRouter(
                   builder: (context, state) => FriendCardScreen(
                     id: state.pathParameters['id'] ?? '',
                   ),
+                  routes: <RouteBase>[
+                    GoRoute(
+                      path: 'edit',
+                      builder: (context, state) => FriendFormScreen(
+                        editFriendId: state.pathParameters['id'],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
