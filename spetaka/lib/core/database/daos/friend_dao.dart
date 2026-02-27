@@ -13,5 +13,5 @@ class FriendDao extends DatabaseAccessor<AppDatabase>
     with _$FriendDaoMixin {
   FriendDao(super.db);
 
-  // TODO(Epic 2): Add friend CRUD queries when FriendCard table is introduced.
+  // TODO(laurus): Add friend CRUD queries when the Friend table is introduced (Epic 2).
 }

@@ -13,5 +13,5 @@ class EventDao extends DatabaseAccessor<AppDatabase>
     with _$EventDaoMixin {
   EventDao(super.db);
 
-  // TODO(Epic 3): Add event CRUD queries when Event table is introduced.
+  // TODO(laurus): Add event CRUD queries when the Event table is introduced (Epic 3).
 }

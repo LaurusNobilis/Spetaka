@@ -13,5 +13,5 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
     with _$AcquittementDaoMixin {
   AcquittementDao(super.db);
 
-  // TODO(Epic 5): Add acquittement queries when Acquittement table is introduced.
+  // TODO(laurus): Add acquittement queries when the Acquittement table is introduced (Epic 5).
 }

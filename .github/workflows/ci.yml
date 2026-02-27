@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -15,6 +18,7 @@ jobs:
   build:
     name: Analyze · Test · Build
     runs-on: ubuntu-latest  # x86_64 — required for gen_snapshot / AAPT2
+    timeout-minutes: 20
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
@@ -33,6 +37,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.41.2'
           cache: true           # caches ~/flutter across runs (AC: 3)
 
       # ── Pub package cache ─────────────────────────────────────────────────
@@ -41,7 +46,6 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            spetaka/.dart_tool
           key: pub-${{ runner.os }}-${{ hashFiles('spetaka/pubspec.lock') }}
           restore-keys: pub-${{ runner.os }}-
 
@@ -54,6 +58,10 @@ jobs:
       - name: Generate code (Riverpod + Drift)
         working-directory: spetaka
         run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Verify generated code is committed
+        working-directory: spetaka
+        run: git diff --exit-code -- lib test
 
       # ── Quality gate 1: Analyze (AC: 2, 4) ───────────────────────────────
       - name: flutter analyze

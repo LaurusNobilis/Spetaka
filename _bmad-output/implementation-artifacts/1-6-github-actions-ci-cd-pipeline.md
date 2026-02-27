@@ -1,6 +1,6 @@
 # Story 1.6: GitHub Actions CI/CD Pipeline
 
-Status: review
+Status: done
 
 ## Story
 
@@ -73,10 +73,32 @@ Claude Sonnet 4.6 (GitHub Copilot)
 ### File List
 
 - .github/workflows/ci.yml
+- spetaka/lib/core/database/daos/acquittement_dao.dart
+- spetaka/lib/core/database/daos/event_dao.dart
+- spetaka/lib/core/database/daos/friend_dao.dart
+- spetaka/lib/core/database/daos/settings_dao.dart
 - _bmad-output/implementation-artifacts/1-6-github-actions-ci-cd-pipeline.md
 - _bmad-output/implementation-artifacts/sprint-status.yaml
+
+## Senior Developer Review (AI)
+
+Date: 2026-02-27
+
+### Findings
+
+- HIGH: `flutter analyze` fails due to `flutter_style_todos` violations in DAO stubs (CI would fail at the first quality gate).
+- MEDIUM: CI workflow was not deterministic enough (Flutter pinned only to `channel: stable`).
+- MEDIUM: Pub cache included `spetaka/.dart_tool` which can cause stale / non-hermetic builds.
+- MEDIUM: Codegen ran in CI but did not verify that generated files are committed (could allow drift between local and CI output).
+- LOW: Workflow did not set minimal `permissions` for `GITHUB_TOKEN`.
+
+### Fixes Applied
+
+- Updated DAO TODO markers to conform to `flutter_style_todos` so `flutter analyze` can be green.
+- Hardened `.github/workflows/ci.yml`: pinned Flutter to 3.41.2, added minimal permissions, removed `.dart_tool` from cache, and added a post-codegen `git diff --exit-code` verification step.
 
 ## Change Log
 
 - 2026-02-26: CI/CD pipeline implemented — `.github/workflows/ci.yml` created with flutter analyze, flutter test, flutter build apk --release, pub/Flutter SDK caching, and APK artifact upload. Runs on push/pull_request to main on ubuntu-latest (x86_64). AC 6 pending first push to main.
 - 2026-02-27: CI validation — first green run on `main` confirmed; release APK built successfully and published as workflow artifact.
+- 2026-02-27: Senior review fixes — make CI deterministic and green: fix `flutter_style_todos` violations, pin Flutter version, tighten permissions, remove `.dart_tool` cache, and verify codegen output via `git diff --exit-code`.

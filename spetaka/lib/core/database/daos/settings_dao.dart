@@ -13,5 +13,5 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     with _$SettingsDaoMixin {
   SettingsDao(super.db);
 
-  // TODO(Epic 7): Add settings queries when Settings table is introduced.
+  // TODO(laurus): Add settings queries when the Settings table is introduced (Epic 7).
 }
