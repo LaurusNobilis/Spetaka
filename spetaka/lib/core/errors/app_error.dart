@@ -33,3 +33,25 @@ class EncryptionInitializationFailedAppError extends AppError {
   @override
   String get code => 'encryption_initialization_failed';
 }
+
+/// Thrown when a raw phone number cannot be parsed or normalized to E.164.
+class PhoneNormalizationAppError extends AppError {
+  const PhoneNormalizationAppError(this.reason);
+
+  /// Short description of why normalization failed.
+  final String reason;
+
+  @override
+  String get code => 'phone_normalization_failed';
+}
+
+/// Thrown when a contact action (call/sms/whatsapp) cannot be launched.
+class ContactActionFailedAppError extends AppError {
+  const ContactActionFailedAppError(this.action);
+
+  /// The action that failed: 'call', 'sms', or 'whatsapp'.
+  final String action;
+
+  @override
+  String get code => 'contact_action_failed';
+}

@@ -45,7 +45,7 @@ development_status:
   1-2-drift-database-foundation-migration-infrastructure: done
   1-3-aes-256-encryption-service: done
   1-4-app-shell-gorouter-navigation-design-system: done
-  1-5-core-utilities-applifecycle-phonenormalizer-contactactionservice: ready-for-dev
+  1-5-core-utilities-applifecycle-phonenormalizer-contactactionservice: review
   1-6-github-actions-ci-cd-pipeline: done
   1-7-sensitive-field-encryption-at-repository-layer-nfr6: ready-for-dev
   epic-1-retrospective: optional
