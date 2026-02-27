@@ -1,6 +1,6 @@
 # Story 2.3: Category Tags Assignment
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,11 +24,11 @@ so that relationships are organized and later weighted by category.
 
 ### A) Drift schema + migration (AC: 3)
 
-- [ ] Add `tags` column to Drift table `Friends`
+- [x] Add `tags` column to Drift table `Friends`
 	- File: `spetaka/lib/features/friends/domain/friend.dart`
 	- Suggested column: `TextColumn get tags => text().nullable()();`
 
-- [ ] Migrate database for the new column
+- [x] Migrate database for the new column
 	- File: `spetaka/lib/core/database/app_database.dart`
 	- Increment `schemaVersion` (currently `2`).
 	- Add an `onUpgrade` step that runs when upgrading from older versions.
@@ -41,7 +41,7 @@ so that relationships are organized and later weighted by category.
 
 ### B) Repository updates (AC: 3)
 
-- [ ] Update `FriendRepository` to round-trip tags
+- [x] Update `FriendRepository` to round-trip tags
 	- File: `spetaka/lib/features/friends/data/friend_repository.dart`
 	- Ensure `_toEncryptedCompanion(...)` passes `tags` through unchanged.
 	- Ensure `_decryptRow(...)` only decrypts `notes` and `concernNote`.
@@ -53,13 +53,13 @@ so that relationships are organized and later weighted by category.
 			- `List<String> decodeFriendTags(String? raw)` (empty list when `null`)
 		- Robustness guardrail: `decodeFriendTags` must not throw on invalid/corrupted stored values; treat as empty list and optionally report via `FlutterError.reportError`.
 
-- [ ] Export the codec from the feature barrel (optional but keeps imports consistent)
+- [x] Export the codec from the feature barrel (optional but keeps imports consistent)
 	- File: `spetaka/lib/features/features.dart`
 	- Add: `export 'friends/domain/friend_tags_codec.dart';`
 
 ### C) Friend form: tag selector UI (AC: 1, 2)
 
-- [ ] Extend `FriendFormScreen` to select tags during creation
+- [x] Extend `FriendFormScreen` to select tags during creation
 	- File: `spetaka/lib/features/friends/presentation/friend_form_screen.dart`
 	- Use multi-select chips (e.g. `FilterChip`) laid out with `Wrap`.
 	- Store selection as a `Set<String>` in widget state.
@@ -73,12 +73,12 @@ so that relationships are organized and later weighted by category.
 
 ### D) Display: chips in list + detail (AC: 4)
 
-- [ ] Friends list: render selected tags as chips
+- [x] Friends list: render selected tags as chips
 	- File: `spetaka/lib/features/friends/presentation/friends_list_screen.dart`
 	- Keep PII safe: never show phone numbers here.
 	- If a dedicated `FriendCardTile` widget exists later (Story 2.5), the chips rendering can move there.
 
-- [ ] Friend detail: render a tags section
+- [x] Friend detail: render a tags section
 	- Current placeholder screen lives in: `spetaka/lib/core/router/app_router.dart` (will be owned by Story 2.6).
 	- Minimal requirement for this story: show a “Tags” section with chips for the current friend record.
 	- Keep this forward-compatible (Story 2.6 will flesh out the full detail view).
@@ -88,12 +88,12 @@ so that relationships are organized and later weighted by category.
 
 ### E) Tests (AC: 2–4)
 
-- [ ] Repository test: tags persist correctly
+- [x] Repository test: tags persist correctly
 	- File: `spetaka/test/repositories/friend_repository_test.dart`
 	- Insert a friend with two tags → read back → tags decode matches.
 	- (Optional) Assert the raw DAO value is plaintext JSON.
 
-- [ ] Widget test: tags UI and chips rendering
+- [x] Widget test: tags UI and chips rendering
 	- Location: `spetaka/test/widget/`
 	- Select multiple chips → Save → verify chips appear for the friend in `/friends` list.
 	- (Optional) Also assert tags chips render on `/friends/:id` (placeholder detail) to cover AC4 end-to-end.
@@ -128,6 +128,12 @@ GPT-5.2
 
 ### Completion Notes List
 
+- Implemented predefined tag multi-select (FilterChips) with 48×48dp touch target constraints.
+- Added stable JSON codec for tags (deterministic ordering; robust decode).
+- Added Drift migration for `friends.tags` (schemaVersion=3).
+- Ensured tags remain plaintext (not encrypted) and added DAO-level assertion in encryption tests.
+- Hardened widget tests to avoid `pumpAndSettle` hangs with live Drift streams.
+
 ### File List
 
 <!-- validated: 2026-02-27 -->
@@ -135,11 +141,42 @@ GPT-5.2
 - `spetaka/lib/features/friends/domain/friend.dart`
 - `spetaka/lib/core/database/app_database.dart`
 - `spetaka/lib/features/friends/data/friend_repository.dart`
+- `spetaka/lib/features/friends/data/friends_providers.dart`
 - `spetaka/lib/features/friends/domain/friend_tags_codec.dart`
+- `spetaka/lib/features/friends/presentation/friend_card_screen.dart`
 - `spetaka/lib/features/friends/presentation/friend_form_screen.dart`
 - `spetaka/lib/features/friends/presentation/friends_list_screen.dart`
 - `spetaka/lib/core/router/app_router.dart`
 - `spetaka/lib/features/features.dart`
+- `spetaka/lib/core/database/app_database.g.dart`
 - `spetaka/test/repositories/friend_repository_test.dart`
 - `spetaka/test/repositories/field_encryption_test.dart`
+- `spetaka/test/unit/database_foundation_test.dart`
+- `spetaka/test/unit/app_shell_theme_test.dart`
 - `spetaka/test/widget/friend_form_screen_test.dart`
+
+## Senior Developer Review (AI)
+
+Date: 2026-02-27
+
+Outcome: **Approved (after fixes)**
+
+### Findings
+
+**HIGH**
+- NFR15 gap: `_TagChip` constrained height but not width → could fall below 48×48dp for short labels. Fixed by enforcing `minWidth: 48`.
+
+**MEDIUM**
+- Data integrity proof gap: story requires `friends.tags` plaintext; repository test covered round-trip but DAO-level plaintext assertion was missing in encryption suite. Fixed by asserting `rawRow.tags == encodedTags`.
+- Widget test fragility: `pumpAndSettle()` used on a widget tree containing live Drift streams; this can hang in CI. Fixed by replacing with bounded `pump()` delays in the affected test.
+
+**LOW**
+- Story hygiene: status/tasks were not reflecting that the feature had shipped (ready-for-dev + unchecked tasks). Updated status to `done` and checked off tasks; expanded File List to match actual changes.
+
+### Follow-ups (non-blocking)
+
+- Consider migrating `allFriendsProvider` / `friendByIdProvider` to Riverpod codegen once the `riverpod_generator` + Drift `Friend` type incompatibility is understood/resolved.
+
+## Change Log
+
+- 2026-02-27 — Senior dev code review: fixed NFR15 chip sizing, added plaintext tags assertion in encryption tests, hardened widget tests, updated story status/tasks/file list.

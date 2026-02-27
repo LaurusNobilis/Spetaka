@@ -26,6 +26,7 @@ import 'package:spetaka/core/errors/app_error.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
+import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
 import 'package:uuid/uuid.dart';
 
 class _NoopAppLifecycleService extends AppLifecycleService {
@@ -252,8 +253,9 @@ void main() {
       );
     });
 
-    test('non-sensitive fields (name, mobile, careScore) stored as plaintext (AC3)', () async {
-      final friend = makeTestFriend();
+    test('non-sensitive fields (name, mobile, tags, careScore) stored as plaintext (AC3)', () async {
+      final tags = encodeFriendTags({'Work', 'Family'});
+      final friend = makeTestFriend(tags: tags);
       await repo.insert(friend);
 
       // DAO row must have plaintext non-sensitive fields.
@@ -273,6 +275,11 @@ void main() {
         rawRow.careScore,
         equals(0.5),
         reason: 'careScore must remain plaintext',
+      );
+      expect(
+        rawRow.tags,
+        equals(tags),
+        reason: 'tags must remain plaintext (not encrypted)',
       );
     });
 

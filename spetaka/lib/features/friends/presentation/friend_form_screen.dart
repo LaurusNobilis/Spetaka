@@ -459,7 +459,7 @@ class _TagChip extends StatelessWidget {
       selected: selected,
       label: 'Tag: $tag, ${selected ? 'selected' : 'not selected'}',
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 48),
+        constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         child: FilterChip(
           label: Text(tag),
           selected: selected,

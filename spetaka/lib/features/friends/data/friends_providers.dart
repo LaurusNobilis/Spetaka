@@ -13,3 +13,14 @@ import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 final allFriendsProvider = StreamProvider.autoDispose<List<Friend>>((ref) {
   return ref.watch(friendRepositoryProvider).watchAll();
 });
+
+/// Loads a single friend record by id for detail pages.
+///
+/// Story 2.3 only needs tags display; Story 2.6 will expand the full detail UX.
+final friendByIdProvider = FutureProvider.autoDispose.family<Friend?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(friendRepositoryProvider).findById(id);
+});
+

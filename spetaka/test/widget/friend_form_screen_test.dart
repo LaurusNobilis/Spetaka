@@ -159,7 +159,10 @@ void main() {
     );
 
     router.go(const FriendsRoute().location);
-    await tester.pumpAndSettle();
+    // Avoid pumpAndSettle with a live Drift stream in the widget tree.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Friends'), findsAtLeastNWidgets(1));
     expect(find.text('Alice'), findsAtLeastNWidgets(1));
@@ -302,4 +305,5 @@ void main() {
     await h.dispose();
   });
 }
+
 

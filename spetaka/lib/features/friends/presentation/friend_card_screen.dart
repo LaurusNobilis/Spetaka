@@ -5,7 +5,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
-import '../data/friend_repository_provider.dart';
+import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
 
 /// Friend detail screen — minimal tag display for Story 2.3.
@@ -18,27 +18,22 @@ class FriendCardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-      future: ref.read(friendRepositoryProvider).findById(id),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            body: Center(child: LoadingWidget()),
-          );
-        }
+    final friendAsync = ref.watch(friendByIdProvider(id));
 
-        if (snapshot.hasError) {
-          final err = snapshot.error;
-          final message = err is AppError
-              ? errorMessageFor(err)
-              : 'Something went wrong. Please try again.';
-          return Scaffold(
-            appBar: AppBar(title: const Text('Friend')),
-            body: Center(child: AppErrorWidget(message: message)),
-          );
-        }
-
-        final friend = snapshot.data;
+    return friendAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: LoadingWidget()),
+      ),
+      error: (err, _) {
+        final message = err is AppError
+            ? errorMessageFor(err)
+            : 'Something went wrong. Please try again.';
+        return Scaffold(
+          appBar: AppBar(title: const Text('Friend')),
+          body: Center(child: AppErrorWidget(message: message)),
+        );
+      },
+      data: (friend) {
         if (friend == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Friend')),
