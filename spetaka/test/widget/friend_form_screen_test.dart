@@ -9,6 +9,7 @@ import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
+import 'package:spetaka/features/friends/data/friends_providers.dart';
 
 /// Builds the full router-test scaffold with an in-memory repo.
 /// Friends list data is reactive via repository watchAll() (StreamProvider).
@@ -27,6 +28,12 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         friendRepositoryProvider.overrideWithValue(repo),
+        // Override the live Drift stream so FriendsListScreen (mounted
+        // off-screen beneath /friends/new in the GoRouter Navigator stack)
+        // does not keep Dart timers alive and block pumpAndSettle / pump.
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -35,11 +42,19 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
   );
 
   router.go(const NewFriendRoute().location);
-  await tester.pumpAndSettle();
+  // Do NOT use pumpAndSettle: FriendsListScreen's Drift StreamProvider is
+  // mounted beneath this route and keeps the stream open.  pumpAndSettle
+  // would wait 10 minutes before throwing in CI.
+  // pump(300ms) is sufficient to complete GoRouter navigation and Material
+  // entrance animations.
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 
   // Tap "Enter manually" to reveal the manual-entry form.
   await tester.tap(find.text('Enter manually'));
-  await tester.pumpAndSettle();
+  // One pump for setState rebuild + 300 ms for any InputDecorator animation.
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 
   return _TestHarness(db: db, lifecycle: lifecycle, enc: enc, repo: repo);
 }
@@ -159,7 +174,11 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '06 12 34 56 78');
 
     await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    // Form validation is synchronous — one pump rebuilds inline errors.
+    // pumpAndSettle hangs here because the Drift StreamProvider keeps
+    // emitting frames in the background (no navigation occurred).
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Inline error must be visible.
     expect(find.text('Please enter a name.'), findsOneWidget);
@@ -178,7 +197,9 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), 'abc-not-a-phone');
 
     await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    // Validation is synchronous — pump is sufficient, pumpAndSettle hangs.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Inline error from errorMessageFor(PhoneNormalizationAppError).
     expect(find.text('Invalid phone number. Please check and try again.'), findsOneWidget);
@@ -197,7 +218,9 @@ void main() {
     // Leave mobile empty.
 
     await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    // Validation is synchronous — pump is sufficient, pumpAndSettle hangs.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Please enter a mobile number.'), findsOneWidget);
     expect(find.text('Add Friend'), findsAtLeastNWidgets(1));
