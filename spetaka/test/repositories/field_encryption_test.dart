@@ -51,7 +51,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   const testPass = 'spetaka-test-passphrase-1.7';
-  final uuid = const Uuid();
+  const uuid = Uuid();
 
   AppDatabase buildDb() => AppDatabase(NativeDatabase.memory());
 
@@ -125,8 +125,11 @@ void main() {
       final retrieved = await repo.findById(friend.id);
 
       expect(retrieved, isNotNull);
-      expect(retrieved!.notes, equals('She loves jazz'),
-          reason: 'repository must decrypt notes before returning');
+      expect(
+        retrieved!.notes,
+        equals('She loves jazz'),
+        reason: 'repository must decrypt notes before returning',
+      );
     });
 
     test('concernNote roundtrip: insert then findById returns original plaintext', () async {
@@ -135,8 +138,11 @@ void main() {
 
       final retrieved = await repo.findById(friend.id);
 
-      expect(retrieved!.concernNote, equals('Going through hard times'),
-          reason: 'repository must decrypt concernNote before returning');
+      expect(
+        retrieved!.concernNote,
+        equals('Going through hard times'),
+        reason: 'repository must decrypt concernNote before returning',
+      );
     });
 
     test('findById returns null for non-existent id', () async {
@@ -216,10 +222,16 @@ void main() {
       final rawRow = await db.friendDao.findById(friend.id);
 
       expect(rawRow, isNotNull);
-      expect(rawRow!.notes, isNotNull,
-          reason: 'notes column must not be null after insert');
-      expect(rawRow.notes, isNot(equals(plainNotes)),
-          reason: 'DAO must store ciphertext, not plaintext');
+      expect(
+        rawRow!.notes,
+        isNotNull,
+        reason: 'notes column must not be null after insert',
+      );
+      expect(
+        rawRow.notes,
+        isNot(equals(plainNotes)),
+        reason: 'DAO must store ciphertext, not plaintext',
+      );
     });
 
     test('DAO-stored concernNote is ciphertext (not original plaintext)', () async {
@@ -230,8 +242,11 @@ void main() {
       final rawRow = await db.friendDao.findById(friend.id);
 
       expect(rawRow!.concernNote, isNotNull);
-      expect(rawRow.concernNote, isNot(equals(plainConcern)),
-          reason: 'DAO must store ciphertext for concernNote');
+      expect(
+        rawRow.concernNote,
+        isNot(equals(plainConcern)),
+        reason: 'DAO must store ciphertext for concernNote',
+      );
     });
 
     test('non-sensitive fields (name, mobile, careScore) stored as plaintext (AC3)', () async {
@@ -241,17 +256,24 @@ void main() {
       // DAO row must have plaintext non-sensitive fields.
       final rawRow = await db.friendDao.findById(friend.id);
 
-      expect(rawRow!.name, equals('Alice'),
-          reason: 'name must remain plaintext');
-      expect(rawRow.mobile, equals('+33601020304'),
-          reason: 'mobile must remain plaintext');
-      expect(rawRow.careScore, equals(0.5),
-          reason: 'careScore must remain plaintext');
+      expect(
+        rawRow!.name,
+        equals('Alice'),
+        reason: 'name must remain plaintext',
+      );
+      expect(
+        rawRow.mobile,
+        equals('+33601020304'),
+        reason: 'mobile must remain plaintext',
+      );
+      expect(
+        rawRow.careScore,
+        equals(0.5),
+        reason: 'careScore must remain plaintext',
+      );
     });
 
     test('null notes stored as null (no encryption of null)', () async {
-      final friend = makeTestFriend(notes: null, concernNote: null);
-
       // Override makeTestFriend with explicit null values.
       final nullFriend = Friend(
         id: uuid.v4(),
@@ -267,9 +289,16 @@ void main() {
       await repo.insert(nullFriend);
 
       final rawRow = await db.friendDao.findById(nullFriend.id);
-      expect(rawRow!.notes, isNull, reason: 'null notes must be stored as null');
-      expect(rawRow.concernNote, isNull,
-          reason: 'null concernNote must be stored as null');
+      expect(
+        rawRow!.notes,
+        isNull,
+        reason: 'null notes must be stored as null',
+      );
+      expect(
+        rawRow.concernNote,
+        isNull,
+        reason: 'null concernNote must be stored as null',
+      );
     });
   });
 
@@ -305,8 +334,11 @@ void main() {
       final retrieved = await repo.findById(entry.id);
 
       expect(retrieved, isNotNull);
-      expect(retrieved!.note, equals('Caught up over coffee'),
-          reason: 'repository must decrypt note before returning');
+      expect(
+        retrieved!.note,
+        equals('Caught up over coffee'),
+        reason: 'repository must decrypt note before returning',
+      );
     });
 
     test('null note stored and returned as null', () async {
@@ -326,14 +358,21 @@ void main() {
       final rawRow = await db.acquittementDao.findById(entry.id);
 
       expect(rawRow!.note, isNotNull);
-      expect(rawRow.note, isNot(equals(plainNote)),
-          reason: 'DAO must store ciphertext for note');
+      expect(
+        rawRow.note,
+        isNot(equals(plainNote)),
+        reason: 'DAO must store ciphertext for note',
+      );
     });
 
     test('findByFriendId returns all decrypted entries for a friend', () async {
       final friendId = uuid.v4();
-      await repo.insert(makeTestAcquittement(friendId: friendId, note: 'First call'));
-      await repo.insert(makeTestAcquittement(friendId: friendId, note: 'Second call'));
+      await repo.insert(
+        makeTestAcquittement(friendId: friendId, note: 'First call'),
+      );
+      await repo.insert(
+        makeTestAcquittement(friendId: friendId, note: 'Second call'),
+      );
 
       final all = await repo.findByFriendId(friendId);
       expect(all, hasLength(2));
@@ -347,10 +386,16 @@ void main() {
       await repo.insert(entry);
 
       final rawRow = await db.acquittementDao.findById(entry.id);
-      expect(rawRow!.friendId, equals(friendId),
-          reason: 'friendId must remain plaintext');
-      expect(rawRow.type, equals('call'),
-          reason: 'type must remain plaintext');
+      expect(
+        rawRow!.friendId,
+        equals(friendId),
+        reason: 'friendId must remain plaintext',
+      );
+      expect(
+        rawRow.type,
+        equals('call'),
+        reason: 'type must remain plaintext',
+      );
     });
   });
 
