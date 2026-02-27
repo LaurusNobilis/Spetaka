@@ -55,3 +55,43 @@ class ContactActionFailedAppError extends AppError {
   @override
   String get code => 'contact_action_failed';
 }
+
+/// Thrown when the user denies contact permission during import.
+class ContactPermissionDeniedAppError extends AppError {
+  const ContactPermissionDeniedAppError();
+
+  @override
+  String get code => 'contact_permission_denied';
+}
+
+/// Thrown when contact details cannot be loaded after the picker returns.
+class ContactDetailsLoadFailedAppError extends AppError {
+  const ContactDetailsLoadFailedAppError();
+
+  @override
+  String get code => 'contact_details_load_failed';
+}
+
+/// Thrown when an imported contact has no usable phone number.
+class ContactHasNoPhoneAppError extends AppError {
+  const ContactHasNoPhoneAppError();
+
+  @override
+  String get code => 'contact_has_no_phone';
+}
+
+/// Thrown when friend creation is attempted without a name.
+class FriendNameMissingAppError extends AppError {
+  const FriendNameMissingAppError();
+
+  @override
+  String get code => 'friend_name_missing';
+}
+
+/// Thrown when friend creation is attempted without a mobile number.
+class FriendMobileMissingAppError extends AppError {
+  const FriendMobileMissingAppError();
+
+  @override
+  String get code => 'friend_mobile_missing';
+}

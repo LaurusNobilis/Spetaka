@@ -147,5 +147,25 @@ void main() {
       final msg = errorMessageFor(const ContactActionFailedAppError('call'));
       expect(msg, contains('call'));
     });
+
+    test('ContactPermissionDeniedAppError has user-facing message', () {
+      final msg = errorMessageFor(const ContactPermissionDeniedAppError());
+      expect(msg, isNotEmpty);
+    });
+
+    test('ContactHasNoPhoneAppError has user-facing message', () {
+      final msg = errorMessageFor(const ContactHasNoPhoneAppError());
+      expect(msg, isNotEmpty);
+    });
+
+    test('FriendNameMissingAppError has user-facing message', () {
+      final msg = errorMessageFor(const FriendNameMissingAppError());
+      expect(msg, isNotEmpty);
+    });
+
+    test('FriendMobileMissingAppError has user-facing message', () {
+      final msg = errorMessageFor(const FriendMobileMissingAppError());
+      expect(msg, isNotEmpty);
+    });
   });
 }

@@ -9,5 +9,13 @@ String errorMessageFor(AppError error) {
     PhoneNormalizationAppError() => 'Invalid phone number. Please check and try again.',
     ContactActionFailedAppError(action: final a) =>
         'Could not launch $a. Please verify the app is available on this device.',
+  ContactPermissionDeniedAppError() =>
+    'Contact permission denied. Please enter the details manually.',
+  ContactDetailsLoadFailedAppError() =>
+    'Could not load contact details. Please try again or enter them manually.',
+  ContactHasNoPhoneAppError() =>
+    'This contact has no phone number. Please enter it manually.',
+  FriendNameMissingAppError() => 'Please enter a name.',
+  FriendMobileMissingAppError() => 'Please enter a mobile number.',
   };
 }

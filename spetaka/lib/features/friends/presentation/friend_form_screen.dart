@@ -35,6 +35,17 @@ class FriendFormScreen extends ConsumerStatefulWidget {
 class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   bool _isLoading = false;
 
+  bool _isManualFormVisible = false;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _mobileController.dispose();
+    super.dispose();
+  }
+
   // -------------------------------------------------------------------------
   // Contact import flow — AC1, AC2, AC3, AC4, AC5, AC6
   // -------------------------------------------------------------------------
@@ -50,10 +61,8 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
       if (!granted) {
         // AC5: no dead-end — inform user and keep manual entry visible.
-        _showError(
-          'Contact permission denied. '
-          'Please use "Enter manually" below.',
-        );
+        _showError(errorMessageFor(const ContactPermissionDeniedAppError()));
+        _showManualForm();
         return;
       }
 
@@ -75,14 +84,15 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       );
 
       if (full == null) {
-        _showError('Could not load contact details. Please try again.');
+        _showError(errorMessageFor(const ContactDetailsLoadFailedAppError()));
         return;
       }
 
       // AC3: extract primary mobile number.
       final rawPhone = _primaryPhone(full.phones);
       if (rawPhone == null) {
-        _showError('This contact has no phone number. Please enter it manually.');
+        _showError(errorMessageFor(const ContactHasNoPhoneAppError()));
+        _showManualForm(prefillName: _safeContactName(full.displayName));
         return;
       }
 
@@ -96,32 +106,13 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
         return;
       }
 
-      // AC3: display name from contact.
-      final name = full.displayName.trim().isEmpty
-          ? 'Unknown'
-          : full.displayName.trim();
-
-      // AC6: build Friend domain object (UUID v4, careScore 0.0, nulls for
-      //      story-2.2 fields: notes, concernNote).
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final friend = Friend(
-        id: const Uuid().v4(),
-        name: name,
-        mobile: normalizedPhone,
-        notes: null,
-        careScore: 0.0,
-        isConcernActive: false,
-        concernNote: null,
-        createdAt: now,
-        updatedAt: now,
+      // AC3: prefill the form with display name + primary mobile.
+      // User confirms with a single tap (Save) to avoid silently persisting
+      // incorrect data.
+      _showManualForm(
+        prefillName: _safeContactName(full.displayName),
+        prefillMobile: normalizedPhone,
       );
-
-      // AC6: persist via FriendRepository — encryption boundary lives there.
-      await ref.read(friendRepositoryProvider).insert(friend);
-
-      if (mounted) {
-        const FriendsRoute().go(context);
-      }
     } on AppError catch (e) {
       _showError(errorMessageFor(e));
     } catch (_) {
@@ -140,11 +131,89 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   /// available phone.  Returns null if [phones] is empty.
   String? _primaryPhone(List<Phone> phones) {
     if (phones.isEmpty) return null;
-    final mobile = phones.firstWhere(
-      (p) => p.label == PhoneLabel.mobile,
+    final primary = phones.where((p) => p.isPrimary).toList();
+    if (primary.isNotEmpty) return primary.first.number;
+
+    final preferred = phones.firstWhere(
+      (p) => _isMobileLabel(p.label),
       orElse: () => phones.first,
     );
-    return mobile.number;
+    return preferred.number;
+  }
+
+  bool _isMobileLabel(PhoneLabel label) {
+    return switch (label) {
+      PhoneLabel.mobile => true,
+      PhoneLabel.workMobile => true,
+      PhoneLabel.iPhone => true,
+      PhoneLabel.main => true,
+      PhoneLabel.mms => true,
+      _ => false,
+    };
+  }
+
+  String _safeContactName(String displayName) {
+    final trimmed = displayName.trim();
+    return trimmed;
+  }
+
+  void _showManualForm({String? prefillName, String? prefillMobile}) {
+    if (!mounted) return;
+    setState(() {
+      _isManualFormVisible = true;
+      if (prefillName != null) {
+        _nameController.text = prefillName;
+      }
+      if (prefillMobile != null) {
+        _mobileController.text = prefillMobile;
+      }
+    });
+  }
+
+  Future<void> _saveFriend() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final rawName = _nameController.text.trim();
+      if (rawName.isEmpty) {
+        _showError(errorMessageFor(const FriendNameMissingAppError()));
+        return;
+      }
+
+      final rawMobile = _mobileController.text.trim();
+      if (rawMobile.isEmpty) {
+        _showError(errorMessageFor(const FriendMobileMissingAppError()));
+        return;
+      }
+
+      final normalizedMobile = const PhoneNormalizer().normalize(rawMobile);
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final friend = Friend(
+        id: const Uuid().v4(),
+        name: rawName,
+        mobile: normalizedMobile,
+        notes: null,
+        careScore: 0.0,
+        isConcernActive: false,
+        concernNote: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await ref.read(friendRepositoryProvider).insert(friend);
+
+      if (mounted) {
+        const FriendsRoute().go(context);
+      }
+    } on AppError catch (e) {
+      _showError(errorMessageFor(e));
+    } catch (_) {
+      _showError('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -170,54 +239,105 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final onPrimary = theme.colorScheme.onPrimary;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Friend')),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'How would you like to add this friend?',
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-
-            // Primary action — import from contacts (AC1, AC2)
-            FilledButton.icon(
-              onPressed: _isLoading ? null : _importFromContacts,
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.contacts_outlined),
-              label: const Text('Import from contacts'),
-            ),
-
-            const SizedBox(height: 16),
-
-            // AC5: manual entry fallback — placeholder pending Story 2.2.
-            OutlinedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Manual entry coming soon (Story 2.2).'),
-                    behavior: SnackBarBehavior.floating,
+        child: _isManualFormVisible
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Enter details',
+                    style: theme.textTheme.titleMedium,
+                    textAlign: TextAlign.center,
                   ),
-                );
-              },
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Enter manually'),
-            ),
-          ],
-        ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _nameController,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _mobileController,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile',
+                      hintText: 'e.g. 06 12 34 56 78',
+                    ),
+                    onSubmitted: (_) => _saveFriend(),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: _isLoading ? null : _saveFriend,
+                    child: _isLoading
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: onPrimary,
+                            ),
+                          )
+                        : const Text('Save'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            setState(() {
+                              _isManualFormVisible = false;
+                              _nameController.clear();
+                              _mobileController.clear();
+                            });
+                          },
+                    child: const Text('Back'),
+                  ),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'How would you like to add this friend?',
+                    style: theme.textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Primary action — import from contacts (AC1, AC2)
+                  FilledButton.icon(
+                    onPressed: _isLoading ? null : _importFromContacts,
+                    icon: _isLoading
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: onPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.contacts_outlined),
+                    label: const Text('Import from contacts'),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // AC5: manual entry fallback.
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : () => _showManualForm(),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Enter manually'),
+                  ),
+                ],
+              ),
       ),
     );
   }

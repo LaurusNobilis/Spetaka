@@ -1,6 +1,6 @@
 # Story 2.1: Friend Card Creation via Phone Contact Import
 
-Status: review
+Status: done
 
 ## Story
 
@@ -120,7 +120,7 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - ✅ AC2: `FlutterContacts.openExternalPick()` opens system picker
 - ✅ AC3: display name + primary mobile extracted; normalized via `PhoneNormalizer.normalize()` to E.164
 - ✅ AC4: `withPhoto: false` + no email/address import — name + mobile only
-- ✅ AC5: permission denied → Snackbar + "Enter manually" button remains visible (no dead-end)
+- ✅ AC5: permission denied / missing phone → falls back to manual entry form (no dead-end)
 - ✅ AC6: `Friend` persisted via `FriendRepository.insert()` with UUID v4 + `careScore = 0.0`
 - ✅ AC7: `test/repositories/friend_repository_test.dart` — 4 tests, all pass
 - ✅ 119/119 tests green; `flutter analyze` clean
@@ -136,7 +136,28 @@ Claude Sonnet 4.6 (GitHub Copilot)
 - `lib/features/features.dart` (modified — friends feature exports added)
 - `test/repositories/friend_repository_test.dart` (new — 4 tests, AC7)
 - `test/unit/app_shell_theme_test.dart` (modified — ProviderScope + "Add Friend" title update)
+- `test/widget/friend_form_screen_test.dart` (new — widget test for manual entry save + navigation)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (modified — story status tracking)
+- `_bmad-output/implementation-artifacts/epic-1-retro-2026-02-27.md` (modified — retro artifact)
+
+## Senior Developer Review (AI)
+
+Date: 2026-02-27
+
+Outcome: **Changes requested → fixed (YOLO)**
+
+### Findings addressed
+
+- **[HIGH] AC5 dead-end**: "Enter manually" was a placeholder and did not actually allow fallback. Fixed by implementing a minimal manual-entry form inside `FriendFormScreen`.
+- **[HIGH] Task expectation not met**: missing phone / permission denied messages were hardcoded strings instead of being sourced via `error_messages.dart`. Fixed by introducing typed `AppError` variants + mapping.
+- **[MEDIUM] AC3 semantics**: import previously persisted immediately without user confirmation; adjusted to prefill manual form (name + mobile) and require a single-tap Save to persist.
+- **[MEDIUM] Primary mobile selection robustness**: broadened label matching beyond strict `PhoneLabel.mobile`.
+
+### Notes
+
+- This implements only the **minimal** manual entry needed to satisfy AC5 (fallback), not the full Story 2.2 UX scope.
 
 ## Change Log
 
 - 2026-02-27: Story 2.1 implemented — FriendFormScreen (contact import), FriendsListScreen (FAB), FriendRepositoryProvider, 4 repository tests. 119/119 tests green. Status → review.
+- 2026-02-27: Senior code review fixes — real manual-entry fallback, typed errors wired to `error_messages.dart`, import now pre-fills then Save persists; added widget test for manual entry.
