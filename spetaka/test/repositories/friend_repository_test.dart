@@ -12,6 +12,7 @@
 //   - mock SharedPreferences: SharedPreferences.setMockInitialValues({})
 //   - EncryptionService initialized once per test group
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
+import 'package:spetaka/features/acquittement/domain/acquittement.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
 import 'package:uuid/uuid.dart';
@@ -161,6 +163,169 @@ void main() {
       final found = await repo.findById(friend.id);
       expect(found, isNotNull);
       expect(decodeFriendTags(found!.tags), <String>['Family', 'Work']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Story 2.7 — FriendRepository.update (AC3)
+  // ---------------------------------------------------------------------------
+
+  group('FriendRepository — Story 2.7 update (AC3)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('update preserves UUID and createdAt, reflects new name + mobile', () async {
+      final original = makeMinimalFriend();
+      await repo.insert(original);
+
+      final updated = original.copyWith(
+        name: 'Alice Updated',
+        mobile: '+33699887766',
+        updatedAt: original.updatedAt + 1000,
+      );
+      await repo.update(updated);
+
+      final found = await repo.findById(original.id);
+      expect(found, isNotNull);
+      expect(found!.id, original.id);           // UUID unchanged (AC3)
+      expect(found.createdAt, original.createdAt); // createdAt unchanged (AC3)
+      expect(found.name, 'Alice Updated');
+      expect(found.mobile, '+33699887766');
+      expect(found.updatedAt, greaterThan(original.updatedAt)); // updatedAt bumped
+    });
+
+    test('update persists tags change', () async {
+      final original = makeMinimalFriend();
+      await repo.insert(original);
+
+      final updated = original.copyWith(
+        tags: Value(encodeFriendTags({'Family', 'Work'})),
+        updatedAt: original.updatedAt + 500,
+      );
+      await repo.update(updated);
+
+      final found = await repo.findById(original.id);
+      expect(decodeFriendTags(found?.tags), containsAll(['Family', 'Work']));
+    });
+
+    test('update persists notes (encrypted field)', () async {
+      final original = makeMinimalFriend();
+      await repo.insert(original);
+
+      final updated = original.copyWith(
+        notes: const Value('Loves hiking'),
+        updatedAt: original.updatedAt + 500,
+      );
+      await repo.update(updated);
+
+      final found = await repo.findById(original.id);
+      expect(found?.notes, 'Loves hiking');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Story 2.8 — FriendRepository.delete + cascade (AC2, AC5)
+  // ---------------------------------------------------------------------------
+
+  group('FriendRepository — Story 2.8 delete + cascade (AC2, AC5)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('delete removes the friend from the database (AC5)', () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      final deleted = await repo.delete(friend.id);
+
+      expect(deleted, 1);
+      expect(await repo.findById(friend.id), isNull);
+    });
+
+    test('delete non-existent id returns 0 rows deleted', () async {
+      final deleted = await repo.delete('no-such-id-${uuid.v4()}');
+      expect(deleted, 0);
+    });
+
+    test('delete cascades acquittements (AC2)', () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      // Insert two acquittements linked to this friend directly via DAO.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.acquittementDao.insertAcquittement(Acquittement(
+        id: uuid.v4(),
+        friendId: friend.id,
+        type: 'call',
+        note: null,
+        createdAt: now,
+      ));
+      await db.acquittementDao.insertAcquittement(Acquittement(
+        id: uuid.v4(),
+        friendId: friend.id,
+        type: 'sms',
+        note: null,
+        createdAt: now,
+      ));
+
+      // Verify they exist before deletion.
+      final before = await db.acquittementDao.selectByFriendId(friend.id);
+      expect(before, hasLength(2));
+
+      // Delete the friend — should cascade.
+      await repo.delete(friend.id);
+
+      // Acquittements should be gone.
+      final after = await db.acquittementDao.selectByFriendId(friend.id);
+      expect(after, isEmpty);
+    });
+
+    test('delete only removes acquittements of the deleted friend', () async {
+      final friendA = makeMinimalFriend();
+      final friendB = makeMinimalFriend();
+      await repo.insert(friendA);
+      await repo.insert(friendB);
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.acquittementDao.insertAcquittement(Acquittement(
+        id: uuid.v4(), friendId: friendA.id, type: 'call', note: null, createdAt: now,
+      ));
+      await db.acquittementDao.insertAcquittement(Acquittement(
+        id: uuid.v4(), friendId: friendB.id, type: 'sms', note: null, createdAt: now,
+      ));
+
+      await repo.delete(friendA.id);
+
+      // friendB's acquittements must survive.
+      final remaining = await db.acquittementDao.selectByFriendId(friendB.id);
+      expect(remaining, hasLength(1));
     });
   });
 }

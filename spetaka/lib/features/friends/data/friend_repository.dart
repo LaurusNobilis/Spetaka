@@ -67,10 +67,15 @@ class FriendRepository {
     await db.friendDao.updateFriend(_toEncryptedCompanion(friend));
   }
 
-  /// Deletes the friend record identified by [id].
+  /// Deletes the friend record identified by [id] and cascades the deletion
+  /// to all related acquittements (Story 2.8 AC2).
   ///
-  /// Returns the number of rows deleted (0 or 1).
-  Future<int> delete(String id) => db.friendDao.deleteFriend(id);
+  /// Returns the number of friend rows deleted (0 or 1).
+  Future<int> delete(String id) async {
+    // Cascade: remove contact history first (FK not enforced at schema level).
+    await db.acquittementDao.deleteByFriendId(id);
+    return db.friendDao.deleteFriend(id);
+  }
 
   // ---------------------------------------------------------------------------
   // Private helpers — encryption boundary

@@ -7,18 +7,24 @@ import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
+import '../data/friend_repository_provider.dart';
 import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
 
-/// Friend card detail screen — Story 2.6.
+/// Friend card detail screen — Stories 2.6 & 2.8.
 ///
 /// AC implementation map:
-///   AC1: name, formatted mobile, tags, notes, concern note, events placeholder,
+///   AC1 (2.6): name, formatted mobile, tags, notes, concern note, events placeholder,
 ///        contact history placeholder.
-///   AC2: Call / SMS / WhatsApp action buttons (placeholder — wired in Epic 5).
-///   AC3: reactive stream (watchFriendByIdProvider) ensures < 300ms from DB.
-///   AC4: Edit icon-button in AppBar → EditFriendRoute(id).
-///   AC5: StreamProvider auto-refreshes on SQLite updates without manual reload.
+///   AC2 (2.6): Call / SMS / WhatsApp action buttons (placeholder — wired in Epic 5).
+///   AC3 (2.6): reactive stream (watchFriendByIdProvider) ensures < 300ms from DB.
+///   AC4 (2.6): Edit icon-button in AppBar → EditFriendRoute(id).
+///   AC5 (2.6): StreamProvider auto-refreshes on SQLite updates without manual reload.
+///   AC1 (2.8): Delete icon-button in AppBar opens DeleteConfirmDialog.
+///   AC2 (2.8): Confirmed deletion calls FriendRepository.delete (cascade acquittements).
+///   AC3 (2.8): Dialog states friend name + irreversible history-loss warning.
+///   AC4 (2.8): Confirm → FriendsRoute; cancel leaves detail view unchanged.
+///   AC5 (2.8): Deletion persistent after app restart (SQLite persisted).
 class FriendCardScreen extends ConsumerWidget {
   const FriendCardScreen({super.key, required this.id});
 
@@ -60,13 +66,50 @@ class FriendCardScreen extends ConsumerWidget {
 // Detail body — shown when friend is loaded
 // ---------------------------------------------------------------------------
 
-class _FriendDetailBody extends StatelessWidget {
+class _FriendDetailBody extends ConsumerWidget {
   const _FriendDetailBody({required this.friend});
 
   final Friend friend;
 
+  // 2.8/AC1,AC3: show confirmation dialog before deleting.
+  Future<bool> _confirmDelete(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete friend?'),
+            content: Text(
+              'Delete "${friend.name}"? '  
+              'All contact history will be permanently removed and cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  // 2.8/AC2,AC4: delete friend + cascade, then navigate to list.
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await _confirmDelete(context);
+    if (!confirmed) return;
+    await ref.read(friendRepositoryProvider).delete(friend.id);
+    if (context.mounted) const FriendsRoute().go(context);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tags = decodeFriendTags(friend.tags);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
@@ -75,10 +118,17 @@ class _FriendDetailBody extends StatelessWidget {
       appBar: AppBar(
         title: Text(friend.name),
         actions: [
+          // 2.6/AC4: Edit
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit',
             onPressed: () => EditFriendRoute(friend.id).push(context),
+          ),
+          // 2.8/AC1: Delete
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete',
+            onPressed: () => _handleDelete(context, ref),
           ),
         ],
       ),

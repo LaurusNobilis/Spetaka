@@ -30,6 +30,13 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
   Future<List<Acquittement>> selectByFriendId(String friendId) =>
       (select(acquittements)..where((a) => a.friendId.equals(friendId))).get();
 
+  /// Deletes all acquittements associated with [friendId].
+  ///
+  /// Used by [FriendRepository.delete] to cascade-delete contact history
+  /// when a friend card is removed (Story 2.8 AC2).
+  Future<int> deleteByFriendId(String friendId) =>
+      (delete(acquittements)..where((a) => a.friendId.equals(friendId))).go();
+
   /// Watches all acquittements; emits on every database change.
   Stream<List<Acquittement>> watchAll() => select(acquittements).watch();
 }
