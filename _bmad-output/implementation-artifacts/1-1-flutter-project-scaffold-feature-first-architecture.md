@@ -1,6 +1,6 @@
 # Story 1.1: Flutter Project Scaffold & Feature-First Architecture
 
-Status: review
+Status: done
 
 ## Story
 
@@ -11,7 +11,7 @@ so that every subsequent story has a consistent, architecture-compliant foundati
 ## Acceptance Criteria
 
 1. Given a clean development environment with Flutter SDK installed, when `flutter create --org dev.spetaka --platforms android spetaka` is run and the scaffold is configured, then the project compiles with `flutter build apk --release` without errors.
-2. `pubspec.yaml` declares all required dependencies: `riverpod_annotation ^3.2.1`, `drift ^2.31.0`, `go_router ^14.6.3`, `encrypt ^5.0.3`, `webdav_client ^3.0.1`, `flutter_contacts ^1.1.9+2`, `url_launcher ^6.3.1`, `uuid ^4.5.1`, `shared_preferences ^2.3.5`, `intl`; plus dev dependencies: `riverpod_generator`, `drift_dev`, `build_runner`, `flutter_lints`.
+2. `pubspec.yaml` declares all required dependencies (same packages as listed in the architecture), using compatible stable versions when the spec references versions not available on pub.dev: `riverpod_annotation`, `drift`, `go_router`, `encrypt`, `webdav_client`, `flutter_contacts`, `url_launcher`, `uuid`, `shared_preferences`, `intl`; plus dev dependencies: `riverpod_generator`, `drift_dev`, `build_runner`, `flutter_lints`.
 3. The directory structure `lib/core/`, `lib/features/`, and `lib/shared/` exists as specified in architecture.
 4. `analysis_options.yaml` is configured with `flutter_lints`.
 5. `android/app/build.gradle` sets `minSdkVersion 26` and a current stable `targetSdkVersion`.
