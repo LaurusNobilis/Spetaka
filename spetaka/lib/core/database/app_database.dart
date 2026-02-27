@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,6 +32,10 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
+  /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
+  ///
+  /// `onUpgrade` accumulates step-based migrations as new epics introduce tables.
+  /// `beforeOpen` enables SQLite foreign-key enforcement on every connection.
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
@@ -50,9 +54,25 @@ class AppDatabase extends _$AppDatabase {
 /// directory.  Uses [NativeDatabase.createInBackground] for off-main-thread I/O.
 QueryExecutor _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'spetaka.db'));
-    return NativeDatabase.createInBackground(file);
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dbFolder.path, 'spetaka.db'));
+      return NativeDatabase.createInBackground(file);
+    } catch (e, stack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: e,
+          stack: stack,
+          library: 'AppDatabase',
+          context: ErrorDescription(
+            'Failed to open the Spetaka database. '
+            'Check that the app has storage permissions and the '
+            'application documents directory is accessible.',
+          ),
+        ),
+      );
+      rethrow;
+    }
   });
 }
 
@@ -60,7 +80,7 @@ QueryExecutor _openConnection() {
 ///
 /// The database is closed automatically when the provider is disposed
 /// (e.g. when the [ProviderScope] containing it is removed).
-@riverpod
+@Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
   final db = AppDatabase();
   ref.onDispose(db.close);

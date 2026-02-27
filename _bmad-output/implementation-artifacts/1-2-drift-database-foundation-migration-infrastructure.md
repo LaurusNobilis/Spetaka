@@ -1,6 +1,6 @@
 # Story 1.2: Drift Database Foundation & Migration Infrastructure
 
-Status: review
+Status: done
 
 ## Story
 
@@ -95,3 +95,25 @@ Claude Sonnet 4.6
 ### Change Log
 
 - 2026-02-27: Implemented Story 1.2 — Drift database foundation. Created AppDatabase with schemaVersion=1 and MigrationStrategy, four DAO stubs, Riverpod @riverpod provider, barrel exports, and 5 passing unit tests. Status: ready-for-dev → review.
+- 2026-02-27: Code review by AI (Amelia). 1 HIGH + 2 MEDIUM + 4 LOW issues found. HIGH + MEDIUM auto-fixed. Status: review → done.
+
+## Senior Developer Review (AI)
+
+_Reviewer: Laurus — 2026-02-27_
+
+**Outcome: ✅ APPROVED** (after auto-fixes applied)
+
+### Issues Found & Fixed
+
+| # | Severity | Issue | Resolution |
+|---|----------|-------|------------|
+| 1 | 🔴 HIGH | `@riverpod` defaulted to `autoDispose=true` — database closed on every navigation transition, silent data-loss/latency risk | Changed to `@Riverpod(keepAlive: true)`; regenerated `.g.dart` |
+| 2 | 🟡 MEDIUM | DAOs exported from `core.dart` barrel — any feature could bypass repository layer and import DAOs directly | Removed DAO exports; only `AppDatabase` stays in barrel; comment added explaining intent |
+| 3 | 🟡 MEDIUM | `_openConnection()` had no error handling — raw `MissingPluginException`/`StateError` would surface with no context | Added `try/catch` wrapping `FlutterError.reportError` before rethrow |
+| 4 | 🟢 LOW | Redundant `import 'package:flutter_riverpod/flutter_riverpod.dart'` dragged Flutter widget layer into persistence file | Removed; `Ref` comes from `riverpod_annotation` |
+| 5 | 🟢 LOW | `migration` getter had no `///` doc-comment (inconsistent with rest of class) | Added doc-comment |
+
+### Deferred Action Items
+
+- [ ] [AI-Review][LOW] Test `PRAGMA foreign_keys` — remove redundant pre-query `SELECT 1` to simplify intent [`test/unit/database_foundation_test.dart`]
+- [ ] [AI-Review][LOW] Generate Drift schema snapshot (`drift_schemas/`) before first `schemaVersion` bump — add as DoD task to Story 1.3 or first story that introduces a real table
