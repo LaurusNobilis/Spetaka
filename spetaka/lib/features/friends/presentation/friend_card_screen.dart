@@ -419,7 +419,10 @@ class _EventsSection extends ConsumerWidget {
 
   // 3.3 AC3: delete with confirmation; list updates reactively (AC4 via stream).
   Future<void> _handleDelete(
-      BuildContext context, WidgetRef ref, Event event) async {
+    BuildContext context,
+    WidgetRef ref,
+    Event event,
+  ) async {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -483,7 +486,9 @@ class _EventsSection extends ConsumerWidget {
             return Text(
               'No events yet. Tap + to add one.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.outline, fontStyle: FontStyle.italic),
+                color: colorScheme.outline,
+                fontStyle: FontStyle.italic,
+              ),
             );
           }
           return Column(
@@ -596,8 +601,11 @@ class _EventRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.check_circle_outline,
-                            size: 13, color: Colors.green.shade600),
+                        Icon(
+                          Icons.check_circle_outline,
+                          size: 13,
+                          color: Colors.green.shade600,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Done ${dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.acknowledgedAt!))}',
@@ -622,10 +630,17 @@ class _EventRow extends StatelessWidget {
                   value: _EventAction.acknowledge,
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle_outline,
-                          size: 18, color: Colors.green.shade600),
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 18,
+                        color: Colors.green.shade600,
+                      ),
                       const SizedBox(width: 8),
-                      Text(event.isRecurring ? 'Mark done (advance)' : 'Mark as done'),
+                      Text(
+                        event.isRecurring
+                            ? 'Mark done (advance)'
+                            : 'Mark as done',
+                      ),
                     ],
                   ),
                 ),
@@ -639,12 +654,12 @@ class _EventRow extends StatelessWidget {
                   ],
                 ),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: _EventAction.delete,
                 child: Row(
                   children: [
                     Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text('Delete', style: TextStyle(color: Colors.red)),
                   ],
                 ),

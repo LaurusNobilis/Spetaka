@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/database/app_database.dart';
 import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/events/presentation/edit_event_screen.dart';
-import '../../core/database/app_database.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';

@@ -169,8 +169,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined,
-                      color: colorScheme.primary),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     _dateFormat.format(_selectedDate),
