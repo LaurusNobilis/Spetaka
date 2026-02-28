@@ -8,6 +8,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/events/data/event_repository_provider.dart';
+import '../../../features/events/data/event_type_providers.dart';
 import '../../../features/events/data/events_providers.dart';
 import '../../../features/events/domain/event_type.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -97,8 +98,8 @@ class _FriendDetailBody extends ConsumerWidget {
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
+                  foregroundColor: Theme.of(ctx).colorScheme.onError,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: const Text('Delete'),
@@ -409,6 +410,32 @@ class _EventsSection extends ConsumerWidget {
 
   static final _dateFormat = DateFormat('d MMM yyyy');
 
+  /// Resolves a human-readable display label for an event type string.
+  ///
+  /// Priority: dynamic event_types table (case-insensitive match) → legacy
+  /// EventType enum displayLabel → raw string as-is.
+  static String _resolveTypeLabel(
+    String rawType,
+    List<EventTypeEntry> eventTypes,
+  ) {
+    final lowerType = rawType.toLowerCase();
+    // 1. Try exact match from personalized event_types table.
+    for (final et in eventTypes) {
+      if (et.name == rawType) return et.name;
+    }
+    // 2. Try case-insensitive match (handles "birthday" vs "Birthday").
+    for (final et in eventTypes) {
+      if (et.name.toLowerCase() == lowerType) return et.name;
+    }
+    // 3. Try legacy enum displayLabel (e.g. "weddingAnniversary" → "Wedding Anniversary").
+    final enumMatch = EventType.values
+        .where((e) => e.name == rawType)
+        .firstOrNull;
+    if (enumMatch != null) return enumMatch.displayLabel;
+    // 4. Fallback: raw string as-is.
+    return rawType;
+  }
+
   // 3.3 AC1: open prefilled edit form.
   void _handleEdit(BuildContext context, Event event) {
     context.push(
@@ -422,13 +449,15 @@ class _EventsSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Event event,
+    List<EventTypeEntry> eventTypes,
   ) async {
+    final typeLabel = _resolveTypeLabel(event.type, eventTypes);
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Delete event?'),
             content: Text(
-              'Delete "${EventType.fromString(event.type).displayLabel}" '
+              'Delete "$typeLabel" '
               'on ${_dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.date))}? '
               'This action cannot be undone.',
             ),
@@ -439,8 +468,8 @@ class _EventsSection extends ConsumerWidget {
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
+                  foregroundColor: Theme.of(ctx).colorScheme.onError,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: const Text('Delete'),
@@ -461,6 +490,8 @@ class _EventsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncEvents = ref.watch(watchEventsByFriendProvider(friendId));
+    // Story 3.4 AC6 (review fix): resolve type labels from dynamic event_types table.
+    final asyncTypes = ref.watch(watchEventTypesProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -491,14 +522,17 @@ class _EventsSection extends ConsumerWidget {
               ),
             );
           }
+          // Resolve event_types list — use empty list while loading (labels fall back gracefully).
+          final eventTypes = asyncTypes.value ?? <EventTypeEntry>[];
           return Column(
             children: [
               for (final event in events)
                 _EventRow(
                   event: event,
+                  typeLabel: _resolveTypeLabel(event.type, eventTypes),
                   dateFormat: _dateFormat,
                   onEdit: () => _handleEdit(context, event),
-                  onDelete: () => _handleDelete(context, ref, event),
+                  onDelete: () => _handleDelete(context, ref, event, eventTypes),
                   onAcknowledge: () => _handleAcknowledge(ref, event),
                 ),
             ],
@@ -512,6 +546,7 @@ class _EventsSection extends ConsumerWidget {
 class _EventRow extends StatelessWidget {
   const _EventRow({
     required this.event,
+    required this.typeLabel,
     required this.dateFormat,
     required this.onEdit,
     required this.onDelete,
@@ -519,6 +554,8 @@ class _EventRow extends StatelessWidget {
   });
 
   final Event event;
+  /// Pre-resolved display label from the event_types table (AC6 review fix).
+  final String typeLabel;
   final DateFormat dateFormat;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -538,14 +575,8 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    // Story 3.4: type label is now the raw string from the events table.
-    // For legacy enum-style names (e.g. "regularCheckin"), fall back to the
-    // EventType enum's displayLabel; otherwise display the string as-is.
-    final typeLabel = EventType.values
-            .where((e) => e.name == event.type)
-            .firstOrNull
-            ?.displayLabel ??
-        event.type;
+    // Story 3.4 AC6 (review fix): typeLabel is now pre-resolved by
+    // _EventsSection from the dynamic event_types table.
     final dateStr = dateFormat
         .format(DateTime.fromMillisecondsSinceEpoch(event.date));
 
@@ -631,7 +662,7 @@ class _EventRow extends StatelessWidget {
           PopupMenuButton<_EventAction>(
             icon: const Icon(Icons.more_vert, size: 20),
             tooltip: 'Event actions',
-            itemBuilder: (_) => [
+            itemBuilder: (ctx) => [
               if (!isDone)
                 PopupMenuItem(
                   value: _EventAction.acknowledge,
@@ -661,13 +692,22 @@ class _EventRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _EventAction.delete,
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
+                    Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: Theme.of(ctx).colorScheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Theme.of(ctx).colorScheme.error,
+                      ),
+                    ),
                   ],
                 ),
               ),

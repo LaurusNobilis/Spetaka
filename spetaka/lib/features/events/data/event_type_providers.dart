@@ -20,6 +20,13 @@ EventTypeRepository eventTypeRepository(Ref ref) {
 /// Watches all event types ordered by sort_order.
 ///
 /// Story 3.4 AC6: pickers and management screen use this reactive stream.
+///
+/// **Architecture exception (documented):** This provider uses manual
+/// `StreamProvider.autoDispose` instead of `@riverpod` codegen because
+/// `riverpod_generator` throws `InvalidTypeException` on Drift-generated
+/// types (`EventTypeEntry` from `@DataClassName`). The autoDispose lifecycle
+/// matches the codegen-generated providers used elsewhere, keeping behavior
+/// consistent. Revisit when riverpod_generator supports Drift types natively.
 final watchEventTypesProvider =
     StreamProvider.autoDispose<List<EventTypeEntry>>((ref) {
   return ref.watch(eventTypeRepositoryProvider).watchAll();

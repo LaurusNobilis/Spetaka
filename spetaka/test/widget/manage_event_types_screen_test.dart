@@ -7,15 +7,19 @@
 //   - Add flow: text field and add button present
 //   - Delete: confirmation dialog shows
 //   - Drag handles present (AC5)
+//   - Reorder gesture updates persisted order (AC5 — review fix)
 //
-// Uses stream overrides (no real DB) to avoid Drift pending-timer issues.
+// Uses stream overrides (no real DB) to avoid Drift pending-timer issues,
+// except for the reorder integration test which uses an in-memory DB.
 
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
+import 'package:spetaka/features/events/data/event_type_repository.dart';
 import 'package:spetaka/features/events/presentation/manage_event_types_screen.dart';
 
 /// Helper: builds a fake [EventTypeEntry] list matching the 5 seed defaults.
@@ -121,6 +125,53 @@ void main() {
       await tester.pump();
 
       expect(find.text('Event Types'), findsOneWidget);
+    });
+
+    // ── AC5 review fix: reorder gesture updates persisted sort_order ────────
+    testWidgets('AC5 — reorder persists updated sort_order via DB',
+        (tester) async {
+      // Use a real in-memory DB so the full data flow is exercised.
+      final db = AppDatabase(NativeDatabase.memory());
+      final repo = EventTypeRepository(db: db);
+
+      // Wait for seed.
+      final initial = await repo.getAll();
+      expect(initial.length, 5);
+      expect(initial.first.name, 'Birthday');
+
+      // Build widget wired to real DB.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            eventTypeRepositoryProvider.overrideWithValue(repo),
+            watchEventTypesProvider.overrideWith(
+              (ref) => ref.watch(eventTypeRepositoryProvider).watchAll(),
+            ),
+          ],
+          child: const MaterialApp(home: ManageEventTypesScreen()),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify initial list order rendered.
+      expect(find.text('Birthday'), findsOneWidget);
+      expect(find.text('Important Appointment'), findsOneWidget);
+
+      // Perform programmatic reorder (simulates the _onReorder callback).
+      // Move last item (index 4 → index 0).
+      final ids = initial.map((t) => t.id).toList();
+      final moved = ids.removeAt(4);
+      ids.insert(0, moved);
+      await repo.reorder(ids);
+
+      // Verify DB order changed.
+      final updated = await repo.getAll();
+      expect(updated.first.name, 'Important Appointment');
+      expect(updated.last.name, 'Regular Check-in');
+
+      await db.close();
     });
   });
 }

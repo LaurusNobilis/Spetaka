@@ -29,16 +29,30 @@ class EventTypeRepository {
   /// Adds a new event type with [name].
   ///
   /// `sort_order` is set to max+1 so the new type appears at the end.
+  /// Throws [ArgumentError] if [name] is empty after trimming, or if a
+  /// type with the same name already exists (case-insensitive).
   /// Returns the generated UUID.
   Future<String> addEventType(String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError.value(name, 'name', 'Event type name must not be empty');
+    }
     final all = await db.eventTypeDao.getAll();
+    final duplicate = all.any(
+      (t) => t.name.toLowerCase() == trimmed.toLowerCase(),
+    );
+    if (duplicate) {
+      throw ArgumentError.value(
+        name, 'name', 'An event type with this name already exists',
+      );
+    }
     final maxSort = all.isEmpty ? -1 : all.last.sortOrder;
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     await db.eventTypeDao.insertEventType(
       EventTypesCompanion.insert(
         id: id,
-        name: name.trim(),
+        name: trimmed,
         sortOrder: maxSort + 1,
         createdAt: now,
       ),
@@ -47,8 +61,33 @@ class EventTypeRepository {
   }
 
   /// Renames the event type with [id] to [newName].
-  Future<bool> rename(String id, String newName) =>
-      db.eventTypeDao.updateName(id, newName.trim());
+  ///
+  /// Throws [ArgumentError] if [newName] is empty after trimming, or if another
+  /// type already has the same name (case-insensitive).
+  Future<bool> rename(String id, String newName) async {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError.value(newName, 'newName', 'Event type name must not be empty');
+    }
+    final all = await db.eventTypeDao.getAll();
+    final current = all.where((t) => t.id == id).firstOrNull;
+    final duplicate = all.any(
+      (t) => t.id != id && t.name.toLowerCase() == trimmed.toLowerCase(),
+    );
+    if (duplicate) {
+      throw ArgumentError.value(
+        newName, 'newName', 'An event type with this name already exists',
+      );
+    }
+    final renamed = await db.eventTypeDao.updateName(id, trimmed);
+    if (renamed && current != null) {
+      await db.eventDao.renameTypeInEventsCaseInsensitive(
+        oldTypeName: current.name,
+        newTypeName: trimmed,
+      );
+    }
+    return renamed;
+  }
 
   /// Deletes the event type with [id].
   ///

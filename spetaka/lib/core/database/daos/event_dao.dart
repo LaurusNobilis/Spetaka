@@ -67,4 +67,27 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
           ))
         .watch();
   }
+
+    /// Renames the persisted event type string in existing events.
+    ///
+    /// Used by Story 3.4 rename flow so historical events keep a consistent label
+    /// after the event type is renamed. Matching is case-insensitive to support
+    /// legacy lowercase enum names.
+    Future<int> renameTypeInEventsCaseInsensitive({
+        required String oldTypeName,
+        required String newTypeName,
+    }) async {
+        if (oldTypeName.trim().isEmpty || newTypeName.trim().isEmpty) return 0;
+        if (oldTypeName.toLowerCase() == newTypeName.toLowerCase()) return 0;
+        return attachedDatabase.customUpdate(
+            'UPDATE events '
+            'SET type = ? '
+            'WHERE lower(type) = lower(?)',
+            variables: [
+                Variable.withString(newTypeName),
+                Variable.withString(oldTypeName),
+            ],
+            updates: {events},
+        );
+    }
 }

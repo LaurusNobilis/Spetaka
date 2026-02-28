@@ -69,6 +69,16 @@ So that my event vocabulary reflects my actual relationships, not a generic defa
   - [x] 6.2 — Widget test: management screen renders, reorder works
   - [x] 6.3 — Verify picker shows dynamic list
 
+### Review Follow-ups (AI)
+
+- [x] [AI-Review][HIGH] **AC6 is not fully met in FriendCard**: `_EventRow` must resolve the event type label from the `event_types` table (or repository/provider), not from the legacy `EventType` enum. Evidence: `spetaka/lib/features/friends/presentation/friend_card_screen.dart:541-552`.
+- [x] [AI-Review][HIGH] **Type key normalization is inconsistent**: default seeding uses Title Case names, while legacy events persist enum `.name` (e.g., `birthday`). This breaks delete warning counts and can create duplicate “Birthday” vs “birthday” semantics. Evidence: `spetaka/lib/core/database/app_database.dart:88-104`, `spetaka/lib/features/events/presentation/add_event_screen.dart:73-115`, `spetaka/lib/core/database/daos/event_type_dao.dart:60`.
+- [x] [AI-Review][MEDIUM] **Architecture violation (Riverpod codegen)**: `watchEventTypesProvider` is a manual `StreamProvider.autoDispose`, contradicting the architecture rule “Always use `@riverpod` code generation”. If codegen truly cannot handle Drift-generated types, document the exception + rationale and keep provider lifetimes consistent. Evidence: `spetaka/lib/features/events/data/event_type_providers.dart:23-27`.
+- [x] [AI-Review][MEDIUM] **Story File List is incomplete vs git**: commit `dfcc0b6` also changed generated files (`app_database.g.dart`, `event_type_dao.g.dart`, `event_type_providers.g.dart`). Either list them explicitly or state that generated files are intentionally omitted. Evidence: `git show --name-only dfcc0b6`.
+- [x] [AI-Review][MEDIUM] **Widget test doesn’t validate reorder behavior**: `ManageEventTypesScreen` test asserts drag handles exist, but doesn’t simulate reorder and verify persisted order. Add a test that performs a reorder and asserts the resulting order (with an in-memory DB or a fake repository). Evidence: `spetaka/test/widget/manage_event_types_screen_test.dart`.
+- [x] [AI-Review][LOW] **Missing validation in repository**: `addEventType()` / `rename()` allow empty strings (after trim) and duplicates; add minimal guards (non-empty, maybe case-insensitive uniqueness). Evidence: `spetaka/lib/features/events/data/event_type_repository.dart`.
+- [x] [AI-Review][LOW] **Inefficient reorder persistence**: `updateSortOrders()` performs N updates in a loop; consider a Drift `batch()` update for fewer round-trips. Evidence: `spetaka/lib/core/database/daos/event_type_dao.dart`.
+
 ## Dev Notes
 
 ### Critical Architecture Change: Enum → Dynamic Table
@@ -146,14 +156,18 @@ Claude Opus 4.6 (GitHub Copilot)
 - **Naming conflict resolved**: `@DataClassName('EventTypeEntry')` on `EventTypes` Drift table to avoid collision with existing `EventType` enum
 - **Riverpod codegen limitation**: Used traditional `StreamProvider.autoDispose` for `watchEventTypesProvider` instead of `@riverpod` annotation — riverpod_generator throws `InvalidTypeException` on Drift-generated types
 - **API migration**: `EventRepository` methods changed from `EventType` enum parameter to `String type` parameter — this is the core change enabling dynamic event types
-- **Backward compatibility**: `_EventRow` in `FriendCardScreen` resolves type labels by trying `EventType.values` enum match first, then falls back to raw string
+- **Backward compatibility**: `_EventRow` in `FriendCardScreen` resolves type labels via `_resolveTypeLabel()`: event_types table (case-insensitive) → legacy enum displayLabel → raw string fallback
 - **Orphan type handling**: `EditEventScreen` shows orphan type chip if event's type was deleted from `event_types` table
 - **Deterministic seed IDs**: Default event types use stable IDs (`default-birthday`, `default-wedding-anniversary`, etc.) for idempotent seeding
+- **Review fix — case-insensitive normalization**: `countEventsByType()` now uses `LOWER()` so legacy `"birthday"` and new `"Birthday"` both match
+- **Review fix — repository validation**: `addEventType()` and `rename()` now reject empty names and case-insensitive duplicates (throw `ArgumentError`)
+- **Review fix — batch reorder**: `updateSortOrders()` uses Drift `batch()` instead of N sequential updates
+- **Review fix — codegen exception documented**: `watchEventTypesProvider` comment explains why manual `StreamProvider.autoDispose` is used (riverpod_generator `InvalidTypeException`)
 
 ### Completion Summary
 
-- All 6 tasks completed (AC1–AC6)
-- 199 tests pass (including 18 new repo tests + 7 new widget tests)
+- All 6 tasks + 7 review follow-ups completed (AC1–AC6)
+- 206 tests pass (including 22 repo tests + 8 widget tests for 3.4, plus test fixture updates)
 - `flutter analyze` — 0 issues
 - No breaking changes to existing events — `events.type` column unchanged
 
@@ -177,13 +191,60 @@ Claude Opus 4.6 (GitHub Copilot)
 | `lib/features/events/data/event_repository.dart` | Changed EventType enum params to String type |
 | `lib/features/events/presentation/add_event_screen.dart` | Dynamic type chips from watchEventTypesProvider |
 | `lib/features/events/presentation/edit_event_screen.dart` | Dynamic type chips + orphan type support |
-| `lib/features/friends/presentation/friend_card_screen.dart` | Backward-compatible type label resolution |
+| `lib/features/friends/presentation/friend_card_screen.dart` | Event type label resolved from event_types table via `_resolveTypeLabel()` (review fix) |
 | `lib/core/router/app_router.dart` | Added ManageEventTypesRoute at /settings/event-types |
 | `test/repositories/event_repository_test.dart` | Migrated EventType.X → EventType.X.storedName |
 | `test/unit/database_foundation_test.dart` | Schema version assertion 5→6 |
+| `test/widget/friend_card_screen_test.dart` | Added `watchEventTypesProvider` override (review fix) |
+| `test/unit/app_shell_theme_test.dart` | Added `watchEventTypesProvider` override (review fix) |
+
+**Note:** Generated files (`*.g.dart`) are produced by `build_runner` from the above sources. They include `app_database.g.dart`, `event_type_dao.g.dart`, and `event_type_providers.g.dart`.
 
 ### Change Log
 
 | Date | Change |
 |---|---|
 | 2026-02-27 | Story 3.4 implemented — dynamic event types with CRUD management screen |
+| 2026-02-28 | Senior Developer Review (AI) — changes requested; follow-ups added |
+| 2026-02-28 | Addressed 7 code review findings (2 HIGH, 3 MEDIUM, 2 LOW) — all resolved |
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Laurus
+**Date:** 2026-02-28
+**Outcome:** Fixes Applied (ready for re-review)
+
+### Git vs Story Discrepancies
+
+- Working tree is **not** clean (follow-up fixes applied during review): see `git status --porcelain`.
+- Commit-level validation (commit `dfcc0b6`) matches the story’s File List *plus* generated files:
+  - `spetaka/lib/core/database/app_database.g.dart`
+  - `spetaka/lib/core/database/daos/event_type_dao.g.dart`
+  - `spetaka/lib/features/events/data/event_type_providers.g.dart`
+
+### Findings (minimum issues met)
+
+#### CRITICAL
+
+1) **Edit Event route could crash on deep link / refresh** — route builder performed an unconditional cast on `state.extra`.
+  - Evidence: `spetaka/lib/core/router/app_router.dart` (`state.extra as Event`).
+  - Fix applied: route now accepts missing `extra` and loads the event by `eventId`.
+
+#### HIGH
+
+2) **Rename did not update historical events** — renaming a row in `event_types` didn’t propagate to existing `events.type` values.
+  - Impact: inconsistent labels and misleading delete warnings after rename.
+  - Fix applied: rename now case-insensitively updates existing `events.type` values.
+
+#### MEDIUM
+
+3) **Hardcoded destructive colors** — delete actions used hardcoded `Colors.red/white` (theme-inconsistent).
+  - Fix applied: switched to `Theme.of(context).colorScheme.error` and `onError`.
+
+### Test Check
+
+- `flutter analyze` ✅
+- `flutter test test/repositories/event_type_repository_test.dart` ✅ (includes rename propagation test)
+- `flutter test test/widget/manage_event_types_screen_test.dart` ✅
+- `flutter test test/widget/friend_card_screen_test.dart` ✅
+- `flutter test test/unit/app_shell_theme_test.dart` ✅

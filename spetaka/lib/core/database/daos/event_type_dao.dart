@@ -42,22 +42,28 @@ class EventTypeDao extends DatabaseAccessor<AppDatabase>
   ///
   /// [orderedIds] — list of event type IDs in the desired display order.
   /// Each ID gets `sort_order = index` in the list.
+  /// Uses Drift [batch] for fewer round-trips (review fix [LOW] #7).
   Future<void> updateSortOrders(List<String> orderedIds) async {
-    await transaction(() async {
+    await batch((b) {
       for (var i = 0; i < orderedIds.length; i++) {
-        await (update(eventTypes)..where((t) => t.id.equals(orderedIds[i])))
-            .write(EventTypesCompanion(sortOrder: Value(i)));
+        b.update(
+          eventTypes,
+          EventTypesCompanion(sortOrder: Value(i)),
+          where: ($EventTypesTable t) => t.id.equals(orderedIds[i]),
+        );
       }
     });
   }
 
   /// Counts events in the `events` table that reference [typeName].
   ///
+  /// Uses case-insensitive matching to handle legacy lowercase enum names
+  /// (e.g. "birthday") alongside Title Case names (e.g. "Birthday").
   /// Used for the delete-warning dialog (AC4): "X events use this type".
   Future<int> countEventsByType(String typeName) async {
     final query = attachedDatabase.selectOnly(attachedDatabase.events)
       ..addColumns([attachedDatabase.events.id.count()])
-      ..where(attachedDatabase.events.type.equals(typeName));
+      ..where(attachedDatabase.events.type.lower().equals(typeName.toLowerCase()));
     final result = await query.getSingle();
     return result.read(attachedDatabase.events.id.count()) ?? 0;
   }

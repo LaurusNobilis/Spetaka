@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../features/events/data/event_repository_provider.dart';
 import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/events/presentation/edit_event_screen.dart';
 import '../../features/events/presentation/manage_event_types_screen.dart';
@@ -133,9 +135,12 @@ GoRouter createAppRouter() => GoRouter(
                     GoRoute(
                       path: 'events/:eventId/edit',
                       builder: (context, state) {
-                        final event =
-                            state.extra as Event;
-                        return EditEventScreen(event: event);
+                        final extra = state.extra;
+                        if (extra is Event) {
+                          return EditEventScreen(event: extra);
+                        }
+                        final eventId = state.pathParameters['eventId'] ?? '';
+                        return _EditEventRouteLoader(eventId: eventId);
                       },
                     ),
                   ],
@@ -163,6 +168,49 @@ GoRouter createAppRouter() => GoRouter(
     );
 
 final GoRouter appRouter = createAppRouter();
+
+class _EditEventRouteLoader extends ConsumerWidget {
+  const _EditEventRouteLoader({required this.eventId});
+
+  final String eventId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (eventId.trim().isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Edit Event')),
+        body: const Center(child: Text('Invalid event id.')),
+      );
+    }
+
+    final future = ref.read(eventRepositoryProvider).findById(eventId);
+    return FutureBuilder<Event?>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Edit Event')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Edit Event')),
+            body: const Center(child: Text('Could not load event.')),
+          );
+        }
+        final event = snapshot.data;
+        if (event == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Edit Event')),
+            body: const Center(child: Text('Event not found.')),
+          );
+        }
+        return EditEventScreen(event: event);
+      },
+    );
+  }
+}
 
 class DailyViewScreen extends StatelessWidget {
   const DailyViewScreen({super.key});

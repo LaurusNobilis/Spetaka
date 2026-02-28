@@ -29,8 +29,16 @@ class _ManageEventTypesScreenState
     final name = _addController.text.trim();
     if (name.isEmpty) return;
     final repo = ref.read(eventTypeRepositoryProvider);
-    await repo.addEventType(name);
-    _addController.clear();
+    try {
+      await repo.addEventType(name);
+      _addController.clear();
+    } on ArgumentError catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message?.toString() ?? 'Invalid name')),
+        );
+      }
+    }
   }
 
   Future<void> _rename(EventTypeEntry entry) async {
@@ -63,7 +71,15 @@ class _ManageEventTypesScreenState
     );
     controller.dispose();
     if (newName != null && newName.isNotEmpty && newName != entry.name) {
-      await ref.read(eventTypeRepositoryProvider).rename(entry.id, newName);
+      try {
+        await ref.read(eventTypeRepositoryProvider).rename(entry.id, newName);
+      } on ArgumentError catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message?.toString() ?? 'Invalid name')),
+          );
+        }
+      }
     }
   }
 

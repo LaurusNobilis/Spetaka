@@ -8,6 +8,7 @@ import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
+import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
@@ -225,6 +226,10 @@ void main() {
             // Stub events stream for the FriendCardScreen events section (Story 3.1).
             watchEventsByFriendProvider(id).overrideWith(
               (_) => Stream.value([]),
+            ),
+            // Stub event types (Story 3.4 review fix).
+            watchEventTypesProvider.overrideWith(
+              (_) => Stream.value(<EventTypeEntry>[]),
             ),
           ],
           child: MaterialApp.router(

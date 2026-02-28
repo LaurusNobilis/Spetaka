@@ -189,6 +189,56 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // Rename propagation — keep historical events consistent
+  // ---------------------------------------------------------------------------
+  group('EventTypeRepository — rename propagation', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late EventTypeRepository typeRepo;
+    late EventRepository eventRepo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildEncService();
+      typeRepo = EventTypeRepository(db: db);
+      eventRepo = EventRepository(db: db);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('rename updates existing events type string (case-insensitive)',
+        () async {
+      final friendId = await seedFriend(db, enc);
+
+      // Legacy type stored in lowercase.
+      await eventRepo.addDatedEvent(
+        friendId: friendId,
+        type: 'birthday',
+        date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
+      );
+
+      final types = await typeRepo.getAll();
+      final birthday = types.firstWhere((t) => t.name == 'Birthday');
+
+      final renamed = await typeRepo.rename(birthday.id, 'Bday');
+      expect(renamed, isTrue);
+
+      final events = await eventRepo.findByFriendId(friendId);
+      expect(events.length, 1);
+      expect(events.first.type, 'Bday');
+
+      // Usage count should now reflect the new name.
+      final count = await typeRepo.countEventsByType('Bday');
+      expect(count, 1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // AC4 — Delete with usage count warning
   // ---------------------------------------------------------------------------
   group('EventTypeRepository — AC4 (delete)', () {
@@ -315,6 +365,120 @@ void main() {
       expect(updated[0].sortOrder, 0);
       expect(updated[1].name, 'Birthday');
       expect(updated[1].sortOrder, 1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Validation guards (review fix [LOW] #6)
+  // ---------------------------------------------------------------------------
+  group('EventTypeRepository — validation guards', () {
+    late AppDatabase db;
+    late EventTypeRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      repo = EventTypeRepository(db: db);
+    });
+
+    tearDown(() async {
+      await db.close();
+    });
+
+    test('addEventType rejects empty name', () async {
+      expect(
+        () => repo.addEventType(''),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(
+        () => repo.addEventType('   '),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('addEventType rejects case-insensitive duplicate', () async {
+      // "Birthday" already seeded
+      expect(
+        () => repo.addEventType('birthday'),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(
+        () => repo.addEventType('BIRTHDAY'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('rename rejects empty name', () async {
+      final types = await repo.getAll();
+      expect(
+        () => repo.rename(types.first.id, ''),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('rename rejects case-insensitive duplicate of another type', () async {
+      final types = await repo.getAll();
+      // Try renaming first type to match second type
+      expect(
+        () => repo.rename(types.first.id, 'wedding anniversary'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('rename allows same name with different case (self)', () async {
+      final types = await repo.getAll();
+      // Renaming "Birthday" to "birthday" for the same entry should succeed
+      final result = await repo.rename(types.first.id, 'BIRTHDAY');
+      expect(result, isTrue);
+      final updated = await repo.getAll();
+      expect(updated.first.name, 'BIRTHDAY');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Case-insensitive countEventsByType (review fix [HIGH] #2)
+  // ---------------------------------------------------------------------------
+  group('EventTypeRepository — case-insensitive count', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late EventTypeRepository typeRepo;
+    late EventRepository eventRepo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildEncService();
+      typeRepo = EventTypeRepository(db: db);
+      eventRepo = EventRepository(db: db);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('countEventsByType matches case-insensitively', () async {
+      final friendId = await seedFriend(db, enc);
+
+      // Insert events with legacy lowercase type names
+      await eventRepo.addDatedEvent(
+        friendId: friendId,
+        type: 'birthday',
+        date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
+      );
+      await eventRepo.addDatedEvent(
+        friendId: friendId,
+        type: 'Birthday',
+        date: DateTime(2027, 6, 1).millisecondsSinceEpoch,
+      );
+
+      // Query with Title Case — should find both
+      final count = await typeRepo.countEventsByType('Birthday');
+      expect(count, 2);
+
+      // Query with lowercase — should also find both
+      final countLower = await typeRepo.countEventsByType('birthday');
+      expect(countLower, 2);
     });
   });
 }
