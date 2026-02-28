@@ -24,3 +24,25 @@ As Laurus, I want to set recurring check-in cadence so the daily view can detect
 ## Dev Agent Record
 ### Agent Model Used
 GPT-5.3-Codex
+
+## Handoff
+
+**Status:** done — commit `4ddc943`
+
+### Files Modified
+- `lib/features/events/domain/event.dart` — added `cadenceDays` nullable INT column
+- `lib/core/database/app_database.dart` — schema v5, migration v4→v5 `addColumn(events.cadenceDays)`
+- `lib/features/events/data/event_repository.dart` — `addRecurringEvent(cadenceDays)` method
+- `lib/features/events/presentation/add_event_screen.dart` — recurring `SwitchListTile` + cadence `_TypeChip` row
+- `lib/features/friends/presentation/friend_card_screen.dart` — `_EventRow` shows repeat icon + cadence label
+- `test/repositories/event_repository_test.dart` — 3 new tests (Story 3.2 group)
+- `test/unit/database_foundation_test.dart` — `schemaVersion == 5`
+
+### AC Coverage
+1. ✅ `addRecurringEvent` saves `is_recurring=true` + `cadence_days`
+2. ✅ Migration v4→v5: `addColumn(events, events.cadenceDays)` (safe for fresh install)
+3. ✅ UI: 6 options 7/14/21/30/60/90d with labels Every week / Every 2 weeks / Every 3 weeks / Monthly / Every 2 months / Every 3 months
+4. ✅ `_EventRow` renders repeat icon + cadence label when `isRecurring=true`
+5. ✅ `watchAllRecurringEventsProvider` stream exposes recurring fields for priority engine
+
+### Next batch: 3-3 (edit/delete event) + 3-5 (manual acknowledgement)
