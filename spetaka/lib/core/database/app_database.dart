@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -63,6 +63,11 @@ class AppDatabase extends _$AppDatabase {
           // Story 3.1 — v3→v4: create events table.
           if (from < 4) {
             await m.createTable(events);
+          }
+          // Story 3.2 — v4→v5: add events.cadence_days column.
+          // On fresh install (from=0), createTable already includes the column.
+          if (from == 4) {
+            await m.addColumn(events, events.cadenceDays);
           }
           // Add future migrations here as new columns/tables are introduced.
         },

@@ -912,6 +912,12 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
   late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
       'created_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _cadenceDaysMeta =
+      const VerificationMeta('cadenceDays');
+  @override
+  late final GeneratedColumn<int> cadenceDays = GeneratedColumn<int>(
+      'cadence_days', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -922,7 +928,8 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         comment,
         isAcknowledged,
         acknowledgedAt,
-        createdAt
+        createdAt,
+        cadenceDays
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -985,6 +992,12 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('cadence_days')) {
+      context.handle(
+          _cadenceDaysMeta,
+          cadenceDays.isAcceptableOrUnknown(
+              data['cadence_days']!, _cadenceDaysMeta));
+    }
     return context;
   }
 
@@ -1012,6 +1025,8 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
           .read(DriftSqlType.int, data['${effectivePrefix}acknowledged_at']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      cadenceDays: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cadence_days']),
     );
   }
 
@@ -1048,6 +1063,12 @@ class Event extends DataClass implements Insertable<Event> {
 
   /// Creation timestamp (Unix-epoch ms).
   final int createdAt;
+
+  /// Recurring interval in days (null for one-off events).
+  ///
+  /// Story 3.2 — added via v4→v5 migration.
+  /// Valid values: 7, 14, 21, 30, 60, 90.
+  final int? cadenceDays;
   const Event(
       {required this.id,
       required this.friendId,
@@ -1057,7 +1078,8 @@ class Event extends DataClass implements Insertable<Event> {
       this.comment,
       required this.isAcknowledged,
       this.acknowledgedAt,
-      required this.createdAt});
+      required this.createdAt,
+      this.cadenceDays});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1074,6 +1096,9 @@ class Event extends DataClass implements Insertable<Event> {
       map['acknowledged_at'] = Variable<int>(acknowledgedAt);
     }
     map['created_at'] = Variable<int>(createdAt);
+    if (!nullToAbsent || cadenceDays != null) {
+      map['cadence_days'] = Variable<int>(cadenceDays);
+    }
     return map;
   }
 
@@ -1092,6 +1117,9 @@ class Event extends DataClass implements Insertable<Event> {
           ? const Value.absent()
           : Value(acknowledgedAt),
       createdAt: Value(createdAt),
+      cadenceDays: cadenceDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cadenceDays),
     );
   }
 
@@ -1108,6 +1136,7 @@ class Event extends DataClass implements Insertable<Event> {
       isAcknowledged: serializer.fromJson<bool>(json['isAcknowledged']),
       acknowledgedAt: serializer.fromJson<int?>(json['acknowledgedAt']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
+      cadenceDays: serializer.fromJson<int?>(json['cadenceDays']),
     );
   }
   @override
@@ -1123,6 +1152,7 @@ class Event extends DataClass implements Insertable<Event> {
       'isAcknowledged': serializer.toJson<bool>(isAcknowledged),
       'acknowledgedAt': serializer.toJson<int?>(acknowledgedAt),
       'createdAt': serializer.toJson<int>(createdAt),
+      'cadenceDays': serializer.toJson<int?>(cadenceDays),
     };
   }
 
@@ -1135,7 +1165,8 @@ class Event extends DataClass implements Insertable<Event> {
           Value<String?> comment = const Value.absent(),
           bool? isAcknowledged,
           Value<int?> acknowledgedAt = const Value.absent(),
-          int? createdAt}) =>
+          int? createdAt,
+          Value<int?> cadenceDays = const Value.absent()}) =>
       Event(
         id: id ?? this.id,
         friendId: friendId ?? this.friendId,
@@ -1147,6 +1178,7 @@ class Event extends DataClass implements Insertable<Event> {
         acknowledgedAt:
             acknowledgedAt.present ? acknowledgedAt.value : this.acknowledgedAt,
         createdAt: createdAt ?? this.createdAt,
+        cadenceDays: cadenceDays.present ? cadenceDays.value : this.cadenceDays,
       );
   Event copyWithCompanion(EventsCompanion data) {
     return Event(
@@ -1164,6 +1196,8 @@ class Event extends DataClass implements Insertable<Event> {
           ? data.acknowledgedAt.value
           : this.acknowledgedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cadenceDays:
+          data.cadenceDays.present ? data.cadenceDays.value : this.cadenceDays,
     );
   }
 
@@ -1178,14 +1212,15 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('comment: $comment, ')
           ..write('isAcknowledged: $isAcknowledged, ')
           ..write('acknowledgedAt: $acknowledgedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cadenceDays: $cadenceDays')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, friendId, type, date, isRecurring,
-      comment, isAcknowledged, acknowledgedAt, createdAt);
+      comment, isAcknowledged, acknowledgedAt, createdAt, cadenceDays);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1198,7 +1233,8 @@ class Event extends DataClass implements Insertable<Event> {
           other.comment == this.comment &&
           other.isAcknowledged == this.isAcknowledged &&
           other.acknowledgedAt == this.acknowledgedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.cadenceDays == this.cadenceDays);
 }
 
 class EventsCompanion extends UpdateCompanion<Event> {
@@ -1211,6 +1247,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<bool> isAcknowledged;
   final Value<int?> acknowledgedAt;
   final Value<int> createdAt;
+  final Value<int?> cadenceDays;
   final Value<int> rowid;
   const EventsCompanion({
     this.id = const Value.absent(),
@@ -1222,6 +1259,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.isAcknowledged = const Value.absent(),
     this.acknowledgedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.cadenceDays = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   EventsCompanion.insert({
@@ -1234,6 +1272,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.isAcknowledged = const Value.absent(),
     this.acknowledgedAt = const Value.absent(),
     required int createdAt,
+    this.cadenceDays = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         friendId = Value(friendId),
@@ -1250,6 +1289,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<bool>? isAcknowledged,
     Expression<int>? acknowledgedAt,
     Expression<int>? createdAt,
+    Expression<int>? cadenceDays,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1262,6 +1302,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (isAcknowledged != null) 'is_acknowledged': isAcknowledged,
       if (acknowledgedAt != null) 'acknowledged_at': acknowledgedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (cadenceDays != null) 'cadence_days': cadenceDays,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1276,6 +1317,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       Value<bool>? isAcknowledged,
       Value<int?>? acknowledgedAt,
       Value<int>? createdAt,
+      Value<int?>? cadenceDays,
       Value<int>? rowid}) {
     return EventsCompanion(
       id: id ?? this.id,
@@ -1287,6 +1329,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       isAcknowledged: isAcknowledged ?? this.isAcknowledged,
       acknowledgedAt: acknowledgedAt ?? this.acknowledgedAt,
       createdAt: createdAt ?? this.createdAt,
+      cadenceDays: cadenceDays ?? this.cadenceDays,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1321,6 +1364,9 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
     }
+    if (cadenceDays.present) {
+      map['cadence_days'] = Variable<int>(cadenceDays.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1339,6 +1385,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('isAcknowledged: $isAcknowledged, ')
           ..write('acknowledgedAt: $acknowledgedAt, ')
           ..write('createdAt: $createdAt, ')
+          ..write('cadenceDays: $cadenceDays, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1789,6 +1836,7 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<bool> isAcknowledged,
   Value<int?> acknowledgedAt,
   required int createdAt,
+  Value<int?> cadenceDays,
   Value<int> rowid,
 });
 typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
@@ -1801,6 +1849,7 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<bool> isAcknowledged,
   Value<int?> acknowledgedAt,
   Value<int> createdAt,
+  Value<int?> cadenceDays,
   Value<int> rowid,
 });
 
@@ -1841,6 +1890,9 @@ class $$EventsTableFilterComposer
 
   ColumnFilters<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cadenceDays => $composableBuilder(
+      column: $table.cadenceDays, builder: (column) => ColumnFilters(column));
 }
 
 class $$EventsTableOrderingComposer
@@ -1880,6 +1932,9 @@ class $$EventsTableOrderingComposer
 
   ColumnOrderings<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cadenceDays => $composableBuilder(
+      column: $table.cadenceDays, builder: (column) => ColumnOrderings(column));
 }
 
 class $$EventsTableAnnotationComposer
@@ -1917,6 +1972,9 @@ class $$EventsTableAnnotationComposer
 
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get cadenceDays => $composableBuilder(
+      column: $table.cadenceDays, builder: (column) => column);
 }
 
 class $$EventsTableTableManager extends RootTableManager<
@@ -1951,6 +2009,7 @@ class $$EventsTableTableManager extends RootTableManager<
             Value<bool> isAcknowledged = const Value.absent(),
             Value<int?> acknowledgedAt = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
+            Value<int?> cadenceDays = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               EventsCompanion(
@@ -1963,6 +2022,7 @@ class $$EventsTableTableManager extends RootTableManager<
             isAcknowledged: isAcknowledged,
             acknowledgedAt: acknowledgedAt,
             createdAt: createdAt,
+            cadenceDays: cadenceDays,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1975,6 +2035,7 @@ class $$EventsTableTableManager extends RootTableManager<
             Value<bool> isAcknowledged = const Value.absent(),
             Value<int?> acknowledgedAt = const Value.absent(),
             required int createdAt,
+            Value<int?> cadenceDays = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               EventsCompanion.insert(
@@ -1987,6 +2048,7 @@ class $$EventsTableTableManager extends RootTableManager<
             isAcknowledged: isAcknowledged,
             acknowledgedAt: acknowledgedAt,
             createdAt: createdAt,
+            cadenceDays: cadenceDays,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

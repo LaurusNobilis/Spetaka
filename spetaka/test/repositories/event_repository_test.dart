@@ -158,4 +158,81 @@ void main() {
       expect(second.first.type, EventType.weddingAnniversary.storedName);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 3.2 — Recurring cadence
+  // ---------------------------------------------------------------------------
+  group('EventRepository — Story 3.2 (recurring cadence)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late EventRepository repo;
+    late String friendId;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildEncService();
+      repo = EventRepository(db: db);
+      friendId = await seedFriend(db, enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('addRecurringEvent persists is_recurring=true and cadence_days', () async {
+      final date = DateTime(2026, 3, 1).millisecondsSinceEpoch;
+      final id = await repo.addRecurringEvent(
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: date,
+        cadenceDays: 30,
+      );
+
+      final events = await repo.findByFriendId(friendId);
+      expect(events.length, 1);
+
+      final e = events.first;
+      expect(e.id, id);
+      expect(e.isRecurring, isTrue);
+      expect(e.cadenceDays, 30);
+      expect(e.type, EventType.regularCheckin.storedName);
+    });
+
+    test('watchAllRecurring returns only recurring events', () async {
+      // Insert one one-off and one recurring
+      await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.birthday,
+        date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
+      );
+      await repo.addRecurringEvent(
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: DateTime(2026, 3, 1).millisecondsSinceEpoch,
+        cadenceDays: 14,
+      );
+
+      final recurring = await repo.watchAllRecurring().first;
+      expect(recurring.length, 1);
+      expect(recurring.first.isRecurring, isTrue);
+      expect(recurring.first.cadenceDays, 14);
+    });
+
+    test('all 6 cadence options are accepted', () async {
+      for (final days in [7, 14, 21, 30, 60, 90]) {
+        final id = await repo.addRecurringEvent(
+          friendId: friendId,
+          type: EventType.regularCheckin,
+          date: DateTime.now().millisecondsSinceEpoch,
+          cadenceDays: days,
+        );
+        final e = (await repo.findByFriendId(friendId))
+            .firstWhere((ev) => ev.id == id);
+        expect(e.cadenceDays, days);
+      }
+    });
+  });
 }

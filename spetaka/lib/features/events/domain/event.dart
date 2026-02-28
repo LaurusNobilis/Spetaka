@@ -45,6 +45,12 @@ class Events extends Table {
   /// Creation timestamp (Unix-epoch ms).
   IntColumn get createdAt => integer()();
 
+  /// Recurring interval in days (null for one-off events).
+  ///
+  /// Story 3.2 — added via v4→v5 migration.
+  /// Valid values: 7, 14, 21, 30, 60, 90.
+  IntColumn get cadenceDays => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

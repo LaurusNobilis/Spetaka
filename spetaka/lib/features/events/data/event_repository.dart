@@ -20,7 +20,7 @@ class EventRepository {
   // Public API
   // ---------------------------------------------------------------------------
 
-  /// Creates and persists a new one-off dated event.
+  /// Creates and persists a one-off dated event.
   ///
   /// [friendId] — owning friend card UUID
   /// [type]     — event type (one of the default 5, or custom later)
@@ -46,6 +46,44 @@ class EventRepository {
         comment: Value(comment?.trim().isEmpty == true ? null : comment?.trim()),
         isAcknowledged: const Value(false),
         createdAt: now,
+      ),
+    );
+    return id;
+  }
+
+  /// Creates and persists a recurring check-in event.
+  ///
+  /// [friendId]    — owning friend card UUID
+  /// [type]        — event type
+  /// [date]        — Unix epoch ms for the first occurrence
+  /// [cadenceDays] — repeat interval in days (7/14/21/30/60/90)
+  /// [comment]     — optional free-text note
+  ///
+  /// Returns the generated UUID for the new event.
+  Future<String> addRecurringEvent({
+    required String friendId,
+    required EventType type,
+    required int date,
+    required int cadenceDays,
+    String? comment,
+  }) async {
+    assert(
+      [7, 14, 21, 30, 60, 90].contains(cadenceDays),
+      'cadenceDays must be one of 7/14/21/30/60/90',
+    );
+    final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.eventDao.insertEvent(
+      EventsCompanion.insert(
+        id: id,
+        friendId: friendId,
+        type: type.storedName,
+        date: date,
+        isRecurring: const Value(true),
+        comment: Value(comment?.trim().isEmpty == true ? null : comment?.trim()),
+        isAcknowledged: const Value(false),
+        createdAt: now,
+        cadenceDays: Value(cadenceDays),
       ),
     );
     return id;

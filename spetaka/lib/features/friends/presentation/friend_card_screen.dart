@@ -457,6 +457,17 @@ class _EventRow extends StatelessWidget {
   final Event event;
   final DateFormat dateFormat;
 
+  /// Returns a human-readable cadence label from [days].
+  static String _cadenceLabel(int days) => switch (days) {
+        7 => 'Every week',
+        14 => 'Every 2 weeks',
+        21 => 'Every 3 weeks',
+        30 => 'Monthly',
+        60 => 'Every 2 months',
+        90 => 'Every 3 months',
+        _ => 'Every $days days',
+      };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -487,6 +498,27 @@ class _EventRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(dateStr, style: theme.textTheme.bodyMedium),
+                // AC4 (3.2): display recurring interval label
+                if (event.isRecurring && event.cadenceDays != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.repeat,
+                        size: 13,
+                        color: colorScheme.secondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _cadenceLabel(event.cadenceDays!),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.secondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (event.comment != null && event.comment!.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
