@@ -22,4 +22,28 @@ As Laurus, I want to mark events done manually so I can close loops even outside
 
 ## Dev Agent Record
 ### Agent Model Used
-GPT-5.3-Codex
+Claude Sonnet 4.6
+
+## Handoff
+
+**Status:** done — commit `da742db` · 2026-02-28
+
+### What was implemented
+| Layer | File | Notes |
+|---|---|---|
+| DAO | `core/database/daos/event_dao.dart` | `watchPriorityInputEvents()` — excludes acknowledged one-time events (AC4) |
+| Repository | `event_repository.dart` | `acknowledgeEvent(id)` — one-time: sets `isAcknowledged=true` + `acknowledgedAt=now` (AC1); recurring: advances `date += cadenceDays * ms` and resets (AC3) |
+| Repository | same | `watchPriorityInputEvents()` proxy (AC4) |
+| Provider | `events_providers.dart` | `watchPriorityInputEventsProvider` for Epic 4 engine |
+| UI | `friend_card_screen.dart` | "Mark as done"/"Mark done (advance)" in popup menu (AC1) |
+| UI | same | Acknowledged one-time events: 50% opacity chip + strikethrough + green check + "Done dd MMM" timestamp (AC2) |
+| Tests | `event_repository_test.dart` | 4 tests: one-time ack, recurring advance+reset, no-op on unknown id, reactive stream |
+
+### AC coverage
+- AC1 ✅ `is_acknowledged=true` + `acknowledged_at` set for one-time events  
+- AC2 ✅ Visual state: muted chip, strikethrough, green "Done …" label  
+- AC3 ✅ Recurring events: `date` advanced by `cadenceDays`, acknowledged reset  
+- AC4 ✅ `watchPriorityInputEventsProvider` exposes only pending events to Epic 4  
+
+### Recurring logic note
+Acknowledging a recurring event does **not** mark it permanently done — it advances the next due date by cadence so the event re-appears as pending. One-time events stay marked done permanently.
