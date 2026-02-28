@@ -235,4 +235,209 @@ void main() {
       }
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 3.3 — Edit or Delete an Event
+  // ---------------------------------------------------------------------------
+  group('EventRepository — Story 3.3 (edit / delete)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late EventRepository repo;
+    late String friendId;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildEncService();
+      repo = EventRepository(db: db);
+      friendId = await seedFriend(db, enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('updateEvent persists new type, date, and comment — AC2', () async {
+      final originalDate = DateTime(2026, 5, 1).millisecondsSinceEpoch;
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.birthday,
+        date: originalDate,
+        comment: 'old note',
+      );
+
+      final newDate = DateTime(2026, 8, 20).millisecondsSinceEpoch;
+      await repo.updateEvent(
+        id: id,
+        friendId: friendId,
+        type: EventType.importantAppointment,
+        date: newDate,
+        isRecurring: false,
+        comment: 'updated note',
+        isAcknowledged: false,
+        createdAt: originalDate, // reuse for this test
+      );
+
+      final events = await repo.findByFriendId(friendId);
+      expect(events.length, 1);
+      final e = events.first;
+      expect(e.type, EventType.importantAppointment.storedName);
+      expect(e.date, newDate);
+      expect(e.comment, 'updated note');
+    });
+
+    test('deleteEvent removes the row — AC3/AC4', () async {
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      final before = await repo.findByFriendId(friendId);
+      expect(before.length, 1);
+
+      await repo.deleteEvent(id);
+
+      final after = await repo.findByFriendId(friendId);
+      expect(after, isEmpty);
+    });
+
+    test('watchByFriendId stream updates reactively after delete — AC4',
+        () async {
+      final stream = repo.watchByFriendId(friendId);
+      // Initial empty
+      expect(await stream.first, isEmpty);
+
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.birthday,
+        date: DateTime(2026, 12, 25).millisecondsSinceEpoch,
+      );
+      expect((await stream.first).length, 1);
+
+      await repo.deleteEvent(id);
+      expect(await stream.first, isEmpty);
+    });
+
+    test('updateEvent can convert one-off to recurring', () async {
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: DateTime(2026, 4, 1).millisecondsSinceEpoch,
+      );
+
+      await repo.updateEvent(
+        id: id,
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: DateTime(2026, 4, 1).millisecondsSinceEpoch,
+        isRecurring: true,
+        cadenceDays: 14,
+        isAcknowledged: false,
+        createdAt: DateTime(2026, 4, 1).millisecondsSinceEpoch,
+      );
+
+      final events = await repo.findByFriendId(friendId);
+      expect(events.first.isRecurring, isTrue);
+      expect(events.first.cadenceDays, 14);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Story 3.5 — Manual Event Acknowledgement
+  // ---------------------------------------------------------------------------
+  group('EventRepository — Story 3.5 (acknowledgement)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late EventRepository repo;
+    late String friendId;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildEncService();
+      repo = EventRepository(db: db);
+      friendId = await seedFriend(db, enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test(
+        'acknowledgeEvent sets is_acknowledged=true and acknowledged_at for '
+        'one-time event — AC1', () async {
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.birthday,
+        date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
+      );
+
+      final before = (await repo.findByFriendId(friendId)).first;
+      expect(before.isAcknowledged, isFalse);
+      expect(before.acknowledgedAt, isNull);
+
+      final tsBefore = DateTime.now().millisecondsSinceEpoch;
+      await repo.acknowledgeEvent(id);
+      final tsAfter = DateTime.now().millisecondsSinceEpoch + 1;
+
+      final after = (await repo.findByFriendId(friendId)).first;
+      expect(after.isAcknowledged, isTrue);
+      expect(after.acknowledgedAt, isNotNull);
+      expect(after.acknowledgedAt, greaterThanOrEqualTo(tsBefore));
+      expect(after.acknowledgedAt, lessThanOrEqualTo(tsAfter));
+    });
+
+    test(
+        'acknowledgeEvent on recurring event advances date by cadence and '
+        'resets acknowledged — AC3', () async {
+      final originalDate = DateTime(2026, 3, 1).millisecondsSinceEpoch;
+      const cadence = 30; // 30 days
+      final id = await repo.addRecurringEvent(
+        friendId: friendId,
+        type: EventType.regularCheckin,
+        date: originalDate,
+        cadenceDays: cadence,
+      );
+
+      await repo.acknowledgeEvent(id);
+
+      final after = (await repo.findByFriendId(friendId)).first;
+      final expectedNextDate =
+          originalDate + cadence * Duration.millisecondsPerDay;
+      expect(after.date, expectedNextDate);
+      expect(after.isAcknowledged, isFalse); // reset
+      expect(after.acknowledgedAt, isNull); // reset
+    });
+
+    test(
+        'acknowledgeEvent on unknown id is a no-op', () async {
+      // Should not throw
+      await repo.acknowledgeEvent('nonexistent-uuid');
+    });
+
+    test(
+        'watchByFriendId stream emits acknowledged state reactively — AC2',
+        () async {
+      final stream = repo.watchByFriendId(friendId);
+      expect(await stream.first, isEmpty);
+
+      final id = await repo.addDatedEvent(
+        friendId: friendId,
+        type: EventType.importantAppointment,
+        date: DateTime(2026, 9, 15).millisecondsSinceEpoch,
+      );
+      final first = await stream.first;
+      expect(first.first.isAcknowledged, isFalse);
+
+      await repo.acknowledgeEvent(id);
+      final second = await stream.first;
+      expect(second.first.isAcknowledged, isTrue);
+    });
+  });
 }
+

@@ -18,3 +18,12 @@ final watchAllRecurringEventsProvider =
     StreamProvider.autoDispose<List<Event>>((ref) {
   return ref.watch(eventRepositoryProvider).watchAllRecurring();
 });
+
+/// Watches events eligible for priority computation:
+/// recurring events + non-acknowledged one-time events.
+///
+/// Story 3.5 AC4: acknowledged one-time events are excluded from this stream.
+final watchPriorityInputEventsProvider =
+    StreamProvider.autoDispose<List<Event>>((ref) {
+  return ref.watch(eventRepositoryProvider).watchPriorityInputEvents();
+});

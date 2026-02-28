@@ -52,4 +52,19 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
   /// Exposed for the priority engine stream (Story 3.2 AC5).
   Stream<List<Event>> watchAllRecurring() =>
       (select(events)..where((e) => e.isRecurring.equals(true))).watch();
+
+  /// Watches all events relevant to priority computation:
+  ///   - recurring events (always in scope)
+  ///   - one-time events that are NOT yet acknowledged
+  ///
+  /// Story 3.5 AC4: priority engine excludes acknowledged one-time events.
+  Stream<List<Event>> watchPriorityInputEvents() {
+    return (select(events)
+          ..where(
+            (e) => e.isRecurring.equals(true) |
+                (e.isRecurring.equals(false) &
+                    e.isAcknowledged.equals(false)),
+          ))
+        .watch();
+  }
 }

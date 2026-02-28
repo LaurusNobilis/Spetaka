@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/events/data/event_repository_provider.dart';
 import '../../../features/events/data/events_providers.dart';
 import '../../../features/events/domain/event_type.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -397,7 +399,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Events section — Story 3.1 AC3 (type, formatted date, optional comment)
+// Events section — Stories 3.1, 3.3, 3.5
 // ---------------------------------------------------------------------------
 
 class _EventsSection extends ConsumerWidget {
@@ -406,6 +408,52 @@ class _EventsSection extends ConsumerWidget {
   final String friendId;
 
   static final _dateFormat = DateFormat('d MMM yyyy');
+
+  // 3.3 AC1: open prefilled edit form.
+  void _handleEdit(BuildContext context, Event event) {
+    context.push(
+      EditEventRoute(friendId: friendId, eventId: event.id).location,
+      extra: event,
+    );
+  }
+
+  // 3.3 AC3: delete with confirmation; list updates reactively (AC4 via stream).
+  Future<void> _handleDelete(
+      BuildContext context, WidgetRef ref, Event event) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete event?'),
+            content: Text(
+              'Delete "${EventType.fromString(event.type).displayLabel}" '
+              'on ${_dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.date))}? '
+              'This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+    await ref.read(eventRepositoryProvider).deleteEvent(event.id);
+  }
+
+  // 3.5 AC1: acknowledge event; recurring events auto-advance (AC3).
+  Future<void> _handleAcknowledge(WidgetRef ref, Event event) async {
+    await ref.read(eventRepositoryProvider).acknowledgeEvent(event.id);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -416,7 +464,6 @@ class _EventsSection extends ConsumerWidget {
     return _DetailSection(
       title: 'Events',
       trailing: IconButton(
-        // AC5 (3.1): 48×48 dp button meets touch target requirement.
         icon: const Icon(Icons.add_circle_outline),
         tooltip: 'Add event',
         onPressed: () => AddEventRoute(friendId).push(context),
@@ -435,14 +482,20 @@ class _EventsSection extends ConsumerWidget {
           if (events.isEmpty) {
             return Text(
               'No events yet. Tap + to add one.',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: colorScheme.outline, fontStyle: FontStyle.italic),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline, fontStyle: FontStyle.italic),
             );
           }
           return Column(
             children: [
               for (final event in events)
-                _EventRow(event: event, dateFormat: _dateFormat),
+                _EventRow(
+                  event: event,
+                  dateFormat: _dateFormat,
+                  onEdit: () => _handleEdit(context, event),
+                  onDelete: () => _handleDelete(context, ref, event),
+                  onAcknowledge: () => _handleAcknowledge(ref, event),
+                ),
             ],
           );
         },
@@ -452,12 +505,20 @@ class _EventsSection extends ConsumerWidget {
 }
 
 class _EventRow extends StatelessWidget {
-  const _EventRow({required this.event, required this.dateFormat});
+  const _EventRow({
+    required this.event,
+    required this.dateFormat,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onAcknowledge,
+  });
 
   final Event event;
   final DateFormat dateFormat;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onAcknowledge;
 
-  /// Returns a human-readable cadence label from [days].
   static String _cadenceLabel(int days) => switch (days) {
         7 => 'Every week',
         14 => 'Every 2 weeks',
@@ -473,68 +534,141 @@ class _EventRow extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final eventType = EventType.fromString(event.type);
-    final dateStr = dateFormat.format(
-      DateTime.fromMillisecondsSinceEpoch(event.date),
-    );
+    final dateStr = dateFormat
+        .format(DateTime.fromMillisecondsSinceEpoch(event.date));
+
+    // 3.5 AC2: acknowledged one-time events shown with muted style + checkmark.
+    final isDone = event.isAcknowledged && !event.isRecurring;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Type badge
-          Chip(
-            label: Text(eventType.displayLabel),
-            visualDensity: VisualDensity.compact,
-            backgroundColor: colorScheme.secondaryContainer,
-            labelStyle: TextStyle(
-              color: colorScheme.onSecondaryContainer,
-              fontSize: 12,
+          // 3.5 AC2: faded chip for acknowledged events.
+          Opacity(
+            opacity: isDone ? 0.45 : 1.0,
+            child: Chip(
+              label: Text(eventType.displayLabel),
+              visualDensity: VisualDensity.compact,
+              backgroundColor: colorScheme.secondaryContainer,
+              labelStyle: TextStyle(
+                color: colorScheme.onSecondaryContainer,
+                fontSize: 12,
+                decoration: isDone ? TextDecoration.lineThrough : null,
+              ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(dateStr, style: theme.textTheme.bodyMedium),
-                // AC4 (3.2): display recurring interval label
-                if (event.isRecurring && event.cadenceDays != null) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.repeat,
-                        size: 13,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _cadenceLabel(event.cadenceDays!),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.secondary,
-                          fontWeight: FontWeight.w500,
+            child: Opacity(
+              opacity: isDone ? 0.55 : 1.0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(dateStr, style: theme.textTheme.bodyMedium),
+                  if (event.isRecurring && event.cadenceDays != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.repeat, size: 13, color: colorScheme.secondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          _cadenceLabel(event.cadenceDays!),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.secondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ],
+                  if (event.comment != null && event.comment!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      event.comment!,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  // 3.5 AC2: acknowledged timestamp for one-time events.
+                  if (isDone && event.acknowledgedAt != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle_outline,
+                            size: 13, color: Colors.green.shade600),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Done ${dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.acknowledgedAt!))}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.green.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          // 3.3 / 3.5: popup menu — Edit, Mark done (or Recurring: advance), Delete.
+          PopupMenuButton<_EventAction>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            tooltip: 'Event actions',
+            itemBuilder: (_) => [
+              if (!isDone)
+                PopupMenuItem(
+                  value: _EventAction.acknowledge,
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          size: 18, color: Colors.green.shade600),
+                      const SizedBox(width: 8),
+                      Text(event.isRecurring ? 'Mark done (advance)' : 'Mark as done'),
                     ],
                   ),
-                ],
-                if (event.comment != null && event.comment!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    event.comment!,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ],
-            ),
+                ),
+              const PopupMenuItem(
+                value: _EventAction.edit,
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Edit'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: _EventAction.delete,
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (action) {
+              switch (action) {
+                case _EventAction.edit:
+                  onEdit();
+                case _EventAction.delete:
+                  onDelete();
+                case _EventAction.acknowledge:
+                  onAcknowledge();
+              }
+            },
           ),
         ],
       ),
     );
   }
 }
+
+enum _EventAction { edit, delete, acknowledge }
+
 
 // ---------------------------------------------------------------------------
 // Generic detail section
