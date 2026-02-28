@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../data/event_repository_provider.dart';
-import '../domain/event_type.dart';
+import '../data/event_type_providers.dart';
 
 /// Human-readable cadence labels for Story 3.2 AC3.
 const _cadenceOptions = [
@@ -32,7 +32,7 @@ class AddEventScreen extends ConsumerStatefulWidget {
 }
 
 class _AddEventScreenState extends ConsumerState<AddEventScreen> {
-  EventType _selectedType = EventType.regularCheckin;
+  String? _selectedType;
   DateTime _selectedDate = DateTime.now();
   final _commentController = TextEditingController();
   bool _isRecurring = false;
@@ -60,7 +60,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   }
 
   Future<void> _save() async {
-    if (_isSaving) return;
+    if (_isSaving || _selectedType == null) return;
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(eventRepositoryProvider);
@@ -70,7 +70,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       if (_isRecurring) {
         await repo.addRecurringEvent(
           friendId: widget.friendId,
-          type: _selectedType,
+          type: _selectedType!,
           date: _selectedDate.millisecondsSinceEpoch,
           cadenceDays: _cadenceDays,
           comment: trimmedComment,
@@ -78,7 +78,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       } else {
         await repo.addDatedEvent(
           friendId: widget.friendId,
-          type: _selectedType,
+          type: _selectedType!,
           date: _selectedDate.millisecondsSinceEpoch,
           comment: trimmedComment,
         );
@@ -93,6 +93,18 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final eventTypesAsync = ref.watch(watchEventTypesProvider);
+
+    // Auto-select first type when types load and nothing selected yet.
+    eventTypesAsync.whenData((types) {
+      if (_selectedType == null && types.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _selectedType == null) {
+            setState(() => _selectedType = types.first.name);
+          }
+        });
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -101,7 +113,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilledButton(
-              onPressed: _isSaving ? null : _save,
+              onPressed: _isSaving || _selectedType == null ? null : _save,
               child: _isSaving
                   ? const SizedBox(
                       width: 18,
@@ -116,7 +128,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         children: [
-          // ── Event type selector — AC4 (3.1) ─────────────────────────────
+          // ── Event type selector — AC6 (3.4) ─────────────────────────────
           Text(
             'Event Type',
             style: theme.textTheme.titleSmall?.copyWith(
@@ -126,17 +138,25 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final type in EventType.values)
-                _TypeChip(
-                  label: type.displayLabel,
-                  selected: _selectedType == type,
-                  onTap: () => setState(() => _selectedType = type),
-                ),
-            ],
+          eventTypesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => Text(
+              'Could not load event types.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.error),
+            ),
+            data: (types) => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final t in types)
+                  _TypeChip(
+                    label: t.name,
+                    selected: _selectedType == t.name,
+                    onTap: () => setState(() => _selectedType = t.name),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 

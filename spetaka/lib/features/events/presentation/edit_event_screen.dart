@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../data/event_repository_provider.dart';
-import '../domain/event_type.dart';
+import '../data/event_type_providers.dart';
 
 /// Human-readable cadence labels — matches AddEventScreen.
 const _cadenceOptions = [
@@ -30,7 +30,7 @@ class EditEventScreen extends ConsumerStatefulWidget {
 }
 
 class _EditEventScreenState extends ConsumerState<EditEventScreen> {
-  late EventType _selectedType;
+  late String _selectedType;
   late DateTime _selectedDate;
   late TextEditingController _commentController;
   late bool _isRecurring;
@@ -42,7 +42,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedType = EventType.fromString(widget.event.type);
+    // Use the raw type string from the event (now dynamic, not enum-based).
+    _selectedType = widget.event.type;
     _selectedDate =
         DateTime.fromMillisecondsSinceEpoch(widget.event.date);
     _commentController =
@@ -99,6 +100,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final eventTypesAsync = ref.watch(watchEventTypesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -122,7 +124,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         children: [
-          // ── Event type selector ──────────────────────────────────────────
+          // ── Event type selector — AC6 (3.4) ──────────────────────────────
           Text(
             'Event Type',
             style: theme.textTheme.titleSmall?.copyWith(
@@ -132,17 +134,36 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final type in EventType.values)
-                _TypeChip(
-                  label: type.displayLabel,
-                  selected: _selectedType == type,
-                  onTap: () => setState(() => _selectedType = type),
-                ),
-            ],
+          eventTypesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => Text(
+              'Could not load event types.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.error),
+            ),
+            data: (types) {
+              // Include the current event type if it's been deleted (orphan).
+              final hasCurrentType =
+                  types.any((t) => t.name == _selectedType);
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (!hasCurrentType)
+                    _TypeChip(
+                      label: _selectedType,
+                      selected: true,
+                      onTap: () {},
+                    ),
+                  for (final t in types)
+                    _TypeChip(
+                      label: t.name,
+                      selected: _selectedType == t.name,
+                      onTap: () => setState(() => _selectedType = t.name),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 

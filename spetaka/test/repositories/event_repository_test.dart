@@ -84,7 +84,7 @@ void main() {
       final date = DateTime(2026, 6, 15).millisecondsSinceEpoch;
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.birthday,
+        type: EventType.birthday.storedName,
         date: date,
         comment: 'Big day!',
       );
@@ -115,9 +115,9 @@ void main() {
       final date1 = DateTime(2026, 12, 25).millisecondsSinceEpoch;
       final date2 = DateTime(2026, 3, 1).millisecondsSinceEpoch;
       await repo.addDatedEvent(
-          friendId: friendId, type: EventType.birthday, date: date1,);
+          friendId: friendId, type: EventType.birthday.storedName, date: date1,);
       await repo.addDatedEvent(
-          friendId: friendId, type: EventType.regularCheckin, date: date2,);
+          friendId: friendId, type: EventType.regularCheckin.storedName, date: date2,);
 
       final events = await repo.findByFriendId(friendId);
       expect(events.length, 2);
@@ -134,7 +134,7 @@ void main() {
     test('comment is trimmed and null-coerced when blank', () async {
       await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.importantAppointment,
+        type: EventType.importantAppointment.storedName,
         date: DateTime.now().millisecondsSinceEpoch,
         comment: '   ',
       );
@@ -149,7 +149,7 @@ void main() {
 
       await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.weddingAnniversary,
+        type: EventType.weddingAnniversary.storedName,
         date: DateTime(2026, 9, 1).millisecondsSinceEpoch,
       );
 
@@ -186,7 +186,7 @@ void main() {
       final date = DateTime(2026, 3, 1).millisecondsSinceEpoch;
       final id = await repo.addRecurringEvent(
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: date,
         cadenceDays: 30,
       );
@@ -205,12 +205,12 @@ void main() {
       // Insert one one-off and one recurring
       await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.birthday,
+        type: EventType.birthday.storedName,
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
       await repo.addRecurringEvent(
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: DateTime(2026, 3, 1).millisecondsSinceEpoch,
         cadenceDays: 14,
       );
@@ -225,7 +225,7 @@ void main() {
       for (final days in [7, 14, 21, 30, 60, 90]) {
         final id = await repo.addRecurringEvent(
           friendId: friendId,
-          type: EventType.regularCheckin,
+          type: EventType.regularCheckin.storedName,
           date: DateTime.now().millisecondsSinceEpoch,
           cadenceDays: days,
         );
@@ -263,7 +263,7 @@ void main() {
       final originalDate = DateTime(2026, 5, 1).millisecondsSinceEpoch;
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.birthday,
+        type: EventType.birthday.storedName,
         date: originalDate,
         comment: 'old note',
       );
@@ -272,7 +272,7 @@ void main() {
       await repo.updateEvent(
         id: id,
         friendId: friendId,
-        type: EventType.importantAppointment,
+        type: EventType.importantAppointment.storedName,
         date: newDate,
         isRecurring: false,
         comment: 'updated note',
@@ -291,7 +291,7 @@ void main() {
     test('deleteEvent removes the row — AC3/AC4', () async {
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -312,7 +312,7 @@ void main() {
 
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.birthday,
+        type: EventType.birthday.storedName,
         date: DateTime(2026, 12, 25).millisecondsSinceEpoch,
       );
       expect((await stream.first).length, 1);
@@ -324,14 +324,14 @@ void main() {
     test('updateEvent can convert one-off to recurring', () async {
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: DateTime(2026, 4, 1).millisecondsSinceEpoch,
       );
 
       await repo.updateEvent(
         id: id,
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: DateTime(2026, 4, 1).millisecondsSinceEpoch,
         isRecurring: true,
         cadenceDays: 14,
@@ -373,7 +373,7 @@ void main() {
         'one-time event — AC1', () async {
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.birthday,
+        type: EventType.birthday.storedName,
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
 
@@ -399,7 +399,7 @@ void main() {
       const cadence = 30; // 30 days
       final id = await repo.addRecurringEvent(
         friendId: friendId,
-        type: EventType.regularCheckin,
+        type: EventType.regularCheckin.storedName,
         date: originalDate,
         cadenceDays: cadence,
       );
@@ -428,7 +428,7 @@ void main() {
 
       final id = await repo.addDatedEvent(
         friendId: friendId,
-        type: EventType.importantAppointment,
+        type: EventType.importantAppointment.storedName,
         date: DateTime(2026, 9, 15).millisecondsSinceEpoch,
       );
       final first = await stream.first;

@@ -538,7 +538,14 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final eventType = EventType.fromString(event.type);
+    // Story 3.4: type label is now the raw string from the events table.
+    // For legacy enum-style names (e.g. "regularCheckin"), fall back to the
+    // EventType enum's displayLabel; otherwise display the string as-is.
+    final typeLabel = EventType.values
+            .where((e) => e.name == event.type)
+            .firstOrNull
+            ?.displayLabel ??
+        event.type;
     final dateStr = dateFormat
         .format(DateTime.fromMillisecondsSinceEpoch(event.date));
 
@@ -554,7 +561,7 @@ class _EventRow extends StatelessWidget {
           Opacity(
             opacity: isDone ? 0.45 : 1.0,
             child: Chip(
-              label: Text(eventType.displayLabel),
+              label: Text(typeLabel),
               visualDensity: VisualDensity.compact,
               backgroundColor: colorScheme.secondaryContainer,
               labelStyle: TextStyle(

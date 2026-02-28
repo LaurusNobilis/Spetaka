@@ -1392,14 +1392,290 @@ class EventsCompanion extends UpdateCompanion<Event> {
   }
 }
 
+class $EventTypesTable extends EventTypes
+    with TableInfo<$EventTypesTable, EventTypeEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EventTypesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, sortOrder, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'event_types';
+  @override
+  VerificationContext validateIntegrity(Insertable<EventTypeEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EventTypeEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventTypeEntry(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $EventTypesTable createAlias(String alias) {
+    return $EventTypesTable(attachedDatabase, alias);
+  }
+}
+
+class EventTypeEntry extends DataClass implements Insertable<EventTypeEntry> {
+  /// UUID v4 primary key generated in Dart at creation time.
+  final String id;
+
+  /// Human-readable event type name (e.g. "Birthday").
+  final String name;
+
+  /// User-defined sort order for display in pickers and management screen.
+  final int sortOrder;
+
+  /// Creation timestamp (Unix-epoch ms).
+  final int createdAt;
+  const EventTypeEntry(
+      {required this.id,
+      required this.name,
+      required this.sortOrder,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  EventTypesCompanion toCompanion(bool nullToAbsent) {
+    return EventTypesCompanion(
+      id: Value(id),
+      name: Value(name),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory EventTypeEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventTypeEntry(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  EventTypeEntry copyWith(
+          {String? id, String? name, int? sortOrder, int? createdAt}) =>
+      EventTypeEntry(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        sortOrder: sortOrder ?? this.sortOrder,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  EventTypeEntry copyWithCompanion(EventTypesCompanion data) {
+    return EventTypeEntry(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventTypeEntry(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, sortOrder, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventTypeEntry &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class EventTypesCompanion extends UpdateCompanion<EventTypeEntry> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<int> sortOrder;
+  final Value<int> createdAt;
+  final Value<int> rowid;
+  const EventTypesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventTypesCompanion.insert({
+    required String id,
+    required String name,
+    required int sortOrder,
+    required int createdAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        sortOrder = Value(sortOrder),
+        createdAt = Value(createdAt);
+  static Insertable<EventTypeEntry> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<int>? sortOrder,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventTypesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<int>? sortOrder,
+      Value<int>? createdAt,
+      Value<int>? rowid}) {
+    return EventTypesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventTypesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $FriendsTable friends = $FriendsTable(this);
   late final $AcquittementsTable acquittements = $AcquittementsTable(this);
   late final $EventsTable events = $EventsTable(this);
+  late final $EventTypesTable eventTypes = $EventTypesTable(this);
   late final FriendDao friendDao = FriendDao(this as AppDatabase);
   late final EventDao eventDao = EventDao(this as AppDatabase);
+  late final EventTypeDao eventTypeDao = EventTypeDao(this as AppDatabase);
   late final AcquittementDao acquittementDao =
       AcquittementDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
@@ -1408,7 +1684,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [friends, acquittements, events];
+      [friends, acquittements, events, eventTypes];
 }
 
 typedef $$FriendsTableCreateCompanionBuilder = FriendsCompanion Function({
@@ -2070,6 +2346,162 @@ typedef $$EventsTableProcessedTableManager = ProcessedTableManager<
     (Event, BaseReferences<_$AppDatabase, $EventsTable, Event>),
     Event,
     PrefetchHooks Function()>;
+typedef $$EventTypesTableCreateCompanionBuilder = EventTypesCompanion Function({
+  required String id,
+  required String name,
+  required int sortOrder,
+  required int createdAt,
+  Value<int> rowid,
+});
+typedef $$EventTypesTableUpdateCompanionBuilder = EventTypesCompanion Function({
+  Value<String> id,
+  Value<String> name,
+  Value<int> sortOrder,
+  Value<int> createdAt,
+  Value<int> rowid,
+});
+
+class $$EventTypesTableFilterComposer
+    extends Composer<_$AppDatabase, $EventTypesTable> {
+  $$EventTypesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$EventTypesTableOrderingComposer
+    extends Composer<_$AppDatabase, $EventTypesTable> {
+  $$EventTypesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$EventTypesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EventTypesTable> {
+  $$EventTypesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$EventTypesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EventTypesTable,
+    EventTypeEntry,
+    $$EventTypesTableFilterComposer,
+    $$EventTypesTableOrderingComposer,
+    $$EventTypesTableAnnotationComposer,
+    $$EventTypesTableCreateCompanionBuilder,
+    $$EventTypesTableUpdateCompanionBuilder,
+    (
+      EventTypeEntry,
+      BaseReferences<_$AppDatabase, $EventTypesTable, EventTypeEntry>
+    ),
+    EventTypeEntry,
+    PrefetchHooks Function()> {
+  $$EventTypesTableTableManager(_$AppDatabase db, $EventTypesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EventTypesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EventTypesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EventTypesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EventTypesCompanion(
+            id: id,
+            name: name,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            required int sortOrder,
+            required int createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EventTypesCompanion.insert(
+            id: id,
+            name: name,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$EventTypesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $EventTypesTable,
+    EventTypeEntry,
+    $$EventTypesTableFilterComposer,
+    $$EventTypesTableOrderingComposer,
+    $$EventTypesTableAnnotationComposer,
+    $$EventTypesTableCreateCompanionBuilder,
+    $$EventTypesTableUpdateCompanionBuilder,
+    (
+      EventTypeEntry,
+      BaseReferences<_$AppDatabase, $EventTypesTable, EventTypeEntry>
+    ),
+    EventTypeEntry,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2080,6 +2512,8 @@ class $AppDatabaseManager {
       $$AcquittementsTableTableManager(_db, _db.acquittements);
   $$EventsTableTableManager get events =>
       $$EventsTableTableManager(_db, _db.events);
+  $$EventTypesTableTableManager get eventTypes =>
+      $$EventTypesTableTableManager(_db, _db.eventTypes);
 }
 
 // **************************************************************************

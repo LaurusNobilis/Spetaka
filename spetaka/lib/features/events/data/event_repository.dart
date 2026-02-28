@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
-import '../domain/event_type.dart';
 
 /// Repository for Event CRUD operations.
 ///
@@ -23,14 +22,14 @@ class EventRepository {
   /// Creates and persists a one-off dated event.
   ///
   /// [friendId] — owning friend card UUID
-  /// [type]     — event type (one of the default 5, or custom later)
+  /// [type]     — event type name string (dynamic from event_types table)
   /// [date]     — Unix epoch ms for the event date
   /// [comment]  — optional free-text note
   ///
   /// Returns the generated UUID for the new event.
   Future<String> addDatedEvent({
     required String friendId,
-    required EventType type,
+    required String type,
     required int date,
     String? comment,
   }) async {
@@ -40,7 +39,7 @@ class EventRepository {
       EventsCompanion.insert(
         id: id,
         friendId: friendId,
-        type: type.storedName,
+        type: type,
         date: date,
         isRecurring: const Value(false),
         comment: Value(comment?.trim().isEmpty == true ? null : comment?.trim()),
@@ -54,7 +53,7 @@ class EventRepository {
   /// Creates and persists a recurring check-in event.
   ///
   /// [friendId]    — owning friend card UUID
-  /// [type]        — event type
+  /// [type]        — event type name string
   /// [date]        — Unix epoch ms for the first occurrence
   /// [cadenceDays] — repeat interval in days (7/14/21/30/60/90)
   /// [comment]     — optional free-text note
@@ -62,7 +61,7 @@ class EventRepository {
   /// Returns the generated UUID for the new event.
   Future<String> addRecurringEvent({
     required String friendId,
-    required EventType type,
+    required String type,
     required int date,
     required int cadenceDays,
     String? comment,
@@ -77,7 +76,7 @@ class EventRepository {
       EventsCompanion.insert(
         id: id,
         friendId: friendId,
-        type: type.storedName,
+        type: type,
         date: date,
         isRecurring: const Value(true),
         comment: Value(comment?.trim().isEmpty == true ? null : comment?.trim()),
@@ -124,7 +123,7 @@ class EventRepository {
   Future<bool> updateEvent({
     required String id,
     required String friendId,
-    required EventType type,
+    required String type,
     required int date,
     required bool isRecurring,
     int? cadenceDays,
@@ -137,7 +136,7 @@ class EventRepository {
       EventsCompanion(
         id: Value(id),
         friendId: Value(friendId),
-        type: Value(type.storedName),
+        type: Value(type),
         date: Value(date),
         isRecurring: Value(isRecurring),
         cadenceDays: Value(cadenceDays),

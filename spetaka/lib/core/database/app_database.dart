@@ -9,9 +9,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/acquittement/domain/acquittement.dart';
 import '../../features/events/domain/event.dart';
+import '../../features/events/domain/event_type_entity.dart';
 import '../../features/friends/domain/friend.dart';
 import 'daos/acquittement_dao.dart';
 import 'daos/event_dao.dart';
+import 'daos/event_type_dao.dart';
 import 'daos/friend_dao.dart';
 import 'daos/settings_dao.dart';
 
@@ -29,8 +31,9 @@ part 'app_database.g.dart';
     Friends, // Story 1.7 — field encryption infrastructure
     Acquittements, // Story 1.7 — field encryption infrastructure
     Events, // Story 3.1 — dated events on friend cards
+    EventTypes, // Story 3.4 — personalized event types
   ],
-  daos: [FriendDao, EventDao, AcquittementDao, SettingsDao],
+  daos: [FriendDao, EventDao, EventTypeDao, AcquittementDao, SettingsDao],
 )
 class AppDatabase extends _$AppDatabase {
   /// Primary constructor.  If [executor] is omitted the production on-disk
@@ -39,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -69,11 +72,37 @@ class AppDatabase extends _$AppDatabase {
           if (from == 4) {
             await m.addColumn(events, events.cadenceDays);
           }
-          // Add future migrations here as new columns/tables are introduced.
+          // Story 3.4 — v5→v6: create event_types table.
+          if (from < 6) {
+            await m.createTable(eventTypes);
+          }
         },
         beforeOpen: (details) async {
           // Enable foreign-key enforcement on every connection open.
           await customStatement('PRAGMA foreign_keys = ON');
+
+          // Story 3.4 AC1: Seed default event types when table is empty.
+          final count = await eventTypes.count().getSingle();
+          if (count == 0) {
+            final now = DateTime.now().millisecondsSinceEpoch;
+            const defaults = [
+              'Birthday',
+              'Wedding Anniversary',
+              'Important Life Event',
+              'Regular Check-in',
+              'Important Appointment',
+            ];
+            for (var i = 0; i < defaults.length; i++) {
+              await into(eventTypes).insert(
+                EventTypesCompanion.insert(
+                  id: 'default-${defaults[i].toLowerCase().replaceAll(' ', '-')}',
+                  name: defaults[i],
+                  sortOrder: i,
+                  createdAt: now,
+                ),
+              );
+            }
+          }
         },
       );
 }

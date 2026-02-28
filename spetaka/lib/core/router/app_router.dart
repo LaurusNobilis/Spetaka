@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/database/app_database.dart';
 import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/events/presentation/edit_event_screen.dart';
+import '../../features/events/presentation/manage_event_types_screen.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
@@ -90,6 +91,13 @@ class SettingsSyncRoute extends AppRoute {
   String get location => '/settings/sync';
 }
 
+class ManageEventTypesRoute extends AppRoute {
+  const ManageEventTypesRoute();
+
+  @override
+  String get location => '/settings/event-types';
+}
+
 GoRouter createAppRouter() => GoRouter(
       routes: <RouteBase>[
         GoRoute(
@@ -141,6 +149,11 @@ GoRouter createAppRouter() => GoRouter(
                 GoRoute(
                   path: 'sync',
                   builder: (context, state) => const WebDavSetupScreen(),
+                ),
+                GoRoute(
+                  path: 'event-types',
+                  builder: (context, state) =>
+                      const ManageEventTypesScreen(),
                 ),
               ],
             ),
