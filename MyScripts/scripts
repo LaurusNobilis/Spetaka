@@ -93,4 +93,112 @@ git push (si pas déjà poussé)
 vérifier dans sprint-status.yaml que les 2 stories du batch sont done
 Si le chat commence à dériver : nouveau chat pour le batch suivant.
 
-GPT‑x (ou moi) pour relire/traquer les angles morts
+
+#######
+
+Tu es en mode “Pre-New-Session Checklist” (objectif: sécuriser l’état du repo avant d’ouvrir une nouvelle session).
+
+Règles:
+- Sois ultra concis.
+- Ne lis que:
+  1) /_bmad-output/implementation-artifacts/sprint-status.yaml
+  2) les éventuels outputs d’erreurs (tests/analyze) si échec
+- Tu exécutes les commandes nécessaires, puis tu me rends un verdict GO/NO-GO.
+- Si NO-GO: liste exactement les actions à faire (max 5), dans l’ordre.
+
+Checklist (à exécuter dans cet ordre):
+1) Sanity git:
+   - git status -sb
+   - Si des fichiers sont modifiés: STOP et dis-moi lesquels + propose soit commit soit discard (pas d’entre-deux).
+2) Qualité code:
+   - cd spetaka && flutter analyze
+   - cd spetaka && flutter test
+   - Si échec: STOP, montre la cause racine la plus probable et la 1ère correction à tenter.
+3) Sprint status:
+   - Ouvre /_bmad-output/implementation-artifacts/sprint-status.yaml
+   - Vérifie que les stories du batch que je viens de finir sont bien en `done`.
+   - Si ce n’est pas le cas: indique exactement quelles clés doivent changer.
+4) Handoff:
+   - Vérifie que chaque story du batch a un bloc “Handoff” (≤120 lignes) dans son fichier story (sinon: propose un template de 8 lignes à remplir).
+5) Push:
+   - git push
+   - Si push impossible: STOP avec diagnostic (auth, remote, divergence) + action unique à faire.
+
+Sortie attendue (format strict):
+- Verdict: GO ou NO-GO
+- Preuves: 3 lignes max (tests/analyze ok, git clean, sprint-status ok)
+- Next: “ouvre New Session maintenant” OU la liste d’actions (max 5)
+
+##########
+
+GPT‑x pour relire/traquer les angles morts
+
+“New session” entre les batchs (A → B → C). C’est le meilleur trade‑off temps/sécurité pour éviter que le modèle :
+
+
+########## ENTRE LES GATES
+
+Tu es en mode “Epic Gate Review — STRICT + CI” (objectif: vérifier en profondeur qu’on peut démarrer l’epic suivant sans embarquer de dettes, ET que la CI est verte).
+
+Contraintes:
+- Sois concis et actionnable.
+- Zéro “nice to have”, zéro refactor large.
+- Si un check échoue: Verdict NO-GO + 3 actions max (dans l’ordre), puis STOP.
+- Tu peux exécuter des commandes shell. Tu ne modifies du code que si nécessaire pour passer GO.
+
+Contexte minimal autorisé:
+- Lis uniquement:
+  1) /_bmad-output/implementation-artifacts/sprint-status.yaml
+  2) les erreurs sorties par flutter analyze / flutter test si échec
+  3) les fichiers directement impliqués par une erreur (max 5 fichiers)
+
+Repo CI:
+- Repo GitHub = LaurusNobilis/Spetaka
+- Branche = main
+
+Checks (ordre strict):
+
+1) Git propre + synchro remote
+- git status -sb
+- Si non clean: NO-GO (propose commit OU discard)
+- git push (ou confirme “already up-to-date”)
+
+2) Qualité Flutter (bloquant)
+- cd spetaka && flutter analyze
+- cd spetaka && flutter test
+- Si échec: NO-GO + cause racine probable + 1 correction prioritaire
+
+3) CI GitHub Actions (bloquant)
+- Récupère le dernier run sur main:
+  - curl -sS -H "Accept: application/vnd.github+json" "https://api.github.com/repos/LaurusNobilis/Spetaka/actions/runs?branch=main&per_page=1"
+- Interprétation:
+  - Si status != "completed": NO-GO (attendre ou investiguer) + lien html_url
+  - Si conclusion != "success": NO-GO + lien html_url + 1 action prioritaire
+  - Sinon: OK (CI verte)
+- Si l’API rate-limit ou renvoie une erreur: NO-GO avec 1 action: “ouvrir GitHub Actions et vérifier manuellement le dernier run main”.
+
+4) BMAD tracking (source de vérité)
+- Ouvre /_bmad-output/implementation-artifacts/sprint-status.yaml
+- Vérifie:
+  - toutes les stories de l’epic terminé sont done
+  - l’epic est done
+- Si incohérent: NO-GO + liste exacte des clés à changer
+
+5) Drift / migrations (anti-régression DB)
+- git --no-pager diff --name-only HEAD~20..HEAD
+- Scan rapide des changements Drift/migrations (sans lire tout le code):
+  - schemaVersion progresse uniquement si nécessaire
+  - migrations déterministes, pas de perte de données accidentelle
+- Si doute sérieux: NO-GO + 1 action (ajouter test de migration OU corriger migration)
+
+6) Widgets tests anti-hang (anti CI timeout)
+- Scan rapide des tests widget modifiés récemment:
+  - repérer pumpAndSettle “risqué” + watchers de streams Drift hors-écran
+- Si risque: NO-GO + 1 action (override provider / remplacer pumpAndSettle / isoler écran)
+
+Sortie (format strict):
+- Verdict: GO ou NO-GO
+- Preuves: 4 lignes max (git clean+push, analyze OK, test OK, CI success + html_url)
+- Next:
+  - si GO: “Epic suivant OK — ouvre une New Session et lance la prochaine story”
+  - si NO-GO: 1–3 actions max, dans l’ordre
