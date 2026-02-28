@@ -1,6 +1,6 @@
 # Story 2.4: Context Notes on Friend Card
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -17,9 +17,9 @@ so that I can preserve meaningful relational context over time.
 
 ## Tasks / Subtasks
 
-- [ ] Add note input/edit behavior in friend form (AC: 1, 3, 4)
-- [ ] Persist note field in repository/Drift mapping (AC: 1)
-- [ ] Render note block on detail screen with readable layout (AC: 2)
+- [x] Add note input/edit behavior in friend form (AC: 1, 3, 4)
+- [x] Persist note field in repository/Drift mapping (AC: 1)
+- [x] Render note block on detail screen with readable layout (AC: 2)
 
 ## Dev Notes
 
@@ -33,4 +33,20 @@ so that I can preserve meaningful relational context over time.
 
 ### Agent Model Used
 
-GPT-5.3-Codex
+Claude Sonnet 4.6
+
+## Handoff
+
+**Status:** Done — all 4 ACs verified green (150 tests, 0 analyze issues).
+
+**What was implemented (already in place from Stories 1.7/2.7):**
+- `friends.notes` column: nullable TEXT, encrypted at repository layer (Story 1.7).
+- `FriendFormScreen`: `_notesController` (4-line multiline field), persisted on save, pre-filled in edit mode.
+- `FriendRepository._toEncryptedCompanion` / `_decryptRow`: AES-256 roundtrip for notes.
+- `FriendCardScreen`: notes section rendered when `friend.notes != null && isNotEmpty`.
+- Widget tests: `friend_card_screen_test.dart` covers AC2 (notes display).
+- Repo tests: `friend_repository_test.dart` "update persists notes (encrypted field)" covers AC1/AC3.
+
+**No migration needed:** `notes` column was created with the `friends` table in schema v2 (Story 1.7).
+
+**Next:** Story 2-9 (concern flag) — UI set/clear + repo tests.
