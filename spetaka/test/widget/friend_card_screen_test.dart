@@ -67,15 +67,9 @@ Widget _harnessWithRouter({required Friend? friend}) {
 
 void main() {
   group('FriendCardScreen — Story 2.6', () {
-    // AC1: basic fields rendered
     testWidgets('AC1 — displays friend name and mobile', (tester) async {
       await tester.pumpWidget(
-        _harnessWithRouter(
-          friend: _makeFriend(
-            name: 'Alice',
-            mobile: '+33600000001',
-          ),
-        ),
+        _harnessWithRouter(friend: _makeFriend(name: 'Alice', mobile: '+33600000001')),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -84,13 +78,8 @@ void main() {
       expect(find.text('+33600000001'), findsOneWidget);
     });
 
-    // AC1: tags section
     testWidgets('AC1 — displays tags section', (tester) async {
-      await tester.pumpWidget(
-        _harnessWithRouter(
-          friend: _makeFriend(tags: '["Family"]'),
-        ),
-      );
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend(tags: '["Family"]')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -98,13 +87,8 @@ void main() {
       expect(find.text('Family'), findsOneWidget);
     });
 
-    // AC1: notes section
     testWidgets('AC1 — displays notes when present', (tester) async {
-      await tester.pumpWidget(
-        _harnessWithRouter(
-          friend: _makeFriend(notes: 'Loves hiking'),
-        ),
-      );
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend(notes: 'Loves hiking')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -112,14 +96,10 @@ void main() {
       expect(find.text('Loves hiking'), findsOneWidget);
     });
 
-    // AC1: concern note section
     testWidgets('AC1 — shows concern section when active', (tester) async {
       await tester.pumpWidget(
         _harnessWithRouter(
-          friend: _makeFriend(
-            isConcernActive: true,
-            concernNote: 'Going through a hard time',
-          ),
+          friend: _makeFriend(isConcernActive: true, concernNote: 'Going through a hard time'),
         ),
       );
       await tester.pump();
@@ -129,9 +109,7 @@ void main() {
       expect(find.text('Going through a hard time'), findsOneWidget);
     });
 
-    // AC1: placeholders present
-    testWidgets('AC1 — shows events and contact history placeholders',
-        (tester) async {
+    testWidgets('AC1 — shows events and contact history placeholders', (tester) async {
       await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -140,7 +118,6 @@ void main() {
       expect(find.text('Contact History'), findsOneWidget);
     });
 
-    // AC2: action buttons visible
     testWidgets('AC2 — shows Call, SMS, WhatsApp buttons', (tester) async {
       await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
       await tester.pump();
@@ -151,28 +128,75 @@ void main() {
       expect(find.text('WhatsApp'), findsOneWidget);
     });
 
-    // AC4: edit button present
     testWidgets('AC4 — edit icon button visible in AppBar', (tester) async {
       await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is IconButton,
-        ),
-        findsAtLeastNWidgets(1),
-      );
+      expect(find.byWidgetPredicate((w) => w is IconButton), findsAtLeastNWidgets(1));
       expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
     });
 
-    // friend not found
     testWidgets('shows not-found message for null friend', (tester) async {
       await tester.pumpWidget(_harnessWithRouter(friend: null));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Friend not found.'), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tests — Story 2.9
+  // ---------------------------------------------------------------------------
+
+  group('FriendCardScreen — Story 2.9', () {
+    testWidgets('AC1 — shows Flag concern button when concern is inactive',
+        (tester) async {
+      await tester.pumpWidget(
+        _harnessWithRouter(friend: _makeFriend(isConcernActive: false)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Flag concern'), findsOneWidget);
+    });
+
+    testWidgets('AC2 — concern section shows when isConcernActive=true',
+        (tester) async {
+      await tester.pumpWidget(
+        _harnessWithRouter(
+          friend: _makeFriend(isConcernActive: true, concernNote: 'Rough patch'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Concern'), findsOneWidget);
+      expect(find.text('Rough patch'), findsOneWidget);
+      expect(find.text('Flag concern'), findsNothing);
+    });
+
+    testWidgets('AC3 — Clear concern button visible when concern is active',
+        (tester) async {
+      await tester.pumpWidget(
+        _harnessWithRouter(friend: _makeFriend(isConcernActive: true)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Clear concern'), findsOneWidget);
+    });
+
+    testWidgets('AC2 — Flag concern button absent when concern is active',
+        (tester) async {
+      await tester.pumpWidget(
+        _harnessWithRouter(friend: _makeFriend(isConcernActive: false)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Clear concern'), findsNothing);
     });
   });
 }

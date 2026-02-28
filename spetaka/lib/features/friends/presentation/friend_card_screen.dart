@@ -11,7 +11,7 @@ import '../data/friend_repository_provider.dart';
 import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
 
-/// Friend card detail screen — Stories 2.6 & 2.8.
+/// Friend card detail screen — Stories 2.6, 2.8 & 2.9.
 ///
 /// AC implementation map:
 ///   AC1 (2.6): name, formatted mobile, tags, notes, concern note, events placeholder,
@@ -25,6 +25,10 @@ import '../domain/friend_tags_codec.dart';
 ///   AC3 (2.8): Dialog states friend name + irreversible history-loss warning.
 ///   AC4 (2.8): Confirm → FriendsRoute; cancel leaves detail view unchanged.
 ///   AC5 (2.8): Deletion persistent after app restart (SQLite persisted).
+///   AC1 (2.9): "Flag concern" button opens dialog; submits setConcern(id, note).
+///   AC2 (2.9): Concern indicator + note rendered when isConcernActive; icon on list tile.
+///   AC3 (2.9): "Clear concern" TextButton opens confirmation; calls clearConcern(id).
+///   AC4 (2.9): watchAll/watchById streams expose isConcernActive for Epic 4 engine.
 class FriendCardScreen extends ConsumerWidget {
   const FriendCardScreen({super.key, required this.id});
 
@@ -108,6 +112,69 @@ class _FriendDetailBody extends ConsumerWidget {
     if (context.mounted) const FriendsRoute().go(context);
   }
 
+  // 2.9/AC1: set concern flag with optional note.
+  Future<void> _handleSetConcern(BuildContext context, WidgetRef ref) async {
+    final noteController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Flag concern'),
+            content: TextField(
+              controller: noteController,
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                hintText: 'Optional note…',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Flag'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    final note = noteController.text;
+    noteController.dispose();
+    if (!confirmed || !context.mounted) return;
+    await ref
+        .read(friendRepositoryProvider)
+        .setConcern(friend.id, note: note);
+  }
+
+  // 2.9/AC3: clear concern with confirmation.
+  Future<void> _handleClearConcern(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Clear concern?'),
+            content: const Text(
+                'Remove the concern flag and its note for this friend?',),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !context.mounted) return;
+    await ref.read(friendRepositoryProvider).clearConcern(friend.id);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tags = decodeFriendTags(friend.tags);
@@ -179,8 +246,25 @@ class _FriendDetailBody extends ConsumerWidget {
               const SizedBox(height: 20),
             ],
 
-            // ── Concern — AC1 (shown only when concern is active) ─────────
-            if (friend.isConcernActive) ...[
+            // ── Concern — 2.9 (set when inactive / display+clear when active) ──
+            if (!friend.isConcernActive) ...[
+              // 2.9/AC1: button to activate concern flag.
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
+                  onPressed: () => _handleSetConcern(context, ref),
+                  icon: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                  ),
+                  label: const Text('Flag concern'),
+                ),
+              ),
+            ] else ...[
+              // 2.9/AC2: concern section with clear action (AC3).
               _DetailSection(
                 title: 'Concern',
                 titleColor: Colors.orange,
@@ -212,6 +296,17 @@ class _FriendDetailBody extends ConsumerWidget {
                         style: textTheme.bodyMedium,
                       ),
                     ],
+                    const SizedBox(height: 10),
+                    // 2.9/AC3: clear concern with confirmation.
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        padding: EdgeInsets.zero,
+                      ),
+                      onPressed: () => _handleClearConcern(context, ref),
+                      icon: const Icon(Icons.cancel_outlined, size: 16),
+                      label: const Text('Clear concern'),
+                    ),
                   ],
                 ),
               ),

@@ -77,6 +77,38 @@ class FriendRepository {
     return db.friendDao.deleteFriend(id);
   }
 
+  /// Sets the concern flag for [id] with an optional [note] (Story 2.9 AC1).
+  ///
+  /// Trims the note; stores null if the trimmed value is empty.
+  /// No-op if the friend does not exist.
+  Future<void> setConcern(String id, {String? note}) async {
+    final friend = await findById(id);
+    if (friend == null) return;
+    final trimmed = note?.trim();
+    await update(
+      friend.copyWith(
+        isConcernActive: true,
+        concernNote: Value(trimmed?.isEmpty == true ? null : trimmed),
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+
+  /// Clears the concern flag for [id] and removes the concern note (Story 2.9 AC3).
+  ///
+  /// No-op if the friend does not exist.
+  Future<void> clearConcern(String id) async {
+    final friend = await findById(id);
+    if (friend == null) return;
+    await update(
+      friend.copyWith(
+        isConcernActive: false,
+        concernNote: const Value(null),
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers — encryption boundary
   // ---------------------------------------------------------------------------

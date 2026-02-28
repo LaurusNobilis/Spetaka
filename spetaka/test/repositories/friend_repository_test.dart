@@ -350,4 +350,104 @@ void main() {
       expect(remaining, hasLength(1));
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 2.9 — FriendRepository concern set / clear (AC5)
+  // ---------------------------------------------------------------------------
+
+  group('FriendRepository — Story 2.9 concern set/clear (AC5)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('setConcern sets isConcernActive=true and stores encrypted note',
+        () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      await repo.setConcern(friend.id, note: 'Going through a hard time');
+
+      final found = await repo.findById(friend.id);
+      expect(found, isNotNull);
+      expect(found!.isConcernActive, isTrue); // AC1
+      expect(found.concernNote, 'Going through a hard time'); // decrypted AC1
+    });
+
+    test('setConcern with empty note stores null concernNote', () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      await repo.setConcern(friend.id, note: '   ');
+
+      final found = await repo.findById(friend.id);
+      expect(found!.isConcernActive, isTrue);
+      expect(found.concernNote, isNull);
+    });
+
+    test('setConcern with null note stores null concernNote', () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      await repo.setConcern(friend.id);
+
+      final found = await repo.findById(friend.id);
+      expect(found!.isConcernActive, isTrue);
+      expect(found.concernNote, isNull);
+    });
+
+    test('clearConcern sets isConcernActive=false and clears concernNote',
+        () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      // First set concern.
+      await repo.setConcern(friend.id, note: 'Some concern');
+      final afterSet = await repo.findById(friend.id);
+      expect(afterSet!.isConcernActive, isTrue); // sanity
+
+      // Then clear it — AC3.
+      await repo.clearConcern(friend.id);
+
+      final afterClear = await repo.findById(friend.id);
+      expect(afterClear, isNotNull);
+      expect(afterClear!.isConcernActive, isFalse); // AC3
+      expect(afterClear.concernNote, isNull); // AC3: note removed
+    });
+
+    test('concern note is encrypted at rest (DAO-layer ciphertext)', () async {
+      final friend = makeMinimalFriend();
+      await repo.insert(friend);
+
+      await repo.setConcern(friend.id, note: 'Encrypted concern');
+
+      // Read raw from DAO — must not be plaintext.
+      final rows = await db.friendDao.selectAll();
+      final raw = rows.firstWhere((r) => r.id == friend.id);
+      expect(raw.concernNote, isNotNull);
+      expect(raw.concernNote, isNot('Encrypted concern')); // ciphertext ≠ plaintext
+    });
+
+    test('setConcern is no-op for non-existent id', () async {
+      // Should not throw.
+      await repo.setConcern('no-such-id');
+    });
+
+    test('clearConcern is no-op for non-existent id', () async {
+      // Should not throw.
+      await repo.clearConcern('no-such-id');
+    });
+  });
 }
