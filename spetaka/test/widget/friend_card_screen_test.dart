@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/presentation/friend_card_screen.dart';
 
@@ -55,6 +56,10 @@ Widget _harnessWithRouter({required Friend? friend}) {
     overrides: [
       watchFriendByIdProvider('f1').overrideWith(
         (_) => Stream.value(friend),
+      ),
+      // Stub events stream — no events in widget tests (unit behaviour in repo tests).
+      watchEventsByFriendProvider('f1').overrideWith(
+        (_) => Stream.value([]),
       ),
     ],
     child: MaterialApp.router(routerConfig: router),

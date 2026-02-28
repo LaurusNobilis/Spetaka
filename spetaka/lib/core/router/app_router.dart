@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
@@ -54,6 +55,15 @@ class EditFriendRoute extends AppRoute {
   String get location => '/friends/$id/edit';
 }
 
+class AddEventRoute extends AppRoute {
+  const AddEventRoute(this.friendId);
+
+  final String friendId;
+
+  @override
+  String get location => '/friends/$friendId/events/new';
+}
+
 class SettingsRoute extends AppRoute {
   const SettingsRoute();
 
@@ -92,6 +102,12 @@ GoRouter createAppRouter() => GoRouter(
                       path: 'edit',
                       builder: (context, state) => FriendFormScreen(
                         editFriendId: state.pathParameters['id'],
+                      ),
+                    ),
+                    GoRoute(
+                      path: 'events/new',
+                      builder: (context, state) => AddEventScreen(
+                        friendId: state.pathParameters['id'] ?? '',
                       ),
                     ),
                   ],

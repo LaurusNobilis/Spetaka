@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/events/data/events_providers.dart';
+import '../../../features/events/domain/event_type.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../data/friend_repository_provider.dart';
@@ -313,17 +316,8 @@ class _FriendDetailBody extends ConsumerWidget {
               const SizedBox(height: 20),
             ],
 
-            // ── Events — AC1 placeholder (Epic 3) ────────────────────────────
-            _DetailSection(
-              title: 'Events',
-              child: Text(
-                'No events yet. (Story 3.1)',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
+            // ── Events — Story 3.1 ────────────────────────────────────────
+            _EventsSection(friendId: friend.id),
             const SizedBox(height: 20),
 
             // ── Contact history — AC1 placeholder (Epic 5)───────────────────
@@ -403,6 +397,114 @@ class _ActionButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Events section — Story 3.1 AC3 (type, formatted date, optional comment)
+// ---------------------------------------------------------------------------
+
+class _EventsSection extends ConsumerWidget {
+  const _EventsSection({required this.friendId});
+
+  final String friendId;
+
+  static final _dateFormat = DateFormat('d MMM yyyy');
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncEvents = ref.watch(watchEventsByFriendProvider(friendId));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return _DetailSection(
+      title: 'Events',
+      trailing: IconButton(
+        // AC5 (3.1): 48×48 dp button meets touch target requirement.
+        icon: const Icon(Icons.add_circle_outline),
+        tooltip: 'Add event',
+        onPressed: () => AddEventRoute(friendId).push(context),
+      ),
+      child: asyncEvents.when(
+        loading: () => const SizedBox(
+          height: 48,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, __) => Text(
+          'Could not load events.',
+          style: theme.textTheme.bodyMedium
+              ?.copyWith(color: colorScheme.error),
+        ),
+        data: (events) {
+          if (events.isEmpty) {
+            return Text(
+              'No events yet. Tap + to add one.',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.outline, fontStyle: FontStyle.italic),
+            );
+          }
+          return Column(
+            children: [
+              for (final event in events)
+                _EventRow(event: event, dateFormat: _dateFormat),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _EventRow extends StatelessWidget {
+  const _EventRow({required this.event, required this.dateFormat});
+
+  final Event event;
+  final DateFormat dateFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final eventType = EventType.fromString(event.type);
+    final dateStr = dateFormat.format(
+      DateTime.fromMillisecondsSinceEpoch(event.date),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Type badge
+          Chip(
+            label: Text(eventType.displayLabel),
+            visualDensity: VisualDensity.compact,
+            backgroundColor: colorScheme.secondaryContainer,
+            labelStyle: TextStyle(
+              color: colorScheme.onSecondaryContainer,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dateStr, style: theme.textTheme.bodyMedium),
+                if (event.comment != null && event.comment!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    event.comment!,
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Generic detail section
 // ---------------------------------------------------------------------------
 
@@ -411,11 +513,15 @@ class _DetailSection extends StatelessWidget {
     required this.title,
     required this.child,
     this.titleColor,
+    this.trailing,
   });
 
   final String title;
   final Widget child;
   final Color? titleColor;
+
+  /// Optional widget rendered at the end of the title row (e.g. action button).
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -423,13 +529,20 @@ class _DetailSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: titleColor ?? theme.colorScheme.primary,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: titleColor ?? theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
         const SizedBox(height: 8),
         child,

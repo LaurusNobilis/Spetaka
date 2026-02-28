@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/acquittement/domain/acquittement.dart';
+import '../../features/events/domain/event.dart';
 import '../../features/friends/domain/friend.dart';
 import 'daos/acquittement_dao.dart';
 import 'daos/event_dao.dart';
@@ -27,6 +28,7 @@ part 'app_database.g.dart';
   tables: [
     Friends, // Story 1.7 — field encryption infrastructure
     Acquittements, // Story 1.7 — field encryption infrastructure
+    Events, // Story 3.1 — dated events on friend cards
   ],
   daos: [FriendDao, EventDao, AcquittementDao, SettingsDao],
 )
@@ -37,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -55,8 +57,12 @@ class AppDatabase extends _$AppDatabase {
           // Guardrail: on a fresh install Drift may upgrade from 0→3 and the
           // createTable(friends) path above will already include the new column.
           // In that case, calling addColumn would be redundant and can fail.
-          else if (from < 3) {
+          if (from == 2) {
             await m.addColumn(friends, friends.tags);
+          }
+          // Story 3.1 — v3→v4: create events table.
+          if (from < 4) {
+            await m.createTable(events);
           }
           // Add future migrations here as new columns/tables are introduced.
         },

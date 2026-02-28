@@ -8,6 +8,7 @@ import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
+import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
@@ -220,6 +221,10 @@ void main() {
             friendRepositoryProvider.overrideWithValue(repo),
             allFriendsProvider.overrideWith(
               (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+            // Stub events stream for the FriendCardScreen events section (Story 3.1).
+            watchEventsByFriendProvider(id).overrideWith(
+              (_) => Stream.value([]),
             ),
           ],
           child: MaterialApp.router(

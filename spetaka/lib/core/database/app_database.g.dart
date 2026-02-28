@@ -848,11 +848,509 @@ class AcquittementsCompanion extends UpdateCompanion<Acquittement> {
   }
 }
 
+class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _friendIdMeta =
+      const VerificationMeta('friendId');
+  @override
+  late final GeneratedColumn<String> friendId = GeneratedColumn<String>(
+      'friend_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<int> date = GeneratedColumn<int>(
+      'date', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isRecurringMeta =
+      const VerificationMeta('isRecurring');
+  @override
+  late final GeneratedColumn<bool> isRecurring = GeneratedColumn<bool>(
+      'is_recurring', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_recurring" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _commentMeta =
+      const VerificationMeta('comment');
+  @override
+  late final GeneratedColumn<String> comment = GeneratedColumn<String>(
+      'comment', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isAcknowledgedMeta =
+      const VerificationMeta('isAcknowledged');
+  @override
+  late final GeneratedColumn<bool> isAcknowledged = GeneratedColumn<bool>(
+      'is_acknowledged', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_acknowledged" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _acknowledgedAtMeta =
+      const VerificationMeta('acknowledgedAt');
+  @override
+  late final GeneratedColumn<int> acknowledgedAt = GeneratedColumn<int>(
+      'acknowledged_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        friendId,
+        type,
+        date,
+        isRecurring,
+        comment,
+        isAcknowledged,
+        acknowledgedAt,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'events';
+  @override
+  VerificationContext validateIntegrity(Insertable<Event> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('friend_id')) {
+      context.handle(_friendIdMeta,
+          friendId.isAcceptableOrUnknown(data['friend_id']!, _friendIdMeta));
+    } else if (isInserting) {
+      context.missing(_friendIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('is_recurring')) {
+      context.handle(
+          _isRecurringMeta,
+          isRecurring.isAcceptableOrUnknown(
+              data['is_recurring']!, _isRecurringMeta));
+    }
+    if (data.containsKey('comment')) {
+      context.handle(_commentMeta,
+          comment.isAcceptableOrUnknown(data['comment']!, _commentMeta));
+    }
+    if (data.containsKey('is_acknowledged')) {
+      context.handle(
+          _isAcknowledgedMeta,
+          isAcknowledged.isAcceptableOrUnknown(
+              data['is_acknowledged']!, _isAcknowledgedMeta));
+    }
+    if (data.containsKey('acknowledged_at')) {
+      context.handle(
+          _acknowledgedAtMeta,
+          acknowledgedAt.isAcceptableOrUnknown(
+              data['acknowledged_at']!, _acknowledgedAtMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Event map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Event(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      friendId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}friend_id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
+      isRecurring: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_recurring'])!,
+      comment: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}comment']),
+      isAcknowledged: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_acknowledged'])!,
+      acknowledgedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}acknowledged_at']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $EventsTable createAlias(String alias) {
+    return $EventsTable(attachedDatabase, alias);
+  }
+}
+
+class Event extends DataClass implements Insertable<Event> {
+  /// UUID v4 primary key generated in Dart at creation time.
+  final String id;
+
+  /// References the owning friend card (friends.id).
+  final String friendId;
+
+  /// Event type persisted as a compact name string (see EventType.storedName).
+  final String type;
+
+  /// Event date as Unix-epoch milliseconds.
+  final int date;
+
+  /// Whether this is a recurring event (cadence set in Story 3.2).
+  final bool isRecurring;
+
+  /// Optional free-text comment / note for the event.
+  final String? comment;
+
+  /// Whether the user has manually acknowledged this event.
+  final bool isAcknowledged;
+
+  /// Unix-epoch ms timestamp when the event was acknowledged; null if not yet.
+  final int? acknowledgedAt;
+
+  /// Creation timestamp (Unix-epoch ms).
+  final int createdAt;
+  const Event(
+      {required this.id,
+      required this.friendId,
+      required this.type,
+      required this.date,
+      required this.isRecurring,
+      this.comment,
+      required this.isAcknowledged,
+      this.acknowledgedAt,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['friend_id'] = Variable<String>(friendId);
+    map['type'] = Variable<String>(type);
+    map['date'] = Variable<int>(date);
+    map['is_recurring'] = Variable<bool>(isRecurring);
+    if (!nullToAbsent || comment != null) {
+      map['comment'] = Variable<String>(comment);
+    }
+    map['is_acknowledged'] = Variable<bool>(isAcknowledged);
+    if (!nullToAbsent || acknowledgedAt != null) {
+      map['acknowledged_at'] = Variable<int>(acknowledgedAt);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  EventsCompanion toCompanion(bool nullToAbsent) {
+    return EventsCompanion(
+      id: Value(id),
+      friendId: Value(friendId),
+      type: Value(type),
+      date: Value(date),
+      isRecurring: Value(isRecurring),
+      comment: comment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(comment),
+      isAcknowledged: Value(isAcknowledged),
+      acknowledgedAt: acknowledgedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(acknowledgedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Event.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Event(
+      id: serializer.fromJson<String>(json['id']),
+      friendId: serializer.fromJson<String>(json['friendId']),
+      type: serializer.fromJson<String>(json['type']),
+      date: serializer.fromJson<int>(json['date']),
+      isRecurring: serializer.fromJson<bool>(json['isRecurring']),
+      comment: serializer.fromJson<String?>(json['comment']),
+      isAcknowledged: serializer.fromJson<bool>(json['isAcknowledged']),
+      acknowledgedAt: serializer.fromJson<int?>(json['acknowledgedAt']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'friendId': serializer.toJson<String>(friendId),
+      'type': serializer.toJson<String>(type),
+      'date': serializer.toJson<int>(date),
+      'isRecurring': serializer.toJson<bool>(isRecurring),
+      'comment': serializer.toJson<String?>(comment),
+      'isAcknowledged': serializer.toJson<bool>(isAcknowledged),
+      'acknowledgedAt': serializer.toJson<int?>(acknowledgedAt),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  Event copyWith(
+          {String? id,
+          String? friendId,
+          String? type,
+          int? date,
+          bool? isRecurring,
+          Value<String?> comment = const Value.absent(),
+          bool? isAcknowledged,
+          Value<int?> acknowledgedAt = const Value.absent(),
+          int? createdAt}) =>
+      Event(
+        id: id ?? this.id,
+        friendId: friendId ?? this.friendId,
+        type: type ?? this.type,
+        date: date ?? this.date,
+        isRecurring: isRecurring ?? this.isRecurring,
+        comment: comment.present ? comment.value : this.comment,
+        isAcknowledged: isAcknowledged ?? this.isAcknowledged,
+        acknowledgedAt:
+            acknowledgedAt.present ? acknowledgedAt.value : this.acknowledgedAt,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  Event copyWithCompanion(EventsCompanion data) {
+    return Event(
+      id: data.id.present ? data.id.value : this.id,
+      friendId: data.friendId.present ? data.friendId.value : this.friendId,
+      type: data.type.present ? data.type.value : this.type,
+      date: data.date.present ? data.date.value : this.date,
+      isRecurring:
+          data.isRecurring.present ? data.isRecurring.value : this.isRecurring,
+      comment: data.comment.present ? data.comment.value : this.comment,
+      isAcknowledged: data.isAcknowledged.present
+          ? data.isAcknowledged.value
+          : this.isAcknowledged,
+      acknowledgedAt: data.acknowledgedAt.present
+          ? data.acknowledgedAt.value
+          : this.acknowledgedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Event(')
+          ..write('id: $id, ')
+          ..write('friendId: $friendId, ')
+          ..write('type: $type, ')
+          ..write('date: $date, ')
+          ..write('isRecurring: $isRecurring, ')
+          ..write('comment: $comment, ')
+          ..write('isAcknowledged: $isAcknowledged, ')
+          ..write('acknowledgedAt: $acknowledgedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, friendId, type, date, isRecurring,
+      comment, isAcknowledged, acknowledgedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Event &&
+          other.id == this.id &&
+          other.friendId == this.friendId &&
+          other.type == this.type &&
+          other.date == this.date &&
+          other.isRecurring == this.isRecurring &&
+          other.comment == this.comment &&
+          other.isAcknowledged == this.isAcknowledged &&
+          other.acknowledgedAt == this.acknowledgedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class EventsCompanion extends UpdateCompanion<Event> {
+  final Value<String> id;
+  final Value<String> friendId;
+  final Value<String> type;
+  final Value<int> date;
+  final Value<bool> isRecurring;
+  final Value<String?> comment;
+  final Value<bool> isAcknowledged;
+  final Value<int?> acknowledgedAt;
+  final Value<int> createdAt;
+  final Value<int> rowid;
+  const EventsCompanion({
+    this.id = const Value.absent(),
+    this.friendId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.date = const Value.absent(),
+    this.isRecurring = const Value.absent(),
+    this.comment = const Value.absent(),
+    this.isAcknowledged = const Value.absent(),
+    this.acknowledgedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventsCompanion.insert({
+    required String id,
+    required String friendId,
+    required String type,
+    required int date,
+    this.isRecurring = const Value.absent(),
+    this.comment = const Value.absent(),
+    this.isAcknowledged = const Value.absent(),
+    this.acknowledgedAt = const Value.absent(),
+    required int createdAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        friendId = Value(friendId),
+        type = Value(type),
+        date = Value(date),
+        createdAt = Value(createdAt);
+  static Insertable<Event> custom({
+    Expression<String>? id,
+    Expression<String>? friendId,
+    Expression<String>? type,
+    Expression<int>? date,
+    Expression<bool>? isRecurring,
+    Expression<String>? comment,
+    Expression<bool>? isAcknowledged,
+    Expression<int>? acknowledgedAt,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (friendId != null) 'friend_id': friendId,
+      if (type != null) 'type': type,
+      if (date != null) 'date': date,
+      if (isRecurring != null) 'is_recurring': isRecurring,
+      if (comment != null) 'comment': comment,
+      if (isAcknowledged != null) 'is_acknowledged': isAcknowledged,
+      if (acknowledgedAt != null) 'acknowledged_at': acknowledgedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? friendId,
+      Value<String>? type,
+      Value<int>? date,
+      Value<bool>? isRecurring,
+      Value<String?>? comment,
+      Value<bool>? isAcknowledged,
+      Value<int?>? acknowledgedAt,
+      Value<int>? createdAt,
+      Value<int>? rowid}) {
+    return EventsCompanion(
+      id: id ?? this.id,
+      friendId: friendId ?? this.friendId,
+      type: type ?? this.type,
+      date: date ?? this.date,
+      isRecurring: isRecurring ?? this.isRecurring,
+      comment: comment ?? this.comment,
+      isAcknowledged: isAcknowledged ?? this.isAcknowledged,
+      acknowledgedAt: acknowledgedAt ?? this.acknowledgedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (friendId.present) {
+      map['friend_id'] = Variable<String>(friendId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<int>(date.value);
+    }
+    if (isRecurring.present) {
+      map['is_recurring'] = Variable<bool>(isRecurring.value);
+    }
+    if (comment.present) {
+      map['comment'] = Variable<String>(comment.value);
+    }
+    if (isAcknowledged.present) {
+      map['is_acknowledged'] = Variable<bool>(isAcknowledged.value);
+    }
+    if (acknowledgedAt.present) {
+      map['acknowledged_at'] = Variable<int>(acknowledgedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventsCompanion(')
+          ..write('id: $id, ')
+          ..write('friendId: $friendId, ')
+          ..write('type: $type, ')
+          ..write('date: $date, ')
+          ..write('isRecurring: $isRecurring, ')
+          ..write('comment: $comment, ')
+          ..write('isAcknowledged: $isAcknowledged, ')
+          ..write('acknowledgedAt: $acknowledgedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $FriendsTable friends = $FriendsTable(this);
   late final $AcquittementsTable acquittements = $AcquittementsTable(this);
+  late final $EventsTable events = $EventsTable(this);
   late final FriendDao friendDao = FriendDao(this as AppDatabase);
   late final EventDao eventDao = EventDao(this as AppDatabase);
   late final AcquittementDao acquittementDao =
@@ -862,7 +1360,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [friends, acquittements];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [friends, acquittements, events];
 }
 
 typedef $$FriendsTableCreateCompanionBuilder = FriendsCompanion Function({
@@ -1280,6 +1779,235 @@ typedef $$AcquittementsTableProcessedTableManager = ProcessedTableManager<
     ),
     Acquittement,
     PrefetchHooks Function()>;
+typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
+  required String id,
+  required String friendId,
+  required String type,
+  required int date,
+  Value<bool> isRecurring,
+  Value<String?> comment,
+  Value<bool> isAcknowledged,
+  Value<int?> acknowledgedAt,
+  required int createdAt,
+  Value<int> rowid,
+});
+typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
+  Value<String> id,
+  Value<String> friendId,
+  Value<String> type,
+  Value<int> date,
+  Value<bool> isRecurring,
+  Value<String?> comment,
+  Value<bool> isAcknowledged,
+  Value<int?> acknowledgedAt,
+  Value<int> createdAt,
+  Value<int> rowid,
+});
+
+class $$EventsTableFilterComposer
+    extends Composer<_$AppDatabase, $EventsTable> {
+  $$EventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get friendId => $composableBuilder(
+      column: $table.friendId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get comment => $composableBuilder(
+      column: $table.comment, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isAcknowledged => $composableBuilder(
+      column: $table.isAcknowledged,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get acknowledgedAt => $composableBuilder(
+      column: $table.acknowledgedAt,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$EventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EventsTable> {
+  $$EventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get friendId => $composableBuilder(
+      column: $table.friendId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get comment => $composableBuilder(
+      column: $table.comment, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isAcknowledged => $composableBuilder(
+      column: $table.isAcknowledged,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get acknowledgedAt => $composableBuilder(
+      column: $table.acknowledgedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$EventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EventsTable> {
+  $$EventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get friendId =>
+      $composableBuilder(column: $table.friendId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => column);
+
+  GeneratedColumn<String> get comment =>
+      $composableBuilder(column: $table.comment, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAcknowledged => $composableBuilder(
+      column: $table.isAcknowledged, builder: (column) => column);
+
+  GeneratedColumn<int> get acknowledgedAt => $composableBuilder(
+      column: $table.acknowledgedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$EventsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EventsTable,
+    Event,
+    $$EventsTableFilterComposer,
+    $$EventsTableOrderingComposer,
+    $$EventsTableAnnotationComposer,
+    $$EventsTableCreateCompanionBuilder,
+    $$EventsTableUpdateCompanionBuilder,
+    (Event, BaseReferences<_$AppDatabase, $EventsTable, Event>),
+    Event,
+    PrefetchHooks Function()> {
+  $$EventsTableTableManager(_$AppDatabase db, $EventsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> friendId = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<int> date = const Value.absent(),
+            Value<bool> isRecurring = const Value.absent(),
+            Value<String?> comment = const Value.absent(),
+            Value<bool> isAcknowledged = const Value.absent(),
+            Value<int?> acknowledgedAt = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EventsCompanion(
+            id: id,
+            friendId: friendId,
+            type: type,
+            date: date,
+            isRecurring: isRecurring,
+            comment: comment,
+            isAcknowledged: isAcknowledged,
+            acknowledgedAt: acknowledgedAt,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String friendId,
+            required String type,
+            required int date,
+            Value<bool> isRecurring = const Value.absent(),
+            Value<String?> comment = const Value.absent(),
+            Value<bool> isAcknowledged = const Value.absent(),
+            Value<int?> acknowledgedAt = const Value.absent(),
+            required int createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EventsCompanion.insert(
+            id: id,
+            friendId: friendId,
+            type: type,
+            date: date,
+            isRecurring: isRecurring,
+            comment: comment,
+            isAcknowledged: isAcknowledged,
+            acknowledgedAt: acknowledgedAt,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$EventsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $EventsTable,
+    Event,
+    $$EventsTableFilterComposer,
+    $$EventsTableOrderingComposer,
+    $$EventsTableAnnotationComposer,
+    $$EventsTableCreateCompanionBuilder,
+    $$EventsTableUpdateCompanionBuilder,
+    (Event, BaseReferences<_$AppDatabase, $EventsTable, Event>),
+    Event,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1288,6 +2016,8 @@ class $AppDatabaseManager {
       $$FriendsTableTableManager(_db, _db.friends);
   $$AcquittementsTableTableManager get acquittements =>
       $$AcquittementsTableTableManager(_db, _db.acquittements);
+  $$EventsTableTableManager get events =>
+      $$EventsTableTableManager(_db, _db.events);
 }
 
 // **************************************************************************
