@@ -144,8 +144,11 @@ void main() {
   });
 
   group('appRouter navigation', () {
-    /// Pump a full app with a real router; optionally pre-seed the friends
-    /// list provider so /friends renders without a real DB connection.
+    /// Pump a full app with a real router; stream providers for DailyViewScreen
+    /// are always stubbed so pumpAndSettle resolves without Drift timer leaks.
+    ///
+    /// [stubFriendsList] is kept for backward-compatibility but is now a no-op
+    /// because allFriendsProvider is always stubbed.
     Future<void> pumpAppWithRouter(
       WidgetTester tester,
       GoRouter router, {
@@ -154,8 +157,14 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            if (stubFriendsList)
-              allFriendsProvider.overrideWith((ref) => Stream<List<Friend>>.value(const <Friend>[])),
+            // Story 4.2: DailyViewScreen watches both of these; stub them so
+            // the screen renders immediately and pumpAndSettle completes.
+            allFriendsProvider.overrideWith(
+              (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+            watchPriorityInputEventsProvider.overrideWith(
+              (ref) => Stream<List<Event>>.value(const <Event>[]),
+            ),
           ],
           child: MaterialApp.router(
             theme: AppTheme.light(),
@@ -223,6 +232,11 @@ void main() {
             friendRepositoryProvider.overrideWithValue(repo),
             allFriendsProvider.overrideWith(
               (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+            // Story 4.2: DailyViewScreen (root route, beneath the stack)
+            // watches this provider; stub it to prevent Drift timer leaks.
+            watchPriorityInputEventsProvider.overrideWith(
+              (_) => Stream<List<Event>>.value(const <Event>[]),
             ),
             // Stub events stream for the FriendCardScreen events section (Story 3.1).
             watchEventsByFriendProvider(id).overrideWith(

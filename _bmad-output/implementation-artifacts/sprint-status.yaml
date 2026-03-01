@@ -72,8 +72,8 @@ development_status:
 
   epic-4: in-progress
   4-1-priority-engine-score-computation: done
-  4-2-daily-view-surface-window: ready-for-dev
-  4-3-heart-briefing-2-2-widget: ready-for-dev
+  4-2-daily-view-surface-window: done
+  4-3-heart-briefing-2-2-widget: done
   4-4-coach-tone-greeting-line-density-control: ready-for-dev
   4-5-virtual-friend-sophie-first-launch-onboarding: done
   4-6-daily-view-inline-card-expansion-detail-access: ready-for-dev

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../features/daily/presentation/daily_view_screen.dart';
 import '../../features/events/data/event_repository_provider.dart';
 import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/events/presentation/edit_event_screen.dart';
@@ -209,15 +210,6 @@ class _EditEventRouteLoader extends ConsumerWidget {
         return EditEventScreen(event: event);
       },
     );
-  }
-}
-
-class DailyViewScreen extends StatelessWidget {
-  const DailyViewScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'Daily');
   }
 }
 

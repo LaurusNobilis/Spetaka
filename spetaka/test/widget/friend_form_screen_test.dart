@@ -7,6 +7,7 @@ import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
+import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
@@ -34,6 +35,11 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
         // does not keep Dart timers alive and block pumpAndSettle / pump.
         allFriendsProvider.overrideWith(
           (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        // Story 4.2: DailyViewScreen (root route, beneath this stack) also
+        // needs its event stream stubbed to prevent Drift timer leaks.
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
         ),
       ],
       child: MaterialApp.router(
@@ -154,6 +160,11 @@ void main() {
       ProviderScope(
         overrides: [
           friendRepositoryProvider.overrideWithValue(repo),
+          // Story 4.2: DailyViewScreen (root route, beneath /friends) watches
+          // this provider; stub it to prevent Drift timer leaks.
+          watchPriorityInputEventsProvider.overrideWith(
+            (_) => Stream<List<Event>>.value(const <Event>[]),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
@@ -192,6 +203,11 @@ void main() {
           // Do NOT use pumpAndSettle in this test (live Drift stream).
           allFriendsProvider.overrideWith(
             (ref) => ref.watch(friendRepositoryProvider).watchAll(),
+          ),
+          // Story 4.2: DailyViewScreen (root route) also watches events;
+          // stub it to prevent a second open Drift timer on teardown.
+          watchPriorityInputEventsProvider.overrideWith(
+            (_) => Stream<List<Event>>.value(const <Event>[]),
           ),
         ],
         child: MaterialApp.router(routerConfig: router),
