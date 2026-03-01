@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
@@ -6,14 +8,16 @@ import '../../../core/encryption/encryption_service.dart';
 /// Repository for Friend CRUD operations.
 ///
 /// **Encryption boundary:** This class is the ONLY place where sensitive
-/// narrative fields are encrypted on write and decrypted on read.
+/// fields are encrypted on write and decrypted on read.
 ///
-/// Sensitive fields (encrypted at repository layer, per Story 1.7 / NFR6):
-///   - [Friend.notes]       → `friends.notes` column
-///   - [Friend.concernNote] → `friends.concern_note` column
+/// Sensitive fields (encrypted at repository layer, per Story 1.7–1.8 / NFR6):
+///   - [Friend.name]        → `friends.name` column   (Story 1.8)
+///   - [Friend.mobile]      → `friends.mobile` column (Story 1.8)
+///   - [Friend.notes]       → `friends.notes` column  (Story 1.7)
+///   - [Friend.concernNote] → `friends.concern_note` column (Story 1.7)
 ///
-/// Plaintext fields (never encrypted; required for search/sort/phone ops):
-///   - name, mobile, tags, careScore, isConcernActive, createdAt, updatedAt
+/// Plaintext fields (never encrypted; required for query/feature logic):
+///   id, tags, careScore, isConcernActive, createdAt, updatedAt, isDemo
 ///
 /// Drift DAOs are encryption-agnostic; they receive and return raw stored
 /// string values (ciphertext for sensitive fields, plaintext for others).
@@ -53,15 +57,20 @@ class FriendRepository {
     return row != null ? _decryptRow(row) : null;
   }
 
-  /// Returns all friends, with sensitive fields decrypted in each record.
+  /// Returns all friends, with sensitive fields decrypted and sorted
+  /// case-insensitively by name (AC-3: post-decryption sort).
   Future<List<Friend>> findAll() async {
     final rows = await db.friendDao.selectAll();
-    return rows.map(_decryptRow).toList();
+    return _sortByNameCaseInsensitiveStable(rows.map(_decryptRow).toList());
   }
 
-  /// Watches all friends via a reactive stream; each emission is decrypted.
-  Stream<List<Friend>> watchAll() =>
-      db.friendDao.watchAll().map((rows) => rows.map(_decryptRow).toList());
+  /// Watches all friends via a reactive stream; each emission is decrypted
+  /// and sorted case-insensitively by name (AC-3: post-decryption sort).
+  Stream<List<Friend>> watchAll() => db.friendDao.watchAll().map(
+        (rows) => _sortByNameCaseInsensitiveStable(
+          rows.map(_decryptRow).toList(),
+        ),
+      );
 
   /// Watches a single friend by [id] via a reactive stream; decrypts on each emission.
   ///
@@ -126,11 +135,70 @@ class FriendRepository {
   // Private helpers — encryption boundary
   // ---------------------------------------------------------------------------
 
-  /// Converts a plaintext [friend] to a [FriendsCompanion] with sensitive
+  /// Returns a new list sorted by decrypted name, case-insensitively.
+  ///
+  /// The ordering is stable: ties (same lowercased name) preserve the original
+  /// input order.
+  List<Friend> _sortByNameCaseInsensitiveStable(List<Friend> friends) {
+    final indexed = <(int, Friend)>[];
+    for (var i = 0; i < friends.length; i++) {
+      indexed.add((i, friends[i]));
+    }
+
+    indexed.sort((a, b) {
+      final aKey = a.$2.name.toLowerCase();
+      final bKey = b.$2.name.toLowerCase();
+      final cmp = aKey.compareTo(bKey);
+      if (cmp != 0) return cmp;
+      return a.$1.compareTo(b.$1);
+    });
+
+    return [for (final entry in indexed) entry.$2];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Legacy-plaintext detection constants (AC-9)
+  // ---------------------------------------------------------------------------
+
+  /// Minimum raw bytes for a valid AES-GCM ciphertext payload:
+  /// iv (12) + tag (16) + at least 1 byte of ciphertext = 29 bytes.
+  static const int _minCiphertextRawBytes = 29;
+
+  /// Minimum base64url-encoded length for a 29-byte payload (with padding).
+  static const int _minCiphertextBase64Len = 40;
+
+  /// Returns `true` when [value] looks like a ciphertext envelope produced
+  /// by [EncryptionService]: a base64url string whose decoded length ≥ 29.
+  ///
+  /// Used for legacy-plaintext compatibility (AC-9): rows written before
+  /// Story 1.8 have plaintext `name`/`mobile`; calling `decrypt()` on them
+  /// would throw [CiphertextFormatAppError], bricking the Friends list.
+  bool _looksLikeCiphertext(String value) {
+    if (value.length < _minCiphertextBase64Len) return false;
+    try {
+      final decoded = base64Url.decode(value);
+      return decoded.length >= _minCiphertextRawBytes;
+    } on FormatException {
+      return false;
+    }
+  }
+
+  /// Decrypts [value] if it looks like a ciphertext payload; otherwise
+  /// returns [value] unchanged (legacy-plaintext passthrough, AC-9).
+  String _decryptOrPlaintext(String value) {
+    if (!_looksLikeCiphertext(value)) return value;
+    return encryptionService.decrypt(value);
+  }
+
+  /// Converts a plaintext [friend] to a [FriendsCompanion] with ALL sensitive
   /// fields encrypted via [encryptionService].
   ///
-  /// Non-sensitive fields are passed through unchanged.
+  /// Non-sensitive fields (careScore, isConcernActive, tags, id, createdAt,
+  /// updatedAt, isDemo) are passed through unchanged — they must remain
+  /// queryable at the DB level.
   FriendsCompanion _toEncryptedCompanion(Friend friend) {
+    final encName = encryptionService.encrypt(friend.name);
+    final encMobile = encryptionService.encrypt(friend.mobile);
     final encNotes =
         friend.notes != null ? encryptionService.encrypt(friend.notes!) : null;
     final encConcernNote = friend.concernNote != null
@@ -139,8 +207,8 @@ class FriendRepository {
 
     return FriendsCompanion(
       id: Value(friend.id),
-      name: Value(friend.name),
-      mobile: Value(friend.mobile),
+      name: Value(encName),
+      mobile: Value(encMobile),
       tags: Value(friend.tags),
       notes: Value(encNotes),
       careScore: Value(friend.careScore),
@@ -152,9 +220,14 @@ class FriendRepository {
     );
   }
 
-  /// Returns a copy of [row] with its sensitive fields replaced by their
+  /// Returns a copy of [row] with ALL sensitive fields replaced by their
   /// decrypted plaintext counterparts.
+  ///
+  /// `name` and `mobile` use [_decryptOrPlaintext] for backward compatibility
+  /// with legacy rows that still contain plaintext values (AC-9).
   Friend _decryptRow(Friend row) {
+    final decName = _decryptOrPlaintext(row.name);
+    final decMobile = _decryptOrPlaintext(row.mobile);
     final decNotes =
         row.notes != null ? encryptionService.decrypt(row.notes!) : null;
     final decConcernNote = row.concernNote != null
@@ -162,6 +235,8 @@ class FriendRepository {
         : null;
 
     return row.copyWith(
+      name: decName,
+      mobile: decMobile,
       notes: Value<String?>(decNotes),
       concernNote: Value<String?>(decConcernNote),
     );

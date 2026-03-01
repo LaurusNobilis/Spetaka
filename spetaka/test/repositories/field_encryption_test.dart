@@ -1,8 +1,9 @@
 // test/repositories/field_encryption_test.dart
 //
 // Tests Story 1.7 — Sensitive Field Encryption at Repository Layer (NFR6)
+// Tests Story 1.8 — Extend Field Encryption to `name` and `mobile` (NFR6 Complete)
 //
-// AC6 coverage:
+// AC6 coverage (Story 1.7):
 //   (a) Friend roundtrip: write with notes/concernNote → read back → plaintext matches
 //   (b) Ciphertext-at-rest: DAO-level read confirms stored value ≠ original plaintext
 //   (c) Acquittement roundtrip: write with note → read back → plaintext matches
@@ -10,8 +11,14 @@
 //   (e) Missing key: EncryptionNotInitializedAppError on insert
 //   (f) Missing key: EncryptionNotInitializedAppError on read (stored ciphertext)
 //
+// Story 1.8 new coverage:
+//   (g) name & mobile roundtrip: write → read back → plaintext matches
+//   (h) Ciphertext-at-rest for name & mobile: DAO-level value ≠ original plaintext
+//   (i) watchAll() and findAll() return friends sorted case-insensitively by name
+//   (j) Legacy plaintext compatibility: pre-1.8 rows with plaintext name/mobile survive
+//
 // Additional AC coverage:
-//   - AC3: non-sensitive fields (name, mobile, careScore) stored as plaintext
+//   - AC3: non-sensitive fields (careScore, tags) stored as plaintext
 //   - AC4: DAOs are encryption-agnostic (raw stored values accessed directly)
 //   - AC5: typed errors propagate correctly
 
@@ -255,29 +262,35 @@ void main() {
       );
     });
 
-    test('non-sensitive fields (name, mobile, tags, careScore) stored as plaintext (AC3)', () async {
+    test(
+        'sensitive fields (name, mobile) are ciphertext; non-sensitive fields (tags, careScore) remain plaintext (AC-3, Story 1.8)',
+        () async {
       final tags = encodeFriendTags({'Work', 'Family'});
       final friend = makeTestFriend(tags: tags);
       await repo.insert(friend);
 
-      // DAO row must have plaintext non-sensitive fields.
+      // Bypass repository — read raw DAO value (AC4: DAO is encryption-agnostic).
       final rawRow = await db.friendDao.findById(friend.id);
 
+      // name is now encrypted (Story 1.8)
       expect(
         rawRow!.name,
-        equals('Alice'),
-        reason: 'name must remain plaintext',
+        isNot(equals('Alice')),
+        reason: 'name must be stored as ciphertext after Story 1.8',
       );
+      // mobile is now encrypted (Story 1.8)
       expect(
         rawRow.mobile,
-        equals('+33601020304'),
-        reason: 'mobile must remain plaintext',
+        isNot(equals('+33601020304')),
+        reason: 'mobile must be stored as ciphertext after Story 1.8',
       );
+      // careScore remains plaintext
       expect(
         rawRow.careScore,
         equals(0.5),
         reason: 'careScore must remain plaintext',
       );
+      // tags remains plaintext
       expect(
         rawRow.tags,
         equals(tags),
@@ -597,6 +610,275 @@ void main() {
       lifecycleA.dispose();
       serviceB.dispose();
       lifecycleB.dispose();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Group 5: Story 1.8 — name & mobile encryption (AC-1, AC-2, AC-3, AC-8, AC-9)
+  // ---------------------------------------------------------------------------
+
+  group('Story 1.8 — name & mobile encryption roundtrip (AC-1, AC-2)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildInitializedService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('name roundtrip: insert then findById returns original plaintext name',
+        () async {
+      final friend = makeTestFriend(notes: null, concernNote: null);
+      await repo.insert(friend);
+
+      final retrieved = await repo.findById(friend.id);
+
+      expect(retrieved, isNotNull);
+      expect(
+        retrieved!.name,
+        equals('Alice'),
+        reason: 'repository must decrypt name before returning',
+      );
+    });
+
+    test('mobile roundtrip: insert then findById returns original plaintext mobile',
+        () async {
+      final friend = makeTestFriend(notes: null, concernNote: null);
+      await repo.insert(friend);
+
+      final retrieved = await repo.findById(friend.id);
+
+      expect(
+        retrieved!.mobile,
+        equals('+33601020304'),
+        reason: 'repository must decrypt mobile before returning',
+      );
+    });
+
+    test('update re-encrypts name and mobile correctly', () async {
+      final original = makeTestFriend(notes: null, concernNote: null);
+      await repo.insert(original);
+
+      final updated = original.copyWith(
+        name: 'Alice Updated',
+        mobile: '+33699887766',
+        updatedAt: original.updatedAt + 1000,
+      );
+      await repo.update(updated);
+
+      final retrieved = await repo.findById(original.id);
+      expect(retrieved!.name, equals('Alice Updated'));
+      expect(retrieved.mobile, equals('+33699887766'));
+    });
+  });
+
+  group('Story 1.8 — name & mobile ciphertext at rest (AC-3, AC-8)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildInitializedService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test('DAO-stored name is ciphertext (not original plaintext)', () async {
+      final friend = makeTestFriend(notes: null, concernNote: null);
+      await repo.insert(friend);
+
+      final rawRow = await db.friendDao.findById(friend.id);
+
+      expect(
+        rawRow!.name,
+        isNot(equals('Alice')),
+        reason: 'DAO must store ciphertext for name, not plaintext',
+      );
+    });
+
+    test('DAO-stored mobile is ciphertext (not original plaintext)', () async {
+      final friend = makeTestFriend(notes: null, concernNote: null);
+      await repo.insert(friend);
+
+      final rawRow = await db.friendDao.findById(friend.id);
+
+      expect(
+        rawRow!.mobile,
+        isNot(equals('+33601020304')),
+        reason: 'DAO must store ciphertext for mobile, not plaintext',
+      );
+    });
+  });
+
+  group('Story 1.8 — watchAll / findAll alphabetical sort (AC-3)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildInitializedService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    Future<Friend> insertNamed(String name) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final f = Friend(
+        id: uuid.v4(),
+        name: name,
+        mobile: '+33600000000',
+        tags: null,
+        notes: null,
+        careScore: 0.0,
+        isConcernActive: false,
+        concernNote: null,
+        isDemo: false,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repo.insert(f);
+      return f;
+    }
+
+    test('findAll returns friends sorted case-insensitively by name', () async {
+      await insertNamed('Zara');
+      await insertNamed('alice');
+      await insertNamed('Bob');
+
+      final all = await repo.findAll();
+
+      expect(all.map((f) => f.name).toList(), equals(['alice', 'Bob', 'Zara']));
+    });
+
+    test('watchAll stream emits friends sorted case-insensitively by name',
+        () async {
+      await insertNamed('Zara');
+      await insertNamed('alice');
+      await insertNamed('Bob');
+
+      final list = await repo.watchAll().first;
+
+      expect(list.map((f) => f.name).toList(), equals(['alice', 'Bob', 'Zara']));
+    });
+  });
+
+  group('Story 1.8 — legacy plaintext compatibility (AC-9)', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildInitializedService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    test(
+        'findById handles legacy row with plaintext name and mobile without error',
+        () async {
+      // Simulate a pre-Story-1.8 row: insert directly via DAO with plaintext values.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final id = uuid.v4();
+      await db.friendDao.insertFriend(
+        FriendsCompanion(
+          id: Value(id),
+          name: const Value('Legacy Alice'),   // plaintext — legacy row
+          mobile: const Value('+33611223344'), // plaintext — legacy row
+          notes: const Value(null),
+          careScore: const Value(0.0),
+          isConcernActive: const Value(false),
+          concernNote: const Value(null),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // Reading via repository must NOT throw; legacy plaintext passes through.
+      final retrieved = await repo.findById(id);
+
+      expect(retrieved, isNotNull);
+      expect(
+        retrieved!.name,
+        equals('Legacy Alice'),
+        reason: 'legacy plaintext name must be returned as-is',
+      );
+      expect(
+        retrieved.mobile,
+        equals('+33611223344'),
+        reason: 'legacy plaintext mobile must be returned as-is',
+      );
+    });
+
+    test('findAll includes legacy plaintext rows without bricking the list',
+        () async {
+      // One legacy row with plaintext name/mobile.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final legacyId = uuid.v4();
+      await db.friendDao.insertFriend(
+        FriendsCompanion(
+          id: Value(legacyId),
+          name: const Value('Legacy Bob'),
+          mobile: const Value('+33622334455'),
+          notes: const Value(null),
+          careScore: const Value(0.0),
+          isConcernActive: const Value(false),
+          concernNote: const Value(null),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // One new row with encrypted name/mobile.
+      final nowFriend = Friend(
+        id: uuid.v4(),
+        name: 'New Carol',
+        mobile: '+33633445566',
+        tags: null,
+        notes: null,
+        careScore: 0.0,
+        isConcernActive: false,
+        concernNote: null,
+        isDemo: false,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repo.insert(nowFriend);
+
+      final all = await repo.findAll();
+
+      expect(all, hasLength(2));
+      final names = all.map((f) => f.name).toSet();
+      expect(names, containsAll(['Legacy Bob', 'New Carol']));
     });
   });
 }

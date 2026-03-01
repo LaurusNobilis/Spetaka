@@ -48,7 +48,7 @@ development_status:
   1-5-core-utilities-applifecycle-phonenormalizer-contactactionservice: done
   1-6-github-actions-ci-cd-pipeline: done
   1-7-sensitive-field-encryption-at-repository-layer-nfr6: done
-  1-8-extend-field-encryption-name-mobile-nfr6-complete: ready-for-dev
+  1-8-extend-field-encryption-name-mobile-nfr6-complete: done
   epic-1-retrospective: done
 
   epic-2: in-progress
