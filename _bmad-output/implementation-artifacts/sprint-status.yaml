@@ -71,13 +71,13 @@ development_status:
   3-5-manual-event-acknowledgement: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
+  epic-4: done
   4-1-priority-engine-score-computation: done
   4-2-daily-view-surface-window: done
   4-3-heart-briefing-2-2-widget: done
-  4-4-coach-tone-greeting-line-density-control: ready-for-dev
+  4-4-coach-tone-greeting-line-density-control: done
   4-5-virtual-friend-sophie-first-launch-onboarding: done
-  4-6-daily-view-inline-card-expansion-detail-access: ready-for-dev
+  4-6-daily-view-inline-card-expansion-detail-access: done
   epic-4-retrospective: optional
 
   epic-5: in-progress
