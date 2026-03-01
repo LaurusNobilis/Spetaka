@@ -71,7 +71,7 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: in-progress
-  4-1-priority-engine-score-computation: ready-for-dev
+  4-1-priority-engine-score-computation: done
   4-2-daily-view-surface-window: ready-for-dev
   4-3-heart-briefing-2-2-widget: ready-for-dev
   4-4-coach-tone-greeting-line-density-control: ready-for-dev
