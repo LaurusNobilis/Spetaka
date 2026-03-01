@@ -290,6 +290,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           careScore: 0.0,
           isConcernActive: false,
           concernNote: null,
+          isDemo: false,
           createdAt: now,
           updatedAt: now,
         );

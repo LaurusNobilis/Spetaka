@@ -48,6 +48,14 @@ class Friends extends Table {
   /// Unix-epoch milliseconds — updated on every write.
   IntColumn get updatedAt => integer()();
 
+  /// Whether this is a demo-seeded friend (Story 4.5).
+  ///
+  /// Set to true for the virtual friend "Sophie" seeded on first launch.
+  /// Excluded from real-friend priority pipelines when [PriorityEngine.sort]
+  /// is called with `excludeDemo: true`.
+  BoolColumn get isDemo =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

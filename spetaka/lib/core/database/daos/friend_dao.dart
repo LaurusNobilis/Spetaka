@@ -45,4 +45,15 @@ class FriendDao extends DatabaseAccessor<AppDatabase> with _$FriendDaoMixin {
   /// Returns all friend rows — useful for raw DAO-level ciphertext assertions
   /// in repository tests.
   Future<List<Friend>> selectAll() => select(friends).get();
+
+  /// Deletes all demo-seeded friend rows (Story 4.5).
+  ///
+  /// Called automatically by [FriendRepository.insert] when a real friend is
+  /// added for the first time.
+  Future<int> deleteDemoFriends() =>
+      (delete(friends)..where((f) => f.isDemo.equals(true))).go();
+
+  /// Watches only non-demo friends (Story 4.5).
+  Stream<List<Friend>> watchAllReal() =>
+      (select(friends)..where((f) => f.isDemo.equals(false))).watch();
 }

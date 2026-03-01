@@ -81,6 +81,7 @@ void main() {
       careScore: 0.5,
       isConcernActive: true,
       concernNote: concernNote,
+      isDemo: false,
       createdAt: now,
       updatedAt: now,
     );
@@ -185,6 +186,7 @@ void main() {
         careScore: original.careScore,
         isConcernActive: original.isConcernActive,
         concernNote: original.concernNote,
+        isDemo: false,
         createdAt: original.createdAt,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
       );
@@ -294,6 +296,7 @@ void main() {
         careScore: 0.0,
         isConcernActive: false,
         concernNote: null,
+        isDemo: false,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
       );

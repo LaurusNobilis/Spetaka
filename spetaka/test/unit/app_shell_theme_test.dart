@@ -211,6 +211,7 @@ void main() {
           careScore: 0.0,
           isConcernActive: false,
           concernNote: null,
+          isDemo: false,
           createdAt: now,
           updatedAt: now,
         ),

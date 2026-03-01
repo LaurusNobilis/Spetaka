@@ -20,8 +20,8 @@ void main() {
       expect(result.data['v'], equals(1));
     });
 
-    test('schemaVersion is 6 (bumped by Story 3.4 — event_types table)', () {
-      expect(db.schemaVersion, equals(6));
+    test('schemaVersion is 7 (bumped by Story 4.5 — friends.is_demo column)', () {
+      expect(db.schemaVersion, equals(7));
     });
 
     test('MigrationStrategy declares an onUpgrade hook', () {

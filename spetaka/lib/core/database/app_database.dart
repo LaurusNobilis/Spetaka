@@ -42,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -76,6 +76,11 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             await m.createTable(eventTypes);
           }
+          // Story 4.5 — v6→v7: add friends.is_demo column.
+          // On fresh install (from=0), createTable(friends) already includes it.
+          if (from == 6) {
+            await m.addColumn(friends, friends.isDemo);
+          }
         },
         beforeOpen: (details) async {
           // Enable foreign-key enforcement on every connection open.
@@ -102,6 +107,37 @@ class AppDatabase extends _$AppDatabase {
                 ),
               );
             }
+          }
+          // Story 4.5 AC1: Seed demo friend "Sophie" when friends table is empty.
+          // This covers first-launch only — once any friend (real or demo) exists,
+          // Sophie is not re-seeded.
+          final friendCount = await friends.count().getSingle();
+          if (friendCount == 0) {
+            final nowMs = DateTime.now().millisecondsSinceEpoch;
+            const sophieId = 'demo-sophie-001';
+            const sophieEventId = 'demo-sophie-event-001';
+            await into(friends).insert(
+              FriendsCompanion.insert(
+                id: sophieId,
+                name: 'Sophie',
+                mobile: '+33600000000',
+                isDemo: const Value(true),
+                createdAt: nowMs,
+                updatedAt: nowMs,
+              ),
+            );
+            final eventDateMs = DateTime.now()
+                .add(const Duration(days: 7))
+                .millisecondsSinceEpoch;
+            await into(events).insert(
+              EventsCompanion.insert(
+                id: sophieEventId,
+                friendId: sophieId,
+                type: 'Important Life Event',
+                date: eventDateMs,
+                createdAt: nowMs,
+              ),
+            );
           }
         },
       );

@@ -32,6 +32,7 @@ Friend _makeFriend({
     careScore: 0.0,
     isConcernActive: isConcernActive,
     concernNote: concernNote,
+    isDemo: false,
     createdAt: now,
     updatedAt: now,
   );

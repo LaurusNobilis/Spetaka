@@ -69,6 +69,15 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
   late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
       'updated_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDemoMeta = const VerificationMeta('isDemo');
+  @override
+  late final GeneratedColumn<bool> isDemo = GeneratedColumn<bool>(
+      'is_demo', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_demo" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -80,7 +89,8 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
         isConcernActive,
         concernNote,
         createdAt,
-        updatedAt
+        updatedAt,
+        isDemo
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -145,6 +155,10 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('is_demo')) {
+      context.handle(_isDemoMeta,
+          isDemo.isAcceptableOrUnknown(data['is_demo']!, _isDemoMeta));
+    }
     return context;
   }
 
@@ -174,6 +188,8 @@ class $FriendsTable extends Friends with TableInfo<$FriendsTable, Friend> {
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+      isDemo: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_demo'])!,
     );
   }
 
@@ -218,6 +234,13 @@ class Friend extends DataClass implements Insertable<Friend> {
 
   /// Unix-epoch milliseconds — updated on every write.
   final int updatedAt;
+
+  /// Whether this is a demo-seeded friend (Story 4.5).
+  ///
+  /// Set to true for the virtual friend "Sophie" seeded on first launch.
+  /// Excluded from real-friend priority pipelines when [PriorityEngine.sort]
+  /// is called with `excludeDemo: true`.
+  final bool isDemo;
   const Friend(
       {required this.id,
       required this.name,
@@ -228,7 +251,8 @@ class Friend extends DataClass implements Insertable<Friend> {
       required this.isConcernActive,
       this.concernNote,
       required this.createdAt,
-      required this.updatedAt});
+      required this.updatedAt,
+      required this.isDemo});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -248,6 +272,7 @@ class Friend extends DataClass implements Insertable<Friend> {
     }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
+    map['is_demo'] = Variable<bool>(isDemo);
     return map;
   }
 
@@ -266,6 +291,7 @@ class Friend extends DataClass implements Insertable<Friend> {
           : Value(concernNote),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isDemo: Value(isDemo),
     );
   }
 
@@ -283,6 +309,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       concernNote: serializer.fromJson<String?>(json['concernNote']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      isDemo: serializer.fromJson<bool>(json['isDemo']),
     );
   }
   @override
@@ -299,6 +326,7 @@ class Friend extends DataClass implements Insertable<Friend> {
       'concernNote': serializer.toJson<String?>(concernNote),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
+      'isDemo': serializer.toJson<bool>(isDemo),
     };
   }
 
@@ -312,7 +340,8 @@ class Friend extends DataClass implements Insertable<Friend> {
           bool? isConcernActive,
           Value<String?> concernNote = const Value.absent(),
           int? createdAt,
-          int? updatedAt}) =>
+          int? updatedAt,
+          bool? isDemo}) =>
       Friend(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -324,6 +353,7 @@ class Friend extends DataClass implements Insertable<Friend> {
         concernNote: concernNote.present ? concernNote.value : this.concernNote,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
+        isDemo: isDemo ?? this.isDemo,
       );
   Friend copyWithCompanion(FriendsCompanion data) {
     return Friend(
@@ -340,6 +370,7 @@ class Friend extends DataClass implements Insertable<Friend> {
           data.concernNote.present ? data.concernNote.value : this.concernNote,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDemo: data.isDemo.present ? data.isDemo.value : this.isDemo,
     );
   }
 
@@ -355,14 +386,15 @@ class Friend extends DataClass implements Insertable<Friend> {
           ..write('isConcernActive: $isConcernActive, ')
           ..write('concernNote: $concernNote, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDemo: $isDemo')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, name, mobile, tags, notes, careScore,
-      isConcernActive, concernNote, createdAt, updatedAt);
+      isConcernActive, concernNote, createdAt, updatedAt, isDemo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -376,7 +408,8 @@ class Friend extends DataClass implements Insertable<Friend> {
           other.isConcernActive == this.isConcernActive &&
           other.concernNote == this.concernNote &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.isDemo == this.isDemo);
 }
 
 class FriendsCompanion extends UpdateCompanion<Friend> {
@@ -390,6 +423,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
   final Value<String?> concernNote;
   final Value<int> createdAt;
   final Value<int> updatedAt;
+  final Value<bool> isDemo;
   final Value<int> rowid;
   const FriendsCompanion({
     this.id = const Value.absent(),
@@ -402,6 +436,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     this.concernNote = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDemo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FriendsCompanion.insert({
@@ -415,6 +450,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     this.concernNote = const Value.absent(),
     required int createdAt,
     required int updatedAt,
+    this.isDemo = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
@@ -432,6 +468,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     Expression<String>? concernNote,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
+    Expression<bool>? isDemo,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -445,6 +482,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       if (concernNote != null) 'concern_note': concernNote,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDemo != null) 'is_demo': isDemo,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -460,6 +498,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       Value<String?>? concernNote,
       Value<int>? createdAt,
       Value<int>? updatedAt,
+      Value<bool>? isDemo,
       Value<int>? rowid}) {
     return FriendsCompanion(
       id: id ?? this.id,
@@ -472,6 +511,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
       concernNote: concernNote ?? this.concernNote,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isDemo: isDemo ?? this.isDemo,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -509,6 +549,9 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
+    if (isDemo.present) {
+      map['is_demo'] = Variable<bool>(isDemo.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -528,6 +571,7 @@ class FriendsCompanion extends UpdateCompanion<Friend> {
           ..write('concernNote: $concernNote, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isDemo: $isDemo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1698,6 +1742,7 @@ typedef $$FriendsTableCreateCompanionBuilder = FriendsCompanion Function({
   Value<String?> concernNote,
   required int createdAt,
   required int updatedAt,
+  Value<bool> isDemo,
   Value<int> rowid,
 });
 typedef $$FriendsTableUpdateCompanionBuilder = FriendsCompanion Function({
@@ -1711,6 +1756,7 @@ typedef $$FriendsTableUpdateCompanionBuilder = FriendsCompanion Function({
   Value<String?> concernNote,
   Value<int> createdAt,
   Value<int> updatedAt,
+  Value<bool> isDemo,
   Value<int> rowid,
 });
 
@@ -1753,6 +1799,9 @@ class $$FriendsTableFilterComposer
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDemo => $composableBuilder(
+      column: $table.isDemo, builder: (column) => ColumnFilters(column));
 }
 
 class $$FriendsTableOrderingComposer
@@ -1794,6 +1843,9 @@ class $$FriendsTableOrderingComposer
 
   ColumnOrderings<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDemo => $composableBuilder(
+      column: $table.isDemo, builder: (column) => ColumnOrderings(column));
 }
 
 class $$FriendsTableAnnotationComposer
@@ -1834,6 +1886,9 @@ class $$FriendsTableAnnotationComposer
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDemo =>
+      $composableBuilder(column: $table.isDemo, builder: (column) => column);
 }
 
 class $$FriendsTableTableManager extends RootTableManager<
@@ -1869,6 +1924,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             Value<String?> concernNote = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
+            Value<bool> isDemo = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FriendsCompanion(
@@ -1882,6 +1938,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             concernNote: concernNote,
             createdAt: createdAt,
             updatedAt: updatedAt,
+            isDemo: isDemo,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1895,6 +1952,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             Value<String?> concernNote = const Value.absent(),
             required int createdAt,
             required int updatedAt,
+            Value<bool> isDemo = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FriendsCompanion.insert(
@@ -1908,6 +1966,7 @@ class $$FriendsTableTableManager extends RootTableManager<
             concernNote: concernNote,
             createdAt: createdAt,
             updatedAt: updatedAt,
+            isDemo: isDemo,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

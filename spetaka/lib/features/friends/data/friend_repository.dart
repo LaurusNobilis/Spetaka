@@ -34,8 +34,15 @@ class FriendRepository {
   // ---------------------------------------------------------------------------
 
   /// Encrypts sensitive fields and inserts a new [friend] record into SQLite.
+  ///
+  /// Story 4.5: if the new friend is not a demo entity, all demo-seeded friends
+  /// (i.e. Sophie) are automatically removed after the insert so the user sees
+  /// only their real contacts going forward.
   Future<void> insert(Friend friend) async {
     await db.friendDao.insertFriend(_toEncryptedCompanion(friend));
+    if (!friend.isDemo) {
+      await db.friendDao.deleteDemoFriends();
+    }
   }
 
   /// Reads a friend by [id]; decrypts sensitive fields before returning.
@@ -76,6 +83,12 @@ class FriendRepository {
     await db.acquittementDao.deleteByFriendId(id);
     return db.friendDao.deleteFriend(id);
   }
+
+  /// Removes all demo-seeded friends (Story 4.5 — explicit removal action).
+  ///
+  /// Called automatically by [insert] when a real friend is added.
+  /// May also be called explicitly from the UI or onboarding flow.
+  Future<void> removeDemoFriends() => db.friendDao.deleteDemoFriends();
 
   /// Sets the concern flag for [id] with an optional [note] (Story 2.9 AC1).
   ///
@@ -133,6 +146,7 @@ class FriendRepository {
       careScore: Value(friend.careScore),
       isConcernActive: Value(friend.isConcernActive),
       concernNote: Value(encConcernNote),
+      isDemo: Value(friend.isDemo),
       createdAt: Value(friend.createdAt),
       updatedAt: Value(friend.updatedAt),
     );

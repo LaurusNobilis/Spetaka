@@ -189,7 +189,27 @@ class _FriendDetailBody extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(friend.name),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(friend.name),
+            // 4.5: Demo badge visible in AppBar when isDemo = true.
+            if (friend.isDemo) ...[
+              const SizedBox(width: 8),
+              Chip(
+                label: const Text('Demo'),
+                labelStyle: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+                backgroundColor: Colors.amber.shade100,
+                side: const BorderSide(color: Colors.amber),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ],
+        ),
         actions: [
           // 2.6/AC4: Edit
           IconButton(
@@ -210,6 +230,34 @@ class _FriendDetailBody extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 4.5: Demo info banner shown only for Sophie (isDemo = true).
+            if (friend.isDemo) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  border: Border.all(color: Colors.amber.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.amber.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.amber.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // ── Contact action row — AC2 (placeholder, Epic 5) ──────────────
             _ActionButtonRow(friendId: friend.id),
             const SizedBox(height: 24),
