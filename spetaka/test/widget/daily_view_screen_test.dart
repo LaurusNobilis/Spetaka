@@ -9,10 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:spetaka/core/actions/contact_action_service.dart';
-import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/actions/phone_normalizer.dart';
+import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
 import 'package:spetaka/features/daily/domain/priority_engine.dart';
@@ -205,9 +204,9 @@ void main() {
       await tester.pump();
 
       expect(
-          find.byKey(const Key('action_call_a')).hitTestable(), findsNothing);
+          find.byKey(const Key('action_call_a')).hitTestable(), findsNothing,);
       expect(
-          find.byKey(const Key('action_sms_a')).hitTestable(), findsNothing);
+          find.byKey(const Key('action_sms_a')).hitTestable(), findsNothing,);
     });
 
     testWidgets('AC1 — tapping a card expands it (shows action row)',
