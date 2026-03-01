@@ -238,6 +238,10 @@ the source of truth.
 - Note: SQLite database file itself is NOT encrypted with SQLCipher in v1 —
   device storage security relies on Android's app sandbox (data/data directory).
   Acceptable for a personal single-user app on a modern Android device.
+  **Phase 1 field-level encryption (Story 1.7 + Story 1.8) covers ALL sensitive
+  fields: `friends.notes`, `friends.concern_note`, `acquittements.note` (Story 1.7)
+  AND `friends.name`, `friends.mobile` (Story 1.8 — NFR6 complete).**
+  SQLCipher is deferred to post-v1 as a defense-in-depth enhancement.
 
 **Key Derivation:** PBKDF2 (100,000 iterations, SHA-256) via Dart `crypto` package
 - Passphrase → 256-bit key derivation at session start
@@ -247,20 +251,24 @@ the source of truth.
 
 **Passphrase Lifecycle:**
 1. First WebDAV setup: user enters passphrase → key derived → salt stored → test
-   encrypt/decrypt to confirm → sync enabled
+   encrypt/decrypt to confirm → backup setup completed
 2. Subsequent app opens: passphrase NOT required on every launch — key re-derived
-   only when WebDAV sync runs or on explicit restore
+   only when a backup export/import is triggered (Phase 1) or WebDAV sync runs (Phase 2)
 3. Session key: held in `EncryptionService` singleton; cleared on app backgrounding
 
 ### API & Communication
 
-**No backend API.** All data operations are local (Drift/SQLite) or WebDAV.
+**No backend API.** All data operations are local (Drift/SQLite) only in Phase 1.
 
-**WebDAV Client:** `webdav_client ^3.0.1`
-- Abstracted behind a `SyncRepository` interface for testability
-- Operations: upload file, download file, create directory, list files
-- All payloads encrypted client-side before any WebDAV call
-- Connection test: `propfind` on root path to validate credentials
+**Local Backup (Phase 1):** `file_picker ^6.x` + `path_provider ^2.1.5`
+- `BackupRepository` handles export (encrypt → save to .enc file) and import (read file → decrypt → restore)
+- No network calls — fully offline operation
+- `INTERNET` permission not required in Phase 1
+
+**WebDAV Client (Phase 2 only):** `webdav_client ^3.0.1`
+- Deferred to Phase 2 — not included in Phase 1 pubspec
+- Will be abstracted behind a `SyncRepository` interface for testability
+- All payloads encrypted client-side before any WebDAV call (NFR7-P2)
 
 **URL Launcher / Action Intents:** `url_launcher ^6.3.1`
 - `tel:+XXXXX` for phone calls
@@ -658,15 +666,15 @@ spetaka/
     │   │   └── presentation/
     │   │       └── acquittement_sheet.dart       # Bottom sheet, pre-fill, sage anim
     │   │
-    │   ├── sync/
+    │   ├── backup/                # Phase 1: local encrypted backup only
     │   │   ├── data/
-    │   │   │   ├── sync_repository.dart          # WebDAV orchestration, atomic ops
-    │   │   │   └── webdav_client_adapter.dart    # webdav_client wrapper
+    │   │   │   └── backup_repository.dart        # Export (encrypt→.enc) + Import (decrypt→SQLite)
+    │   │   ├── domain/
+    │   │   │   └── backup_payload.dart           # BackupPayload toJson/fromJson
     │   │   ├── providers/
-    │   │   │   ├── sync_providers.dart           # SyncStatusProvider
-    │   │   │   └── sync_providers.g.dart
-    │   │   └── presentation/
-    │   │       └── webdav_setup_screen.dart      # M3-based config + test connection
+    │   │   │   ├── backup_providers.dart         # BackupNotifier (export/import state)
+    │   │   │   └── backup_providers.g.dart
+    │   │   # NOTE: sync/ (WebDAV) is Phase 2 — not scaffolded in Phase 1
     │   │
     │   └── settings/
     │       ├── data/
@@ -710,8 +718,8 @@ Drift (SQLite) → DAO → Repository → Riverpod Stream Provider → Widget
 **Data flow (write):**
 ```
 Widget event → Riverpod Notifier → Repository → DAO → Drift
-                                  ↘ EncryptionService (if sync triggered)
-                                  ↘ SyncRepository (background, fire-and-forget)
+                                  ↘ EncryptionService (backup export / field encryption)
+                                  # SyncRepository (Phase 2 — WebDAV) not present in Phase 1
 ```
 
 **AppLifecycle flow:**
@@ -754,10 +762,14 @@ Widget tap → ContactActionService → PhoneNormalizer → url_launcher
   (writes acquittement row + updates `care_score` on `friends` table atomically)
 - Sheet: `lib/features/acquittement/presentation/acquittement_sheet.dart`
 
-**FR32–FR38 (Sync & Storage):**
-- WebDAV: `lib/features/sync/data/sync_repository.dart`
-- Encryption: `lib/core/encryption/encryption_service.dart`
-- Export/import: `lib/features/settings/presentation/export_import_screen.dart`
+**FR32–FR36, FR40 (WebDAV — Phase 2 only):**
+- `lib/features/sync/` — not scaffolded in Phase 1; full implementation in Phase 2
+- Phase 2 will add `SyncRepository`, `WebDavClientAdapter`, `WebDavSetupScreen`
+
+**FR37–FR38 (Local Backup — Phase 1):**
+- Export/import: `lib/features/backup/data/backup_repository.dart`
+- Payload model: `lib/features/backup/domain/backup_payload.dart`
+- UI: Backup section in `lib/features/settings/presentation/settings_screen.dart`
 
 **FR39–FR41 (Settings):**
 - `lib/features/settings/presentation/settings_screen.dart`
@@ -773,14 +785,24 @@ Widget tap → ContactActionService → PhoneNormalizer → url_launcher
 **External Integrations:**
 - `flutter_contacts` (Android ContactsContract) — in `FriendRepository.importFromContacts()`
 - `url_launcher` (tel/sms/whatsapp) — in `ContactActionService` only
-- `webdav_client` (HTTP WebDAV) — in `WebDavClientAdapter` only, behind `SyncRepository`
+- `webdav_client` (HTTP WebDAV) — **Phase 2 only**, not in Phase 1; will be in `WebDavClientAdapter` only, behind `SyncRepository`
 
-**Data Flow — Sync:**
-1. `SyncRepository.syncNow()` called by `SyncStatusProvider` on app resume (if configured)
-2. All data serialised to JSON via model `toJson()`
-3. JSON encrypted with `EncryptionService.encrypt()`
-4. Encrypted bytes uploaded to WebDAV
-5. On restore: download → decrypt → `fromJson()` → write to Drift
+**Data Flow — Phase 1 Local Backup (export):**
+1. User enters passphrase → `EncryptionService` derives key via PBKDF2
+2. `BackupRepository.exportEncrypted()` serializes all data to JSON via `toJson()`
+3. JSON encrypted with `EncryptionService.encrypt()` → `Base64url(iv+tag+ciphertext)`
+4. Encrypted bytes written to device storage as `spetaka_backup_YYYYMMDD_HHMMSS.enc`
+5. Key discarded from memory after operation
+
+**Data Flow — Phase 1 Local Restore (import):**
+1. User selects `.enc` file → enters passphrase → key derived
+2. `BackupRepository.importEncrypted()` reads file → `EncryptionService.decrypt()`
+3. JSON deserialized via `fromJson()` → all entities written to Drift in single transaction
+4. Drift streams emit → daily view reacts
+
+**Data Flow — Phase 2 WebDAV Sync (deferred):**
+- `SyncRepository.syncNow()` → serialize → encrypt → upload to WebDAV server
+- On restore: download → decrypt → `fromJson()` → write to Drift
 
 ### Development Workflow Integration
 
@@ -808,9 +830,11 @@ dependencies:
   uuid: ^4.5.1
   flutter_contacts: ^1.1.9+2
   url_launcher: ^6.3.1
-  webdav_client: ^3.0.1
+  file_picker: ^6.x.x        # Phase 1: encrypted backup import (file picker)
+  permission_handler: ^11.x.x # Phase 1: storage permission for backup export
   shared_preferences: ^2.3.5
   intl: ^0.20.2
+  # webdav_client: ^3.0.1    # Phase 2 only — WebDAV sync deferred
 
 dev_dependencies:
   flutter_test:
@@ -851,14 +875,14 @@ All technology choices are version-compatible; no conflicts detected.
 
 All 41 FRs covered across 7 categories — each mapped to a specific file in the project structure.
 
-All 17 NFRs architecturally addressed:
+All 17 NFRs architecturally addressed (Phase 1 scope):
 
 | Domain | NFRs | Coverage |
 |---|---|---|
-| Performance (NFR1–5) | Priority engine: pure Dart in `priority_engine.dart`; Drift reactive streams; WebDAV background-only | ✅ |
-| Security (NFR6–10) | AES-256-GCM + PBKDF2 100k iterations; encryption key in-memory only; minimal permissions at point-of-use; zero third-party analytics/tracking SDKs | ✅ |
-| Reliability (NFR11–14) | SQLite single source of truth; atomic DB transactions for acquittement + care_score update; full WebDAV restore path via `sync_repository.dart` | ✅ |
-| Accessibility (NFR15–17) | M3 scaffold provides 48dp touch targets and WCAG AA contrast by default; custom widgets require explicit `Semantics` enforcement (rule added post-gap-analysis) | ✅ |
+| Performance (NFR1–5) | Priority engine: pure Dart in `priority_engine.dart`; Drift reactive streams; NFR5 (WebDAV background sync) deferred to Phase 2 | ✅ (NFR5 Phase 2) |
+| Security (NFR6–10) | AES-256-GCM + PBKDF2 100k iterations; field encryption extended to `name` + `mobile` in Story 1.8 (NFR6 complete); key in-memory only; minimal permissions; zero third-party SDKs; Phase 1: INTERNET not required | ✅ |
+| Reliability (NFR11–14) | SQLite single source of truth; atomic acquittement + care_score transactions; NFR12/NFR13 adapted — local backup file restore path via `backup_repository.dart`; NFR12/13 for WebDAV are Phase 2 | ✅ (NFR12-P2) |
+| Accessibility (NFR15–17) | M3 scaffold provides 48dp touch targets and WCAG AA contrast by default; custom widgets require explicit `Semantics` enforcement | ✅ |
 
 ---
 

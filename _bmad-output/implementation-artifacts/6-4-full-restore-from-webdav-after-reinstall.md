@@ -1,26 +1,22 @@
-# Story 6.4: Full Restore from WebDAV After Reinstall
+# Story P2-6.4: Full Restore from WebDAV After Reinstall
 
-Status: ready-for-dev
+> **⚠️ DEFERRED TO PHASE 2**
+>
+> WebDAV restore has been moved to Phase 2. Phase 1 restore is covered by
+> the local encrypted file import in Story 6.5.
 
-## Story
-As Laurus, I want full restore after reinstall so my relationship history is never lost.
+Status: deferred-phase-2
 
-## Acceptance Criteria
-1. Restore downloads encrypted backup and decrypts with user passphrase.
-2. Wrong passphrase yields clear error and writes nothing.
-3. Restore repopulates friends/events/acquittements/event_types/settings losslessly.
-4. IDs are preserved and no conflicts introduced.
-5. Daily view reflects restored data reactively.
+## Phase 2 Story (preserved for reference)
+As Laurus, I want full restore after reinstall so my relationship history
+is never lost, even when changing devices.
 
-## Tasks
-- [ ] Implement download + decrypt restore flow.
-- [ ] Add strict error-safe restore transaction behavior.
-- [ ] Rehydrate all required datasets and settings.
-- [ ] Add tests for wrong-passphrase and full-restore success.
+## Phase 2 Acceptance Criteria
+1. Download + decrypt with passphrase — wrong passphrase yields clear error, writes nothing.
+2. Restore repopulates friends, events, acquittements, event_types, settings losslessly (NFR13-P2).
+3. IDs (UUID) preserved — no conflicts.
+4. Daily view reflects restored data within one Drift stream emission.
+5. Brute-force protection: exponential delay (500ms → 1s → 2s…) after 3 failed passphrase attempts.
 
 ## References
-- `_bmad-output/planning-artifacts/epics.md` (Epic 6, Story 6.4)
-
-## Dev Agent Record
-### Agent Model Used
-GPT-5.3-Codex
+- `_bmad-output/planning-artifacts/epics.md` (Phase 2 — WebDAV section)

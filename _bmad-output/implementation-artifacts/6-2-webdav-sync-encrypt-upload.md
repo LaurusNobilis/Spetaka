@@ -1,27 +1,23 @@
-# Story 6.2: WebDAV Sync — Encrypt & Upload
+# Story P2-6.2: WebDAV Sync — Encrypt & Upload
 
-Status: ready-for-dev
+> **⚠️ DEFERRED TO PHASE 2**
+>
+> WebDAV sync has been moved entirely to Phase 2. Phase 1 Epic 6 covers
+> local encrypted backup only (see Story 6.5).
 
-## Story
-As Laurus, I want encrypted WebDAV sync so remote backup remains private and recoverable.
+Status: deferred-phase-2
 
-## Acceptance Criteria
-1. Sync serializes required datasets and settings into one payload.
-2. Payload is encrypted client-side before upload.
-3. Upload uses a single encrypted backup file.
-4. Failures never corrupt local data.
-5. Sync state provider exposes idle/syncing/success/error.
-6. Error UI is non-blocking and dismissible.
+## Phase 2 Story (preserved for reference)
+As Laurus, I want all my data encrypted with my passphrase and uploaded to
+my WebDAV server, so my relational data lives on my own infrastructure.
 
-## Tasks
-- [ ] Implement serialization contract.
-- [ ] Encrypt payload via encryption service.
-- [ ] Implement upload + failure-safe handling.
-- [ ] Expose sync status provider and banner UX.
+## Phase 2 Acceptance Criteria
+1. Full serialization: friends, events, acquittements, event_types, settings; demo friends excluded.
+2. Payload encrypted by `EncryptionService.encrypt()` before any WebDAV call.
+3. Upload strategy: write `spetaka_backup.enc.tmp` then MOVE to `spetaka_backup.enc` (atomic).
+4. Upload failure leaves local SQLite intact (NFR12).
+5. `SyncStatusProvider`: idle / syncing / success / error.
+6. Non-blocking dismissible banner for errors.
 
 ## References
-- `_bmad-output/planning-artifacts/epics.md` (Epic 6, Story 6.2)
-
-## Dev Agent Record
-### Agent Model Used
-GPT-5.3-Codex
+- `_bmad-output/planning-artifacts/epics.md` (Phase 2 — WebDAV section)

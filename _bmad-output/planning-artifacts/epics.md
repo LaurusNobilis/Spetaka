@@ -64,15 +64,15 @@ NFR1: The daily view loads and renders its full content within 1 second on the p
 NFR2: Priority score recomputation completes within 500ms — the daily view never shows a loading state for ranking
 NFR3: Tapping a 1-tap action button (Call, SMS, WhatsApp) launches the target app within 500ms
 NFR4: Friend card opens within 300ms of tap from any screen
-NFR5: WebDAV sync runs as a background operation with no perceptible UI impact
-NFR6: All on-device data is encrypted at rest using AES-256 with a key derived from the user's passphrase (PBKDF2 or Argon2)
-NFR7: All data transmitted to WebDAV is encrypted client-side before leaving the device — the server never receives plaintext
+NFR5: **Phase 2** — WebDAV sync background operation (not applicable in Phase 1 — no WebDAV)
+NFR6: All on-device data is encrypted at rest using AES-256 with a key derived from the user's passphrase (PBKDF2 or Argon2) — **Phase 1: all fields including `name` and `mobile` (Story 1.8)**
+NFR7: **Phase 2** — Data transmitted to WebDAV is encrypted client-side (not applicable in Phase 1)
 NFR8: The user's passphrase is never stored, transmitted, or logged — only the in-memory derived key is used during an active session
-NFR9: The app requests only READ_CONTACTS and INTERNET permissions, each requested at first point of use, not at install
+NFR9: The app requests only READ_CONTACTS and INTERNET permissions, each requested at first point of use, not at install — **Phase 1: INTERNET not required (no WebDAV)**
 NFR10: No analytics, telemetry, crash reporting, or advertising SDKs are included — zero data transmitted to any third-party service
 NFR11: The local SQLite database is the single source of truth — no data loss after any unexpected app termination or device restart
-NFR12: WebDAV sync failures must not corrupt or partially overwrite local data — all sync operations are atomic or safely resumable
-NFR13: A full restore from WebDAV reproduces all friend cards, events, acquittements, and settings without data loss
+NFR12: **Phase 2** — WebDAV sync failures must not corrupt local data (not applicable in Phase 1)
+NFR13: **Phase 1 (local backup):** A full restore from the encrypted local backup file reproduces all friend cards, events, acquittements, and settings without data loss
 NFR14: The exported backup file is a complete, self-contained snapshot restorable to any device
 NFR15: All interactive elements meet the minimum touch target size of 48×48dp (Android Material Design baseline)
 NFR16: Text content meets WCAG AA contrast ratio (4.5:1 minimum for normal text)
@@ -87,7 +87,7 @@ NFR17: Core flows (daily view, friend card, acquittement) are navigable with And
 - Local persistence: Drift v2.31.0 — single `AppDatabase`, reactive stream-based queries
 - Navigation: GoRouter v14.6.3 with declarative typed route tree
 - Encryption library: `encrypt ^5.0.3` — AES-256-GCM mode; PBKDF2 (100,000 iterations, SHA-256) via `dart:crypto` for key derivation
-- WebDAV client: `webdav_client ^3.0.1` behind `SyncRepository` abstraction interface
+- WebDAV client: **Phase 2 only** — `webdav_client ^3.0.1` not included in Phase 1 dependencies
 - Contact import plugin: `flutter_contacts ^1.1.9+2` — READ_CONTACTS at point-of-use only
 - URL launcher: `url_launcher ^6.3.1` routed through centralized `ContactActionService`
 - Entity IDs: UUID v4 strings via `uuid ^4.5.1` — never auto-increment integers
@@ -147,23 +147,23 @@ FR28: Epic 5 - Pré-remplissage type d'action + horodatage au retour app
 FR29: Epic 5 - Confirmation acquittement pré-rempli en 1 tap
 FR30: Epic 5 - Log chronologique d'historique de contacts par fiche
 FR31: Epic 5 - Mise à jour du care score après chaque acquittement
-FR32: Epic 6 - Configuration connexion WebDAV (URL, user, password, passphrase)
-FR33: Epic 6 - Test de connexion WebDAV avant activation sync
-FR34: Epic 6 - Chiffrement client-side AES-256 avant transmission WebDAV
-FR35: Epic 6 - Sync automatique WebDAV dès réseau disponible
-FR36: Epic 6 - Restore complet depuis WebDAV après réinstallation
-FR37: Epic 6 - Export données vers fichier local chiffré
-FR38: Epic 6 - Import et restore depuis fichier local chiffré
+FR32: **Phase 2** — Configuration connexion WebDAV (URL, user, password, passphrase)
+FR33: **Phase 2** — Test de connexion WebDAV avant activation sync
+FR34: **Phase 2** — Chiffrement client-side AES-256 avant transmission WebDAV
+FR35: **Phase 2** — Sync automatique WebDAV dès réseau disponible
+FR36: **Phase 2** — Restore complet depuis WebDAV après réinstallation
+FR37: Epic 6 (Phase 1) — Export données vers fichier local chiffré
+FR38: Epic 6 (Phase 1) — Import et restore depuis fichier local chiffré
 FR39: Epic 7 - Écran paramètres complet éditable
-FR40: Epic 7 - Mise à jour ou reset de la configuration WebDAV + passphrase
+FR40: Epic 7 - Mise à jour du passphrase de sauvegarde et reset de configuration backup
 FR41: Epic 7 - Fonctionnement complet sans connexion réseau
 
 ## Epic List
 
 ### Epic 1: Project Foundation & Core Infrastructure
-Laurus (and any developer) can initialize the full Spetaka project scaffold with all cross-cutting infrastructure in place — Drift database, AES-256 encryption service, sensitive field encryption at the repository layer (NFR6), AppLifecycle detection, phone number normalization, GoRouter navigation, dark-mode-aware design token system, and GitHub Actions CI/CD — creating a solid, architecture-compliant foundation that unblocks all feature epics.
+Laurus (and any developer) can initialize the full Spetaka project scaffold with all cross-cutting infrastructure in place — Drift database, AES-256 encryption service, **full sensitive field encryption at the repository layer covering all PII fields including name and mobile (NFR6 complete — Story 1.8)**, AppLifecycle detection, phone number normalization, GoRouter navigation, dark-mode-aware design token system, and GitHub Actions CI/CD — creating a solid, architecture-compliant foundation that unblocks all feature epics.
 **FRs covered:** None (technical foundation — unblocks FR1–FR41)
-**Additional requirements:** flutter create scaffold, Drift AppDatabase + DAOs skeleton, EncryptionService (AES-256-GCM + PBKDF2), sensitive field encryption at repository layer (NFR6 — Story 1.7), AppLifecycleService, PhoneNormalizer, ContactActionService skeleton, GoRouter route tree, app_tokens.dart + AppTheme (light + warm dark mode), GitHub Actions CI/CD (analyze → test → build APK)
+**Additional requirements:** flutter create scaffold, Drift AppDatabase + DAOs skeleton, EncryptionService (AES-256-GCM + PBKDF2), sensitive field encryption at repository layer for narrative fields (NFR6 — Story 1.7), **extend field encryption to `name` and `mobile` (NFR6 complete — Story 1.8)**, AppLifecycleService, PhoneNormalizer, ContactActionService skeleton, GoRouter route tree, app_tokens.dart + AppTheme (light + warm dark mode), GitHub Actions CI/CD (analyze → test → build APK)
 
 ### Epic 2: Friend Cards & Circle Management
 Laurus can build and manage his full relational circle — create friend cards by importing from phone contacts or manually, assign category tags, add contextual notes, set concern/préoccupation flags, and browse his complete list — giving the app its core data model and making every subsequent feature meaningful.
@@ -181,13 +181,13 @@ Laurus has a warm, intelligent daily view that tells him exactly who deserves hi
 Laurus can contact any friend in one tap and close the care loop with a warm, frictionless acquittement. The complete gesture — from intention to action to logged contact — happens in seconds. This epic delivers the defining Spetaka experience.
 **FRs covered:** FR22, FR23, FR24, FR25, FR26, FR27, FR28, FR29, FR30, FR31
 
-### Epic 6: Sync, Backup & Privacy
-Laurus can protect and restore all his relational data with end-to-end AES-256 encryption on his own WebDAV server — no plaintext ever leaves the device. A local encrypted file export/import provides a complete fallback. His data is his, always.
-**FRs covered:** FR32, FR33, FR34, FR35, FR36, FR37, FR38
+### Epic 6: Local Backup & Privacy
+Laurus can protect and restore all his relational data with a single AES-256 encrypted local backup file — export to his device, restore on any Android device with his passphrase. No network connection required. WebDAV sync moves to Phase 2.
+**FRs covered:** FR37, FR38
 
 ### Epic 7: Settings, Offline Resilience & Play Store Release
 Laurus has a complete, accessible settings screen, a fully verified offline-first experience, and a Play Store release track ready for 4 weeks of personal validation — then public distribution. Accessibility audit (NFR15–17) and zero-notification architecture verification complete the release readiness checklist.
-**FRs covered:** FR39, FR40, FR41
+**FRs covered:** FR39, FR40 (backup passphrase + settings reset), FR41
 
 ---
 
@@ -258,7 +258,7 @@ So that every feature screen has a consistent navigation framework and visual fo
 **Given** the project scaffold from Story 1.1 exists
 **When** the app shell is configured
 **Then** `lib/app.dart` contains `MaterialApp.router` with `GoRouter` and `ProviderScope`
-**And** `lib/core/router/app_router.dart` defines the complete typed route tree: `/` → `DailyViewScreen`, `/friends` → `FriendsListScreen`, `/friends/new` → `FriendFormScreen`, `/friends/:id` → `FriendCardScreen`, `/settings` → `SettingsScreen`, `/settings/sync` → `WebDavSetupScreen` — each screen is a placeholder widget with a title `Text` for now
+**And** `lib/core/router/app_router.dart` defines the complete typed route tree: `/` → `DailyViewScreen`, `/friends` → `FriendsListScreen`, `/friends/new` → `FriendFormScreen`, `/friends/:id` → `FriendCardScreen`, `/settings` → `SettingsScreen` — **`/settings/sync` (WebDavSetupScreen) is Phase 2** — each screen is a placeholder widget with a title `Text` for now
 **And** `lib/shared/theme/app_tokens.dart` defines all design tokens: color palette (calm, warm), spacing scale, border radii, typography scale (DM Sans primary, Lora for greeting line), motion durations
 **And** `lib/shared/theme/app_theme.dart` builds `ThemeData` with M3 `ColorScheme` derived from tokens
 **And** `lib/shared/widgets/loading_widget.dart` and `lib/shared/widgets/error_widget.dart` exist as reusable standard states
@@ -310,7 +310,9 @@ So that NFR6 (data encrypted at rest) is satisfied without SQLCipher — relying
 **When** `FriendRepository` or `AcquittementRepository` writes a record to SQLite
 **Then** the following fields are encrypted via `EncryptionService.encrypt()` before the Drift DAO persists them: `friends.notes`, `friends.concern_note`, `acquittements.note`
 **And** on read, these same fields are decrypted via `EncryptionService.decrypt()` at the repository layer before being returned to any provider or widget — no widget ever receives a raw ciphertext string
-**And** `friends.name`, `friends.mobile`, `friends.tags`, and all non-narrative fields are stored as plaintext — these are required for search, sorting, and phone number operations
+**And** `friends.notes`, `friends.concern_note`, and `acquittements.note` are encrypted — these are the narrative fields addressed by this story
+**And** `friends.name` and `friends.mobile` are **deferred to Story 1.8** — encrypted using the same pattern to complete NFR6 for all PII fields
+**And** `friends.tags`, `care_score`, and all non-PII/non-narrative fields remain plaintext (required for sort, score computation)
 **And** encryption and decryption logic is centralized in `FriendRepository` and `AcquittementRepository` — Drift DAO classes are NOT encryption-aware; they receive and return raw stored values
 **And** if decryption fails for any field (e.g., session key not yet initialized), a typed `AppError.sessionExpired` is thrown — the app prompts the user to re-enter their passphrase
 **And** `flutter test test/repositories/field_encryption_test.dart` passes:
@@ -318,6 +320,42 @@ So that NFR6 (data encrypted at rest) is satisfied without SQLCipher — relying
   - Inspect raw Drift DAO value for the same record → confirms the stored value is NOT the plaintext (it is ciphertext)
   - Write `AcquittementRecord` with a `note` → read back → `note` equals original plaintext
   - Attempt read without initialized `EncryptionService` key → returns `AppError.sessionExpired`
+
+---
+
+### Story 1.8: Extend Field Encryption to `name` and `mobile` (NFR6 Complete)
+
+As a developer,
+I want `friends.name` and `friends.mobile` encrypted at the repository layer using the existing `EncryptionService`,
+So that NFR6 is fully satisfied — no plaintext personally identifiable data is ever written to the SQLite database file.
+
+**Acceptance Criteria:**
+
+**Given** `EncryptionService` from Story 1.3 is available with an active in-memory derived key
+**When** `FriendRepository` writes a friend record to SQLite (create or update)
+**Then** both `friends.name` and `friends.mobile` are encrypted via `EncryptionService.encrypt()` before reaching the Drift DAO — the DAO only ever sees ciphertext for these columns
+
+**Given** name and mobile are stored as ciphertext in SQLite
+**When** `FriendRepository` reads records from the DAO
+**Then** both fields are decrypted before returning `Friend` objects to providers or widgets — no widget or provider ever receives ciphertext
+
+**Given** `FriendRepository.watchAll()` previously sorted by `name` at the Drift query level
+**When** names are stored as ciphertext
+**Then** sorting is performed in-memory in the repository after decryption using `list.sort((a, b) => a.name.compareTo(b.name))`
+
+**Given** `ContactActionService` needs the mobile number for phone/SMS/WhatsApp intents
+**When** a friend's mobile field is accessed anywhere downstream
+**Then** `ContactActionService` and `PhoneNormalizer` always receive the decrypted plaintext mobile — decryption is transparent to all callers outside the repository
+
+**Given** non-PII fields exist on the friend model
+**Then** `care_score`, `is_concern_active`, `tags`, `created_at`, `updated_at`, `id` remain plaintext for query optimization and sort operations
+
+**Given** decryption fails (session key not initialized)
+**Then** the same typed `AppError` hierarchy from Story 1.7 is thrown — `EncryptionNotInitializedAppError`, `DecryptionFailedAppError`, `CiphertextFormatAppError` as appropriate
+
+**Given** this story is implemented
+**When** `flutter test test/repositories/field_encryption_test.dart` runs
+**Then** tests pass, including: `name` and `mobile` roundtrip (write → read via repository → values match original); ciphertext-at-rest assertion (DAO-stored value ≠ original plaintext); `watchAll()` returns alphabetically sorted friends; EncryptionNotInitializedAppError thrown without an active key
 
 ---
 
@@ -756,94 +794,46 @@ So that the priority engine has fresh signal about how recently and frequently I
 
 ---
 
-## Epic 6: Sync, Backup & Privacy
+## Epic 6: Local Backup & Privacy
 
-Laurus can protect and restore all his relational data with end-to-end AES-256 encryption on his own WebDAV server. No plaintext ever leaves the device. A local encrypted file export/import provides a complete fallback.
+Laurus can protect and restore all his relational data with a single AES-256-GCM encrypted local backup file — exported to device storage, restorable to any Android device using his passphrase. No network connection required. WebDAV sync is Phase 2.
 
-### Story 6.1: WebDAV Configuration UI & Connection Test
+> **Phase 1 scope change:** WebDAV stories (original 6.1–6.4) are deferred to Phase 2.
+> This epic now has a single story: encrypted local file export and import.
+> The implementation artifact `6-5-encrypted-local-file-export-import.md` is the
+> authoritative Phase 1 spec (now re-titled Story 6.1 internally).
+
+### Story 6.1: Encrypted Local Backup — Export & Import
 
 As Laurus,
-I want to configure my WebDAV server connection and test it before enabling sync,
-So that I know my server is reachable and my credentials are correct before trusting it with my data.
+I want to export all my relationship data to a single encrypted file on my device and restore it at any time by entering my passphrase,
+So that my data is portable, recoverable after reinstall, and never dependent on a third-party server or network connection.
 
 **Acceptance Criteria:**
 
-**Given** Laurus navigates to `/settings/sync` (`WebDavSetupScreen`)
-**When** the screen renders
-**Then** the form displays: server URL, username, password (masked), encryption passphrase (masked) — all using `shared_preferences` for persistence of URL/username/password (never passphrase)
-**And** a "Test connection" button sends a `PROPFIND` request to the WebDAV root via `webdav_client ^3.0.1` using the entered credentials
-**And** on success: "Connection successful ✓" is shown and a "Enable sync" toggle becomes active
-**And** on failure: a specific error message from `error_messages.dart` is shown — distinguishing "Connection refused / URL unreachable", "Authentication failed (401)", "Not a WebDAV server" cases
-**And** the passphrase field includes clear copy: "Your passphrase encrypts everything before it leaves your device. It is never sent to the server. If you lose it, your data cannot be recovered."
-**And** the passphrase is never stored or logged — only used in-session by `EncryptionService`
-**And** the `INTERNET` permission is consumed here (requested at runtime point-of-use if not already granted — NFR9)
+**Given** Laurus navigates to the Backup section in Settings
+**When** he taps "Export backup" and enters a passphrase
+**Then** all data (friends, events, acquittements, event_types, settings) is serialized to JSON via `toJson()` on each model; demo friends (`is_demo = true`) are excluded
+**And** the JSON payload is encrypted with `EncryptionService.encrypt()` using a key derived from the entered passphrase + PBKDF2 salt
+**And** the encrypted file is saved to device storage as `spetaka_backup_YYYYMMDD_HHMMSS.enc`
+**And** a confirmation snackbar shows the saved file path
+**And** the passphrase is never written to disk or logged — the derived key is discarded after the file operation
 
-### Story 6.2: WebDAV Sync — Encrypt & Upload
+**Given** the exported file exists
+**Then** it is a complete, self-contained snapshot — every friend card, event, acquittement, event type, and setting — restorable to any Android device with Spetaka installed (NFR14)
 
-As Laurus,
-I want all my data to be encrypted with my passphrase and uploaded to my WebDAV server,
-So that my relational data lives on my own infrastructure — encrypted end-to-end, not on any third-party server.
+**Given** Laurus taps "Import backup", selects a `.enc` file, and enters his passphrase
+**When** the decryption succeeds
+**Then** all entities are written to SQLite via their repositories (same UUIDs, no conflicts)
+**And** the daily view reflects restored data within one Drift stream emission
+**And** on success, a confirmation message is shown and the user navigates to the daily view
 
-**Acceptance Criteria:**
+**Given** the file is corrupted or the passphrase is wrong
+**Then** a typed error from `error_messages.dart` is shown — no partial data is written
+**And** existing local data is untouched on any import failure
 
-**Given** Laurus has a valid WebDAV configuration and sync is enabled
-**When** a sync is triggered (manually via "Sync now" button or automatically — Story 6.3)
-**And** `SyncRepository` serializes all `friends`, `events`, `acquittements`, `event_types`, and app settings (WebDAV URL/username, density preference, encryption salt) to JSON (via `toJson()` on each model — ISO 8601 timestamps in JSON); demo friends (`is_demo = true`) are excluded from the payload
-**And** the full JSON payload is encrypted by `EncryptionService.encrypt()` before any WebDAV call — the server never receives plaintext
-**And** the encrypted payload is uploaded to the WebDAV server as a single file (e.g., `spetaka_backup.enc`) via `webdav_client`
-**And** if the upload fails, local SQLite data is untouched — no partial overwrite, no data loss (NFR12)
-**And** `SyncStatusProvider` updates sync state: idle / syncing / success / error — consumed by a subtle non-blocking indicator in the UI
-**And** sync errors are surfaced as a dismissible banner, not a modal
-
-### Story 6.3: Automatic Background WebDAV Sync
-
-As Laurus,
-I want sync to happen automatically in the background when network is available,
-So that my data is always protected without me having to remember to sync manually.
-
-**Acceptance Criteria:**
-
-**Given** Laurus has sync enabled and a network connection is available
-**When** the app launches or resumes from background
-**Then** `SyncRepository.sync()` is triggered as a fire-and-forget background operation — never awaited by the UI (NFR5)
-**And** sync does not block or delay any UI interaction — the daily view, friend cards, and acquittement sheet all function normally during sync
-**And** if no network is available (`INTERNET` permission granted but no connectivity), sync is silently skipped — no error shown, no retry countdown visible
-**And** if WebDAV is unavailable (server error, wrong credentials), a dismissible banner notifies Laurus — local data is intact
-**And** the last successful sync timestamp is stored in `shared_preferences` and displayed in `WebDavSetupScreen`
-
-### Story 6.4: Full Restore from WebDAV After Reinstall
-
-As Laurus,
-I want to restore all my data from WebDAV after reinstalling the app,
-So that I never lose my relationship data — reinstalling is a non-event, not a catastrophe.
-
-**Acceptance Criteria:**
-
-**Given** Laurus has reinstalled Spetaka and navigates to `/settings/sync`
-**When** he enters his WebDAV credentials and passphrase and taps "Restore from server"
-**Then** `SyncRepository` downloads the encrypted backup file from WebDAV
-**And** `EncryptionService.decrypt()` decrypts the payload using the entered passphrase
-**And** all `friends`, `events`, `acquittements`, `event_types`, and settings are restored to SQLite and `shared_preferences` (for non-sensitive settings) from the decrypted JSON — IDs are preserved (UUID, no conflicts)
-**And** if decryption fails (wrong passphrase), a clear error from `error_messages.dart` is shown: "Passphrase incorrect — unable to decrypt backup. Check your passphrase and try again." — no data is written
-**And** after successful restore, the daily view reflects the restored data within one Drift stream emission
-**And** the restore is complete and lossless: 100% of friends, events, acquittements, and settings reproduced (NFR13)
-
-### Story 6.5: Encrypted Local File Export & Import
-
-As Laurus,
-I want to export all my data to an encrypted file saved on my device, and import it back if needed,
-So that I have a self-contained backup independent of WebDAV — usable even if I change WebDAV server or need to transfer to a new device.
-
-**Acceptance Criteria:**
-
-**Given** Laurus navigates to the backup section of settings
-**When** he taps "Export backup"
-**Then** all data (friends, events, acquittements, event_types, settings) is serialized to JSON, encrypted with the passphrase via `EncryptionService`, and saved to device storage as `spetaka_backup_YYYYMMDD.enc`; demo friends (`is_demo = true`) are excluded
-**And** the exported file is a complete, self-contained snapshot — restorable to any Android device with Spetaka installed (NFR14)
-**And** when Laurus taps "Import backup", a file picker opens; he selects a `.enc` file and enters his passphrase
-**And** on successful decryption and import, all data is restored to SQLite — identical to the WebDAV restore flow (Story 6.4)
-**And** if the file is corrupted or the passphrase is wrong, a typed error from `error_messages.dart` is shown — no partial data is written
-**And** export and import operations show a loading state via Riverpod `AsyncValue` while in progress
+**And** export and import show a loading state via Riverpod `AsyncValue` while in progress
+**And** all passphrase fields include clear UX copy: "Your passphrase encrypts everything. If you lose it, your backup cannot be recovered."
 
 ---
 
@@ -861,10 +851,11 @@ So that app configuration is discoverable, simple, and never requires digging th
 
 **Given** Laurus navigates to `/settings` (`SettingsScreen`)
 **When** the screen renders
-**Then** the screen displays organized sections: "Sync & Backup" (link to `/settings/sync`, last sync time, manual sync trigger), "Data" (export backup, import backup), "Display" (density preference toggle — synced with daily view toggle), "Event Types" (link to event type editor from Epic 3)
+**Then** the screen displays organized sections: "Backup" (export backup, import backup buttons — FR37, FR38), "Display" (density preference toggle — synced with daily view toggle), "Event Types" (link to event type editor from Epic 3)
 **And** all settings changes take immediate effect — no "Save" button required for toggle-type settings
-**And** the WebDAV configuration link opens `WebDavSetupScreen` where Laurus can update URL, credentials, or passphrase (FR40)
-**And** a "Reset WebDAV configuration" option clears stored WebDAV URL/username/password from `shared_preferences` and disables sync — with a confirmation dialog
+**And** the Backup section includes passphrase copy: "Your passphrase encrypts your backup. It is never stored. If you lose it, your backup cannot be recovered."
+**And** a "Reset backup settings" option clears any stored PBKDF2 salt from `shared_preferences` — with a clear warning and confirmation dialog (FR40 — adapted for local backup)
+**And** WebDAV sync configuration (a "Sync & Backup" sub-screen at `/settings/sync`) is a **Phase 2 placeholder** — shown as a greyed-out "Coming in Phase 2" entry in the settings screen
 **And** the settings screen meets all accessibility requirements: 48×48dp tap targets, WCAG AA contrast, TalkBack navigation (NFR15, NFR16, NFR17)
 
 ### Story 7.2: Offline-First Verification & Graceful Degradation
@@ -913,9 +904,33 @@ So that the distribution pipeline is in place and Spetaka reaches his close circ
 **Then** `pubspec.yaml` has a correct `version: 1.0.0+1` and the build number is auto-incremented by CI
 **And** Play App Signing is configured — a local keystore is generated, the upload key is provided to Google Play Console, and `android/key.properties` is gitignored
 **And** a Privacy Policy is hosted publicly and linked in the Play Console data safety form — disclosing `READ_CONTACTS` usage (read locally, not shared) and confirming zero third-party data transmission
-**And** the Play Store data safety form is completed: contacts data read but not shared externally; no data transmitted to third parties; encryption in transit (WebDAV, user-controlled)
+**And** the Play Store data safety form is completed: contacts data read but not shared externally; no data transmitted to third parties; **Phase 1: no network data transmission at all** (WebDAV is Phase 2)
 **And** the APK passes `flutter analyze --fatal-infos` and `flutter test` with zero failures
 **And** the app is submitted to the Internal testing track and confirmed installable on Samsung S25 before any wider release
 **And** the release track progression plan is documented: Internal → Closed testing (Laurus's circle) → Production (after 4-week gate + zero data-loss validation)
+
+---
+
+## Phase 2 Backlog — WebDAV Sync
+
+> These stories are deferred from Phase 1. They will be estimated and prioritized
+> before Phase 2 kick-off. Implementation artifacts `6-1` through `6-4` contain
+> the preserved acceptance criteria.
+
+### FR32–FR36 (deferred): WebDAV Sync Stories
+
+| Story | FR | Description |
+|---|---|---|
+| P2-6.1 | FR32, FR33 | WebDAV Configuration UI & Connection Test |
+| P2-6.2 | FR34, FR35 | WebDAV Encrypt & Upload (with atomic upload-then-rename) |
+| P2-6.3 | FR35 | Automatic Background WebDAV Sync |
+| P2-6.4 | FR36 | Full Restore from WebDAV After Reinstall |
+
+**Phase 2 security requirements to address:**
+- `flutter_secure_storage` for WebDAV password (Android Keystore)
+- PBKDF2 salt stored in `flutter_secure_storage` (upgrade from `shared_preferences`)
+- HTTPS enforced — block/warn on `http://` WebDAV URLs
+- Atomic upload: write to `spetaka_backup.enc.tmp`, then MOVE to `spetaka_backup.enc`
+- Brute-force protection on restore passphrase entry (exponential backoff)
 
 

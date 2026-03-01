@@ -66,7 +66,7 @@ things done exceptionally well:
 2. **1-tap actions** — call, SMS, WhatsApp — directly from any friend card, with
    automatic acquittement prompts on return
 
-Everything else (WebDAV sync, event types, drafts, care scoring) exists to serve
+Everything else (local encrypted backup, event types, drafts, care scoring) exists to serve
 these two pillars.
 
 ### Key Differentiators
@@ -75,8 +75,8 @@ these two pillars.
 - **Friend-first, not event-first** — the atomic unit is the person, not the date
 - **Proven core, clean rebuild** — the priority model was validated in v1; v2 gets
   it right architecturally
-- **Privacy by design** — WebDAV with transparent encryption; your data never touches
-  a third-party server
+- **Privacy by design** — AES-256 encrypted local backup from day one; your data never
+  leaves your device unless you choose to export it. WebDAV sync in Phase 2.
 - **Built to share** — personal tool first, Play Store ready from day one
 
 ---
@@ -239,7 +239,7 @@ core promise.
 | **1-tap actions** | Call, SMS, WhatsApp directly from friend card — one tap, no friction |
 | **Auto-acquittement prompt** | On return to app after action, pre-filled acquittement proposed — confirm in 1 tap |
 | **Enriched acquittement** | Action type selector: message sent, called, seen in person, voice message |
-| **WebDAV encrypted storage** | Passphrase set once at install; all data encrypted transparently; no third-party server |
+| **Local encrypted backup** | AES-256 encrypted `.spetaka.enc` file; passphrase-based; export to device storage; importable on any Android device; no third-party server; WebDAV sync in Phase 2 |
 
 ### Out of Scope for MVP
 
@@ -254,7 +254,8 @@ These are explicitly deferred — not forgotten, just not v1:
 | LLM message drafting | Phase 2 — requires Galaxy AI / Gemma integration |
 | Gamification (RPG system) | Phase 2 — independent of core loop |
 | Shared friends view (spouse/partner) | Future — requires sync architecture extension |
-| Photos on friend cards | After WebDAV storage is stable |
+| WebDAV sync | Phase 2 — deferred from Phase 1 to reduce scope and security surface; local backup covers Phase 1 data protection |
+| Photos on friend cards | After WebDAV storage is stable (Phase 2+) |
 | macOS / web app | After Android version is stable |
 | iOS version | Future — architecture chosen (Flutter) to make this clean when ready |
 
@@ -265,7 +266,7 @@ The MVP is considered successful when:
 - At least 5 friend cards are active with events
 - Acquittements are being logged regularly (the contact loop is closing)
 - No critical bugs on Android (Samsung S25 primary target device)
-- WebDAV sync is reliable and data survives app reinstall
+- Local backup is reliable and data survives app reinstall (export→import tested)
 
 **Go/no-go for Play Store release:** personal daily use validated over 4 weeks with
 zero data loss incidents.
@@ -293,6 +294,6 @@ notifications, zero badges, zero widgets — in every version, on every platform
 |---|---|---|
 | Framework | **Flutter (Dart)** | Single codebase for Android now + iOS future; excellent offline-first; strong native feel |
 | Local storage | SQLite via Drift | Type-safe, offline-first, reliable on Android |
-| Sync | WebDAV + encryption | User-controlled, no third-party server, passphrase-based |
+| Backup | Local encrypted file (Phase 1); WebDAV sync (Phase 2) | User-controlled, no third-party server, passphrase-based |
 | Target platform v1 | Android (Samsung S25) | Primary device; Play Store distribution |
 | Future platform | iOS | Flutter path is clean when ready |

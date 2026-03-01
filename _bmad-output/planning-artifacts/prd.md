@@ -26,7 +26,7 @@ The app surfaces the right people at the right time through a smart priority vie
 
 Spetaka is built on a strict **pull philosophy**: zero notifications, zero badges, zero widgets — now and in all future versions. It exists when you choose it. This is not a constraint — it is the product's identity.
 
-The v1 release targets Laurus as primary user and close circle as early adopters, distributed via the Google Play Store. It is built in Flutter with SQLite (Drift) for offline-first storage and WebDAV with transparent encryption for user-controlled sync — no third-party server, no compromise on privacy.
+The v1 release targets Laurus as primary user and close circle as early adopters, distributed via the Google Play Store. It is built in Flutter with SQLite (Drift) for offline-first storage and AES-256 encrypted local file backup for user-controlled data protection — no third-party server, no network transmission. WebDAV sync is Phase 2.
 
 This is a clean rebuild from a validated Ionic prototype. The core priority model was proven. The rebuild delivers it with professional architecture, good engineering practices, and a foundation worthy of long-term maintenance and platform expansion.
 
@@ -38,7 +38,7 @@ Key differentiators:
 - **Pull, not push** — the app exists on your terms. No system interrupts your life to tell you to care.
 - **Person-first, not event-first** — the atomic unit is the friend, not the date. Events serve the relationship, not the calendar.
 - **One-tap from intention to gesture** — the friction between "I should reach out" and actually doing it has been eliminated by design.
-- **Privacy by conviction** — encrypted WebDAV from day one. Your relationship data never touches a third-party server.
+- **Privacy by conviction** — local encrypted backup from day one. Your relationship data never leaves your device unless you explicitly export it. WebDAV sync in Phase 2.
 - **Built to grow with you** — for the already-intentional person *and* the person who wants to become one. Spetaka makes the right action obvious and frictionless until caring becomes a quiet ritual.
 
 ## Project Classification
@@ -89,7 +89,7 @@ Spetaka is non-commercially motivated in v1. The objective is genuine quality �
 
 | Requirement | Target |
 |---|---|
-| WebDAV sync reliability | Zero data loss incidents; data survives app reinstall |
+| Local backup reliability | Zero data loss incidents; data survives app reinstall via encrypted backup file |
 | Offline-first | Full functionality without network connection |
 | Daily view performance | Opens and priority recomputation feel instantaneous |
 | No crashes on primary device | Zero critical crashes on Samsung S25 |
@@ -141,19 +141,17 @@ The single metric that matters above all others: **acquittements logged**. If us
 
 ---
 
-### Journey 3 — WebDAV Setup (Technical Friction Point)
+### Journey 3 — Local Backup & Restore _(Phase 1)_ / WebDAV Setup _(Phase 2)_
 
-**Persona:** Same Laurus, Day 1, after creating his first 3 fiches. He wants his data off the device.
+**Persona:** Same Laurus, Day 1, after creating his first 3 fiches. He wants to protect his data.
 
-**Opening scene:** Settings → Sync. WebDAV configuration screen: server URL, username, password, passphrase field. Clear copy: *"Your passphrase encrypts everything before it leaves your device. It is never sent to the server. If you lose it, your data cannot be recovered."*
+**Phase 1 scene:** Settings → Backup. He sets a passphrase. Taps "Export backup" — an AES-256 encrypted `.spetaka.enc` file is saved to his Downloads folder. Clear copy: *"Your passphrase encrypts your backup. If you lose it, your data cannot be recovered. We never have access to your passphrase."*
 
-**Rising action:** He enters his Nextcloud URL, credentials, and passphrase. Taps "Test connection" — success. Enables sync. Initial upload completes in 4 seconds for 3 fiches.
+**Phase 1 restoration:** Re-install → Settings → Backup → Import backup. Enter passphrase. All friend cards, events, and cadences restored.
 
-**Edge case:** He misremembers his server password. The test fails. Error message is specific: *"Connection failed — check your server URL and credentials."* He corrects the URL (http → https). Second attempt succeeds.
+**Capabilities revealed _(Phase 1)_:** Local encrypted backup export/import, passphrase setup with clear UX copy, file manager integration, transparent encryption model explained in-app.
 
-**Resolution:** His data is encrypted and stored on his own server. He could reinstall the app tomorrow, re-enter his passphrase, and have everything back.
-
-**Capabilities revealed:** WebDAV configuration UI, passphrase setup with clear UX copy, connection test with actionable error messages, initial sync with progress feedback, transparent encryption model explained in-app.
+**Phase 2 extension:** WebDAV configuration UI, Nextcloud/self-hosted server sync, automatic background sync, full restore from WebDAV after reinstall — _deferred from Phase 1 to reduce scope and security surface._
 
 ---
 
@@ -188,8 +186,8 @@ He works through the list over two mornings — not all at once, just what feels
 | Enriched acquittement (type + note) | J2 |
 | Concern / préoccupation flag + priority elevation | J4 |
 | Care score tracking + history | J2, J4 |
-| WebDAV configuration + passphrase setup | J3 |
-| Connection test with actionable error messages | J3 |
+| Local backup export / import + passphrase setup | J3 |
+| WebDAV configuration + connection test | J3 _(Phase 2)_ |
 | No punishment / no streak mechanics | J4 |
 | Graceful re-engagement after absence | J4 |
 
@@ -197,7 +195,7 @@ He works through the list over two mornings — not all at once, just what feels
 
 ### Project-Type Overview
 
-Spetaka is a Flutter-based Android application distributed via the Google Play Store. It is offline-first by design, single-user, and requires no backend server. WebDAV sync is the only network operation. The app targets Android v1 with a clean iOS path for Phase 3.
+Spetaka is a Flutter-based Android application distributed via the Google Play Store. It is offline-first by design, single-user, and requires no backend server. **Phase 1 has no network operations** — data protection is via local encrypted file backup. WebDAV sync is Phase 2. The app targets Android v1 with a clean iOS path for Phase 3.
 
 ### Technical Architecture Considerations
 
@@ -205,8 +203,8 @@ Spetaka is a Flutter-based Android application distributed via the Google Play S
 |---|---|
 | Framework | Flutter (Dart) — single codebase, Android-first |
 | Local persistence | SQLite via Drift (type-safe, offline-first) |
-| Network | WebDAV only — no REST API, no Firebase, no third-party server |
-| Encryption | Passphrase-based AES-256, applied before WebDAV transmission |
+| Network | **None in Phase 1** — no REST API, no Firebase, no third-party server; WebDAV sync in Phase 2 |
+| Encryption | Passphrase-based AES-256 applied to local backup file export; in-memory key only |
 | Key derivation | PBKDF2 or Argon2 |
 | Minimum Android version | API 26+ (Android 8.0) — covers >95% of active devices |
 
@@ -225,20 +223,20 @@ Spetaka is a Flutter-based Android application distributed via the Google Play S
 | Permission | Purpose | Handling if Denied |
 |---|---|---|
 | `READ_CONTACTS` | Import friend from phone contacts | Manual entry fallback — fully functional without permission |
-| `INTERNET` | WebDAV sync only | App remains fully functional offline; sync disabled |
+| INTERNET | Phase 2 only — WebDAV sync | **Not requested in Phase 1**; app is fully offline |
 
 **Permission request strategy:** `READ_CONTACTS` requested at the moment the user first taps "Import from contacts" — not on first launch. Clear rationale shown: *"To import your friend's name and number — nothing is sent anywhere."* If denied, manual name/number entry is available.
 
 ### Offline Mode
 
-The app is fully functional offline. WebDAV sync is background-only and non-blocking. All reads and writes go to local SQLite database. Sync is opportunistic — when network is available and WebDAV is configured.
+The app is fully functional offline. **Phase 1 has no network features.** All reads and writes go to the local SQLite database. Users protect their data via encrypted local backup export/import (FR37–FR38).
 
 | Scenario | Behaviour |
 |---|---|
-| No network | Full app functionality; sync silently skipped |
-| WebDAV unavailable | Local data intact; sync retried next launch |
-| First install (no sync configured) | App fully usable; sync optional |
-| Reinstall with WebDAV configured | Re-enter passphrase → full restore from WebDAV |
+| No network | Full app functionality — not applicable in Phase 1 (no network required) |
+| First install | App fully usable immediately; no configuration required |
+| Reinstall / device migration | Export backup on old device → import backup on new device with passphrase |
+| WebDAV sync | _Phase 2 — not available in Phase 1_ |
 
 ### Push Strategy
 
@@ -261,7 +259,7 @@ The app is fully functional offline. WebDAV sync is background-only and non-bloc
 - **Contact import:** Android `ContactsContract` API via Flutter plugin (e.g., `flutter_contacts`). Only name and primary mobile number imported. No photo import in v1.
 - **Action intents:** `tel://` for calls, `sms://` for SMS, `https://wa.me/` for WhatsApp. WhatsApp deep link requires international format — normalisation needed at fiche creation.
 - **Return-to-app detection:** `AppLifecycleState.resumed` to trigger acquittement prompt after user returns from phone/messaging action.
-- **WebDAV client:** `webdav_client` Flutter package or equivalent, behind an abstraction layer for testability.
+- **Backup:** `file_picker ^6.x` + `path_provider` + `permission_handler ^11.x` for local encrypted file export/import. _(Phase 2: `webdav_client` for WebDAV sync — deferred.)_
 - **Encryption:** AES-256 symmetric encryption; key derivation via PBKDF2 or Argon2.
 
 ## Project Scoping & Phased Development
@@ -272,11 +270,11 @@ The app is fully functional offline. WebDAV sync is background-only and non-bloc
 
 **Solo build:** Single developer (Laurus). Scope must be achievable solo without cutting core value. No cuts to the MVP feature set — all listed capabilities are necessary for the core loop to function. The features are tightly coupled: daily view without acquittements = no loop closure; acquittements without fiches = no context. The MVP is indivisible.
 
-**Resource requirement:** Flutter + Dart proficiency, Android development environment, access to a WebDAV server (Nextcloud or equivalent) for testing.
+**Resource requirement:** Flutter + Dart proficiency, Android development environment. No server access required for Phase 1. _(Phase 2 adds: WebDAV server — Nextcloud or equivalent — for sync testing.)_
 
 ### MVP Feature Set (Phase 1)
 
-**Core user journeys supported:** J1 (onboarding), J2 (daily ritual), J3 (WebDAV setup), J4 (re-engagement after absence).
+**Core user journeys supported:** J1 (onboarding), J2 (daily ritual), J3 (local backup/restore; WebDAV in Phase 2), J4 (re-engagement after absence).
 
 **Must-have capabilities:**
 
@@ -291,29 +289,22 @@ The app is fully functional offline. WebDAV sync is background-only and non-bloc
 | Enriched acquittement | Action type selector + optional free-text note about the conversation |
 | Concern / préoccupation flag | Marks a friend as going through something; elevates priority; visible on card |
 | Care score (internal) | Computed from acquittement history; used by priority algorithm; not necessarily exposed in UI v1 |
-| WebDAV encrypted storage | Passphrase-based AES-256; transparent to user after setup |
+| **Local encrypted backup** | AES-256 encrypted `.enc` file export to device storage; passphrase-based; importable on any Android device; WebDAV sync in Phase 2 |
 
-**Storage fallback (if WebDAV proves too complex for v1):**
-
-If WebDAV integration is not achievable within v1 scope, Phase 1 ships with a **manual file export/import** mechanism instead:
-- Export: encrypted JSON file saved to device storage
-- Import: select file → enter passphrase → restore
-- Same data model and encryption; different transport
-- WebDAV promoted to Phase 1.5 / early Phase 2
-
-This fallback preserves the privacy guarantee and data portability without blocking the MVP launch.
+**Phase 1 backup strategy (decided):**
+Local encrypted file backup/restore is the Phase 1 data protection mechanism. WebDAV sync is intentionally deferred to Phase 2 to simplify Phase 1 scope, reduce security surface, and focus on the core relationship management loop.
 
 ### Post-MVP Features (Phase 2 — Growth)
 
 | Feature | Rationale for deferral |
 |---|---|
+| **WebDAV encrypted sync** | Deferred from Phase 1 to simplify scope; local backup (FR37–38) is Phase 1 |
 | Draft messages & rotation | Core loop works without it |
 | Concern follow-up auto-event creation | Acquittement notes cover the intent in v1 |
 | "Last contact" visible on card | Useful; not blocking |
 | "Lost from sight" auto-surfacing | Addressable via cadence events in v1 |
 | LLM-assisted message drafting (local, offline) | Galaxy AI / Gemma — independent of core loop |
 | Full gamification RPG system | Independent of LLM; non-blocking |
-| WebDAV (if deferred from v1) | Phase 1.5 if fallback was used |
 
 ### Vision (Phase 3 — Expansion)
 
@@ -330,10 +321,10 @@ This fallback preserves the privacy guarantee and data portability without block
 
 | Risk | Mitigation |
 |---|---|
-| WebDAV encryption complexity | File export/import fallback defined and scoped |
+| Encrypted backup complexity | AES-256 + PBKDF2 pattern already proven in Stories 1.3/1.7; backup story fully spec'd (Story 6.1) |
 | `AppLifecycleState.resumed` unreliable on some Android OEMs | Test on Samsung S25 early; fallback: manual "I just reached out" button on card |
 | WhatsApp deep link requires international number format | Normalise number at fiche creation; clear UX guidance if format invalid |
-| Flutter plugin quality/maintenance | Evaluate `flutter_contacts` and `webdav_client` early in build; have fallback plugins identified |
+| Flutter plugin quality/maintenance | Evaluate `flutter_contacts` and `file_picker` early in build; have fallback plugins identified. `webdav_client` evaluated in Phase 2. |
 
 **Market risks:**
 
@@ -346,7 +337,7 @@ This fallback preserves the privacy guarantee and data portability without block
 
 | Risk | Mitigation |
 |---|---|
-| Solo build takes longer than expected | WebDAV fallback pre-defined; no external dependencies or team coordination required |
+| Solo build takes longer than expected | Local backup is Phase 1 data protection — no server dependency; Phase 2 (WebDAV) is fully deferred and does not block v1 |
 | Scope creep pressure from Phase 2 ideas | Hard deferral list maintained; PRD is the boundary document |
 
 **Permanent constraint across all phases:** pull philosophy. Zero notifications, zero badges, zero widgets — every version, every platform, no exceptions.
@@ -401,18 +392,18 @@ This fallback preserves the privacy guarantee and data portability without block
 
 ### Sync & Storage
 
-- **FR32:** User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
-- **FR33:** User can test the WebDAV connection before enabling sync
-- **FR34:** System encrypts all data with the user's passphrase before transmitting to WebDAV
-- **FR35:** System syncs data to WebDAV automatically when network is available and sync is configured
-- **FR36:** User can restore all data from WebDAV after reinstall by re-entering their passphrase
-- **FR37:** User can export all data to an encrypted local file as a standalone backup
-- **FR38:** User can import and restore data from a previously exported encrypted file
+- **FR32:** _(Phase 2)_ User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
+- **FR33:** _(Phase 2)_ User can test the WebDAV connection before enabling sync
+- **FR34:** _(Phase 2)_ System encrypts all data with the user's passphrase before transmitting to WebDAV
+- **FR35:** _(Phase 2)_ System syncs data to WebDAV automatically when network is available and sync is configured
+- **FR36:** _(Phase 2)_ User can restore all data from WebDAV after reinstall by re-entering their passphrase
+- **FR37:** _(Phase 1)_ User can export all data to an encrypted local file as a standalone backup
+- **FR38:** _(Phase 1)_ User can import and restore data from a previously exported encrypted file
 
 ### Settings & Configuration
 
 - **FR39:** User can view and edit all app settings from a dedicated settings screen
-- **FR40:** User can update or reset their WebDAV sync configuration including passphrase
+- **FR40:** User can update the backup passphrase and reset backup settings _(WebDAV sync configuration is Phase 2)_
 - **FR41:** System operates with full functionality when no network connection is available
 
 ## Non-Functional Requirements
@@ -423,21 +414,21 @@ This fallback preserves the privacy guarantee and data portability without block
 - **NFR2:** Priority score recomputation completes within 500ms — the daily view never shows a loading state for ranking
 - **NFR3:** Tapping a 1-tap action button (Call, SMS, WhatsApp) launches the target app within 500ms
 - **NFR4:** Friend card opens within 300ms of tap from any screen
-- **NFR5:** WebDAV sync runs as a background operation with no perceptible UI impact
+- **NFR5:** _(Phase 2)_ WebDAV sync runs as a background operation with no perceptible UI impact — not applicable in Phase 1
 
 ### Security & Privacy
 
-- **NFR6:** All on-device data is encrypted at rest using AES-256 with a key derived from the user's passphrase (PBKDF2 or Argon2)
-- **NFR7:** All data transmitted to WebDAV is encrypted client-side before leaving the device — the server never receives plaintext
+- **NFR6:** All on-device data is encrypted at rest using AES-256-GCM with a key derived from the user's passphrase (PBKDF2 — 100k iterations, SHA-256). **Phase 1 field encryption covers all PII: `name`, `mobile`, `notes`, `concern_note`, `acquittements.note`** (Stories 1.7 + 1.8). Non-PII structural fields remain plaintext.
+- **NFR7:** _(Phase 2)_ All data transmitted to WebDAV is encrypted client-side before leaving the device — not applicable in Phase 1 (no network transmission)
 - **NFR8:** The user's passphrase is never stored, transmitted, or logged — only the in-memory derived key is used during an active session
-- **NFR9:** The app requests only `READ_CONTACTS` and `INTERNET` permissions, each requested at first point of use, not at install
+- **NFR9:** The app requests only `READ_CONTACTS` and `INTERNET` permissions at first point of use — **Phase 1: `INTERNET` is not requested** (no network features); `READ_CONTACTS` requested on first contact import only
 - **NFR10:** No analytics, telemetry, crash reporting, or advertising SDKs are included — zero data transmitted to any third-party service
 
 ### Reliability & Data Integrity
 
 - **NFR11:** The local SQLite database is the single source of truth — no data loss after any unexpected app termination or device restart
-- **NFR12:** WebDAV sync failures must not corrupt or partially overwrite local data — all sync operations are atomic or safely resumable
-- **NFR13:** A full restore from WebDAV reproduces all friend cards, events, acquittements, and settings without data loss
+- **NFR12:** _(Phase 2)_ WebDAV sync failures must not corrupt or partially overwrite local data — not applicable in Phase 1
+- **NFR13:** _(Phase 1 — local backup)_ A full restore from the encrypted local backup file reproduces all friend cards, events, acquittements, and settings without data loss; restore is all-or-nothing (single Drift transaction)
 - **NFR14:** The exported backup file is a complete, self-contained snapshot restorable to any device
 
 ### Accessibility
