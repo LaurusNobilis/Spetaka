@@ -95,7 +95,7 @@ development_status:
 
   epic-7: in-progress
   7-1-complete-settings-screen: done
-  7-2-offline-first-verification-graceful-degradation: ready-for-dev
+  7-2-offline-first-verification-graceful-degradation: done
   7-3-full-accessibility-audit-compliance: ready-for-dev
   7-4-play-store-release-preparation: ready-for-dev
   epic-7-retrospective: optional
