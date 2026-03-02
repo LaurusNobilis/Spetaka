@@ -273,4 +273,56 @@ void main() {
       expect(find.byKey(const Key('action_call_a')).hitTestable(), findsNothing);
     });
   });
+
+  // ── Story 7.3 Accessibility assertions ──────────────────────────────────
+  group('DailyViewScreen — Accessibility (Story 7.3)', () {
+    final oneEntry = [_entry(id: 'x', name: 'Emma')];
+
+    testWidgets('a11y — density toggle has semantic label', (tester) async {
+      final semanticsHandle = tester.ensureSemantics();
+      await tester.pumpWidget(_harness(oneEntry));
+      await tester.pump();
+
+      // Density toggle in AppBar — already wrapped in Semantics(button: true).
+      expect(
+        find.bySemanticsLabel(
+          RegExp(r'Switch to (expanded|compact) view'),
+        ),
+        findsOneWidget,
+      );
+
+      semanticsHandle.dispose();
+    });
+
+    testWidgets('a11y — expanded card action buttons have semantic labels',
+        (tester) async {
+      final semanticsHandle = tester.ensureSemantics();
+      await tester.pumpWidget(_harness(oneEntry));
+      await tester.pump();
+
+      // Expand the card to show action buttons.
+      await tester.tap(find.byKey(const Key('card_x')));
+      await tester.pumpAndSettle();
+
+      // Action buttons are wrapped in Semantics(label: widget.label, button:true).
+      expect(find.bySemanticsLabel('Call'), findsWidgets);
+      expect(find.bySemanticsLabel('SMS'), findsWidgets);
+      expect(find.bySemanticsLabel('WhatsApp'), findsWidgets);
+
+      semanticsHandle.dispose();
+    });
+
+    testWidgets('a11y — action buttons meet 48dp touch target', (tester) async {
+      await tester.pumpWidget(_harness(oneEntry));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('card_x')));
+      await tester.pumpAndSettle();
+
+      final callBtn = tester.getRect(find.byKey(const Key('action_call_x')));
+      expect(callBtn.height, greaterThanOrEqualTo(48.0),
+          reason: 'Call action button must meet 48dp min touch target',
+      );
+    });
+  });
 }

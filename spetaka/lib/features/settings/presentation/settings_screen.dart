@@ -544,12 +544,18 @@ class _DisplaySection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading('Display'),
-        SwitchListTile(
-          secondary: const Icon(Icons.density_medium_outlined),
-          title: const Text('Compact view'),
-          subtitle: const Text('Show more friends on screen at once'),
-          value: isCompact,
-          onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
+        Semantics(
+          label: isCompact ? 'Compact view, on' : 'Compact view, off',
+          toggled: isCompact,
+          excludeSemantics: true,
+          child: SwitchListTile(
+            key: const Key('density_switch'),
+            secondary: const Icon(Icons.density_medium_outlined),
+            title: const Text('Compact view'),
+            subtitle: const Text('Show more friends on screen at once'),
+            value: isCompact,
+            onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
+          ),
         ),
         const Divider(height: 24),
       ],

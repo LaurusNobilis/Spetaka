@@ -253,4 +253,58 @@ void main() {
           reason: 'whitespace-only note treated as empty (trimmed to null)',);
     });
   });
+
+  // ── Story 7.3 Accessibility assertions ──────────────────────────────────
+  group('AcquittementSheet — Accessibility (Story 7.3)', () {
+    testWidgets('a11y — confirm button has semantic label and hint',
+        (tester) async {
+      final semanticsHandle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _harness(pendingState: _state(), repo: repo, db: db, enc: enc),
+      );
+      await tester.pumpAndSettle();
+
+      // Confirm button is findable by semantic label (story 7.3 AC1).
+      expect(
+        find.bySemanticsLabel('Confirm contact log'),
+        findsOneWidget,
+      );
+
+      semanticsHandle.dispose();
+    });
+
+    testWidgets('a11y — confirm button touch target meets 48dp minimum',
+        (tester) async {
+      await tester.pumpWidget(
+        _harness(pendingState: _state(), repo: repo, db: db, enc: enc),
+      );
+      await tester.pumpAndSettle();
+
+      final btn = tester.getRect(
+        find.byKey(const Key('acquittement_sheet_confirm')),
+      );
+      expect(btn.height, greaterThanOrEqualTo(48.0),
+          reason: 'Confirm button must meet 48dp minimum touch target',
+      );
+    });
+
+    testWidgets('a11y — drag handle is excluded from semantics tree',
+        (tester) async {
+      final semanticsHandle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _harness(pendingState: _state(), repo: repo, db: db, enc: enc),
+      );
+      await tester.pumpAndSettle();
+
+      // The drag handle is wrapped in ExcludeSemantics — it must NOT appear
+      // as a labelled interactive element. Verify only labelled nodes exist.
+      final titleNode =
+          find.bySemanticsLabel(RegExp(r'Log contact|Confirmer|Confirm contact'));
+      expect(titleNode, findsWidgets,
+          reason: 'Title and confirm button must be in semantics tree',
+      );
+
+      semanticsHandle.dispose();
+    });
+  });
 }

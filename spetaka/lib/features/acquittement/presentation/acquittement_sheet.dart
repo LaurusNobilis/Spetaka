@@ -176,15 +176,17 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Drag handle ─────────────────────────────────────────────────
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
+          // ── Drag handle (decorative — excluded from a11y tree) ────────
+          ExcludeSemantics(
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
           ),
@@ -270,20 +272,25 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
           const SizedBox(height: 24),
 
           // ── AC4: One-tap confirm ─────────────────────────────────────────
-          FilledButton(
-            key: const Key('acquittement_sheet_confirm'),
-            onPressed: _saving ? null : _handleConfirm,
-            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-            child: _saving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Confirmer'),
+          Semantics(
+            label: 'Confirm contact log',
+            hint: 'Saves the contact to history',
+            button: true,
+            child: FilledButton(
+              key: const Key('acquittement_sheet_confirm'),
+              onPressed: _saving ? null : _handleConfirm,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Confirmer'),
+            ),
           ),
         ],
       ),

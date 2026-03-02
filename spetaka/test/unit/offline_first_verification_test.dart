@@ -241,7 +241,8 @@ void main() {
       // Manual sync offline message: N/A — sync tile is disabled in UI.
       expect(true, isTrue,
           reason:
-              'Offline architecture verified: zero network packages in pubspec');
+              'Offline architecture verified: zero network packages in pubspec',
+      );
     });
   });
 }
