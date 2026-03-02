@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../features/acquittement/domain/pending_action_state.dart';
 import '../errors/app_error.dart';
 import '../lifecycle/app_lifecycle_service.dart';
-import '../../features/acquittement/domain/pending_action_state.dart';
 import 'phone_normalizer.dart';
 
 part 'contact_action_service.g.dart';

@@ -8,7 +8,6 @@
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,7 +103,7 @@ void main() {
         find.byKey(const Key('type_chip_call')),
       );
       expect(chip.selected, isTrue,
-          reason: 'call chip must be pre-selected when actionType=call');
+          reason: 'call chip must be pre-selected when actionType=call',);
     });
 
     testWidgets('whatsapp chip selected when actionType=whatsapp',
@@ -130,7 +129,7 @@ void main() {
         find.byKey(const Key('type_chip_call')),
       );
       expect(chip.selected, isTrue,
-          reason: 'fallback to call for unknown type');
+          reason: 'fallback to call for unknown type',);
     });
   });
 
@@ -226,7 +225,7 @@ void main() {
       final saved = await repo.findByFriendId('f10');
       expect(saved.length, 1);
       expect(saved.first.note, isNull,
-          reason: 'empty note must be stored as null');
+          reason: 'empty note must be stored as null',);
       expect(saved.first.type, 'in_person');
     });
 
@@ -251,7 +250,7 @@ void main() {
 
       final saved = await repo.findByFriendId('f11');
       expect(saved.first.note, isNull,
-          reason: 'whitespace-only note treated as empty (trimmed to null)');
+          reason: 'whitespace-only note treated as empty (trimmed to null)',);
     });
   });
 }

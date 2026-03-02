@@ -133,7 +133,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty,
-          reason: 'Expired state must be silently discarded');
+          reason: 'Expired state must be silently discarded',);
       await sub.cancel();
     });
 

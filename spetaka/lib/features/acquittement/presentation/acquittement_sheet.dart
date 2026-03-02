@@ -130,19 +130,19 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
         Navigator.of(context).pop();
         // Warm micro-feedback as a SnackBar after sheet closes.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.favorite, color: Colors.white, size: 16),
-                const SizedBox(width: 8),
+                Icon(Icons.favorite, color: Colors.white, size: 16),
+                SizedBox(width: 8),
                 Text(
                   'Contact logged — bien joué 💛',
-                  key: const Key('acquittement_success_snackbar'),
+                  key: Key('acquittement_success_snackbar'),
                 ),
               ],
             ),
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
       }
