@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/acquittement/domain/pending_action_state.dart';
+
 part 'app_lifecycle_service.g.dart';
 
 /// Centralized app-lifecycle observer.
@@ -12,17 +14,25 @@ part 'app_lifecycle_service.g.dart';
 ///
 /// ### Pending acquittement flow
 /// 1. Before launching an external action (call/sms/whatsapp) the caller
-///    invokes [setPendingFriendId] with the friend's ID.
-/// 2. When the app resumes from background
-///    [didChangeAppLifecycleState] emits that ID on
-///    [pendingAcquittementFriendId] and clears it automatically.
-/// 3. Features listen to the stream and open the acquittement sheet.
+///    invokes [setActionState] with a [PendingActionState].
+/// 2. When the app resumes from background [didChangeAppLifecycleState] checks
+///    the 30-minute expiry:
+///    - Not expired → emits the state on [pendingActionStream].
+///    - Expired     → silently discarded; manual fallback remains available.
+/// 3. Features listen to [pendingActionStream] and open the acquittement sheet.
+/// 4. The sheet calls [clearActionState] on open (AC3 — clear on open).
+///
+/// ### Legacy API (kept for backward compatibility)
+/// [setPendingFriendId] / [pendingAcquittementFriendId] remain untouched so
+/// existing tests continue to pass.
 class AppLifecycleService with WidgetsBindingObserver {
   AppLifecycleService({required WidgetsBinding binding}) : _binding = binding {
     _binding.addObserver(this);
   }
 
   final WidgetsBinding _binding;
+
+  // ── Legacy pending-friend-id ───────────────────────────────────────────
   String? _pendingFriendId;
 
   final _controller = StreamController<String?>.broadcast();
@@ -47,13 +57,52 @@ class AppLifecycleService with WidgetsBindingObserver {
   /// Returns the currently pending friend ID without consuming it.
   String? get currentPendingFriendId => _pendingFriendId;
 
+  // ── Story 5-2: rich pending action state (with expiry + origin) ────────
+  PendingActionState? _pendingActionState;
+
+  final _actionController =
+      StreamController<PendingActionState>.broadcast();
+
+  /// Emits a [PendingActionState] each time the app resumes and a non-expired
+  /// state exists.  Expired states are silently dropped (30-min guard).
+  ///
+  /// The sheet must call [clearActionState] once it is open (see AC3).
+  Stream<PendingActionState> get pendingActionStream =>
+      _actionController.stream;
+
+  /// Stores [state] as the next acquittement candidate.
+  ///
+  /// Called by [ContactActionService] before leaving the app.
+  /// Passing `null` rolls back (e.g. on launch failure).
+  void setActionState(PendingActionState? state) {
+    _pendingActionState = state;
+  }
+
+  /// Returns the current [PendingActionState] without consuming it.
+  PendingActionState? get currentActionState => _pendingActionState;
+
+  /// Clears the pending action state immediately.
+  ///
+  /// Must be called by [AcquittementSheet] when it opens (AC3).
+  void clearActionState() {
+    _pendingActionState = null;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _lifecycleController.add(state);
     if (state == AppLifecycleState.resumed) {
-      // Emit even if null so listeners can react to app resumes.
+      // ── Legacy: emit even if null so listeners can react to app resumes ─
       _controller.add(_pendingFriendId);
       _pendingFriendId = null;
+
+      // ── Story 5-2: expiry guard ──────────────────────────────────────
+      final actionState = _pendingActionState;
+      _pendingActionState = null;
+      if (actionState != null && !actionState.isExpired) {
+        _actionController.add(actionState);
+      }
+      // Expired state: silently discarded (AC4).
     }
   }
 
@@ -66,6 +115,9 @@ class AppLifecycleService with WidgetsBindingObserver {
     }
     if (!_lifecycleController.isClosed) {
       _lifecycleController.close();
+    }
+    if (!_actionController.isClosed) {
+      _actionController.close();
     }
   }
 }

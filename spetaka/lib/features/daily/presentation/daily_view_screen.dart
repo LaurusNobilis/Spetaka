@@ -1,9 +1,13 @@
-// DailyViewScreen — Stories 4.2 / 4.3 / 4.4 / 4.6
+// DailyViewScreen — Stories 4.2 / 4.3 / 4.4 / 4.6 / 5.2
 //
 // Story 4.4: Greeting banner + density toggle (compact/expanded, shared_prefs).
 // Story 4.6: Inline card expansion, AnimatedSize+AnimatedCrossFade 300ms,
 //            action row (call/SMS/WA), last note, Full-details push nav,
 //            back-gesture collapse, semantics, 48dp touch targets.
+// Story 5.2: Listen to pendingActionStream; expand card + open acquittement
+//            sheet when origin is `dailyView`.
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +15,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/actions/contact_action_service.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/acquittement/domain/pending_action_state.dart';
+import '../../../features/acquittement/presentation/acquittement_sheet.dart';
 import '../data/daily_view_provider.dart';
 import '../data/density_provider.dart';
 import '../domain/greeting_service.dart';
@@ -35,9 +42,46 @@ class DailyViewScreen extends ConsumerStatefulWidget {
 class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
   String? _expandedFriendId;
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<PendingActionState>? _pendingSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Story 5-2: subscribe to return-detection stream after first frame so
+    // that `ref` is fully available and the widget tree is mounted.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _pendingSub = ref
+          .read(appLifecycleServiceProvider)
+          .pendingActionStream
+          .listen(_onPendingAction);
+    });
+  }
+
+  /// Handles a pending action emitted on app resume (Story 5-2).
+  ///
+  /// Only reacts to [AcquittementOrigin.dailyView] events — friend-card
+  /// origin is handled by [FriendCardScreen].
+  void _onPendingAction(PendingActionState state) {
+    if (!mounted) return;
+    if (state.origin != AcquittementOrigin.dailyView) return;
+
+    // AC2: maintain expanded card + open sheet over daily view.
+    setState(() => _expandedFriendId = state.friendId);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showAcquittementSheet(
+        context: context,
+        ref: ref,
+        pendingState: state,
+      );
+    });
+  }
 
   @override
   void dispose() {
+    _pendingSub?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -429,8 +473,11 @@ class _ExpandedContentState extends State<_ExpandedContent> {
   Future<void> _handleCall() async {
     setState(() => _actionError = null);
     try {
-      await widget.actionService
-          .call(widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+      await widget.actionService.call(
+        widget.entry.friend.mobile,
+        friendId: widget.entry.friend.id,
+        origin: AcquittementOrigin.dailyView,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
@@ -443,8 +490,11 @@ class _ExpandedContentState extends State<_ExpandedContent> {
   Future<void> _handleSms() async {
     setState(() => _actionError = null);
     try {
-      await widget.actionService
-          .sms(widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+      await widget.actionService.sms(
+        widget.entry.friend.mobile,
+        friendId: widget.entry.friend.id,
+        origin: AcquittementOrigin.dailyView,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
@@ -460,6 +510,7 @@ class _ExpandedContentState extends State<_ExpandedContent> {
       await widget.actionService.whatsapp(
         widget.entry.friend.mobile,
         friendId: widget.entry.friend.id,
+        origin: AcquittementOrigin.dailyView,
       );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));

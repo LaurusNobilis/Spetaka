@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/errors/app_error.dart';
+import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
@@ -19,17 +20,29 @@ import 'package:spetaka/features/friends/presentation/friend_card_screen.dart';
 class _FailingContactActionService extends Fake
     implements ContactActionService {
   @override
-  Future<void> call(String rawNumber, {String? friendId}) async {
+  Future<void> call(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     throw const ContactActionFailedAppError('call');
   }
 
   @override
-  Future<void> sms(String rawNumber, {String? friendId}) async {
+  Future<void> sms(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     throw const ContactActionFailedAppError('sms');
   }
 
   @override
-  Future<void> whatsapp(String rawNumber, {String? friendId}) async {
+  Future<void> whatsapp(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     throw const ContactActionFailedAppError('whatsapp');
   }
 }

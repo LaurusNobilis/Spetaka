@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../errors/app_error.dart';
 import '../lifecycle/app_lifecycle_service.dart';
+import '../../features/acquittement/domain/pending_action_state.dart';
 import 'phone_normalizer.dart';
 
 part 'contact_action_service.g.dart';
@@ -12,13 +13,12 @@ part 'contact_action_service.g.dart';
 /// Widgets and features MUST NOT call `url_launcher` directly — all launches
 /// are routed through this service so that:
 /// - Phone numbers are always normalized to E.164 via [PhoneNormalizer].
-/// - The pending acquittement friend ID is recorded before leaving the app.
+/// - The pending acquittement state is recorded before leaving the app.
 /// - Launch failures are converted to typed [ContactActionFailedAppError].
 ///
 /// ### Signature design note
-/// [friendId] is accepted alongside [rawNumber] on every method from day 1
-/// so that Story 5.2 (acquittement trigger) can wire the return flow without
-/// a service-layer refactor.
+/// [friendId] and [origin] are accepted alongside [rawNumber] on every method
+/// so that Story 5.2 (acquittement trigger) routes the return flow correctly.
 class ContactActionService {
   ContactActionService({
     required PhoneNormalizer normalizer,
@@ -33,9 +33,20 @@ class ContactActionService {
     Uri uri, {
     required String action,
     required String? friendId,
+    required AcquittementOrigin origin,
   }) async {
     if (friendId != null) {
+      // Legacy compat stream
       _lifecycleService.setPendingFriendId(friendId);
+      // Story 5-2: rich pending state with expiry + origin
+      _lifecycleService.setActionState(
+        PendingActionState(
+          friendId: friendId,
+          origin: origin,
+          actionType: action,
+          timestamp: DateTime.now(),
+        ),
+      );
     }
 
     var launched = false;
@@ -48,6 +59,7 @@ class ContactActionService {
     if (!launched) {
       if (friendId != null) {
         _lifecycleService.setPendingFriendId(null);
+        _lifecycleService.setActionState(null);
       }
       throw ContactActionFailedAppError(action);
     }
@@ -55,29 +67,41 @@ class ContactActionService {
 
   /// Launches a phone call to [rawNumber].
   ///
-  /// Records [friendId] as the pending acquittement candidate so the
-  /// acquittement sheet can appear when the user returns.
-  Future<void> call(String rawNumber, {String? friendId}) async {
+  /// Records [friendId] and [origin] as the pending acquittement candidate so
+  /// the acquittement sheet can appear when the user returns.
+  Future<void> call(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     final e164 = _normalizer.normalize(rawNumber);
     final uri = Uri.parse('tel:$e164');
-    await _launchExternal(uri, action: 'call', friendId: friendId);
+    await _launchExternal(uri, action: 'call', friendId: friendId, origin: origin);
   }
 
   /// Launches the default SMS app pre-filled with [rawNumber].
-  Future<void> sms(String rawNumber, {String? friendId}) async {
+  Future<void> sms(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     final e164 = _normalizer.normalize(rawNumber);
     final uri = Uri.parse('sms:$e164');
-    await _launchExternal(uri, action: 'sms', friendId: friendId);
+    await _launchExternal(uri, action: 'sms', friendId: friendId, origin: origin);
   }
 
   /// Opens WhatsApp with a new conversation to [rawNumber].
   ///
   /// WhatsApp deep-links require digits only (no leading `+`).
-  Future<void> whatsapp(String rawNumber, {String? friendId}) async {
+  Future<void> whatsapp(
+    String rawNumber, {
+    String? friendId,
+    AcquittementOrigin origin = AcquittementOrigin.unknown,
+  }) async {
     final e164 = _normalizer.normalize(rawNumber);
     final digitsOnly = e164.substring(1); // strip leading '+'
     final uri = Uri.parse('https://wa.me/$digitsOnly');
-    await _launchExternal(uri, action: 'whatsapp', friendId: friendId);
+    await _launchExternal(uri, action: 'whatsapp', friendId: friendId, origin: origin);
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +9,11 @@ import '../../../core/actions/contact_action_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/acquittement/domain/pending_action_state.dart';
+import '../../../features/acquittement/presentation/acquittement_sheet.dart';
+import '../../../features/acquittement/presentation/manual_acquittement_button.dart';
 import '../../../features/events/data/event_repository_provider.dart';
 import '../../../features/events/data/event_type_providers.dart';
 import '../../../features/events/data/events_providers.dart';
@@ -36,6 +42,8 @@ import '../domain/friend_tags_codec.dart';
 ///   AC2 (2.9): Concern indicator + note rendered when isConcernActive; icon on list tile.
 ///   AC3 (2.9): "Clear concern" TextButton opens confirmation; calls clearConcern(id).
 ///   AC4 (2.9): watchAll/watchById streams expose isConcernActive for Epic 4 engine.
+///   AC5 (5.2): Subscribe to pendingActionStream; open sheet on friend-card origin.
+///   AC6 (5.2): ManualAcquittementButton always visible as OEM fallback.
 class FriendCardScreen extends ConsumerWidget {
   const FriendCardScreen({super.key, required this.id});
 
@@ -77,10 +85,52 @@ class FriendCardScreen extends ConsumerWidget {
 // Detail body — shown when friend is loaded
 // ---------------------------------------------------------------------------
 
-class _FriendDetailBody extends ConsumerWidget {
+class _FriendDetailBody extends ConsumerStatefulWidget {
   const _FriendDetailBody({required this.friend});
 
   final Friend friend;
+
+  @override
+  ConsumerState<_FriendDetailBody> createState() => _FriendDetailBodyState();
+}
+
+class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
+  StreamSubscription<PendingActionState>? _pendingSub;
+
+  Friend get friend => widget.friend;
+
+  @override
+  void initState() {
+    super.initState();
+    // Story 5-2 AC5: subscribe to return-detection stream.
+    // Handles only friend-card origin events for this friend.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _pendingSub = ref
+          .read(appLifecycleServiceProvider)
+          .pendingActionStream
+          .listen(_onPendingAction);
+    });
+  }
+
+  void _onPendingAction(PendingActionState state) {
+    if (!mounted) return;
+    // Only handle events for THIS friend card from friend-card origin.
+    if (state.origin != AcquittementOrigin.friendCard) return;
+    if (state.friendId != friend.id) return;
+
+    showAcquittementSheet(
+      context: context,
+      ref: ref,
+      pendingState: state,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pendingSub?.cancel();
+    super.dispose();
+  }
 
   // 2.8/AC1,AC3: show confirmation dialog before deleting.
   Future<bool> _confirmDelete(BuildContext context) async {
@@ -112,7 +162,7 @@ class _FriendDetailBody extends ConsumerWidget {
   }
 
   // 2.8/AC2,AC4: delete friend + cascade, then navigate to list.
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleDelete(BuildContext context) async {
     final confirmed = await _confirmDelete(context);
     if (!confirmed) return;
     await ref.read(friendRepositoryProvider).delete(friend.id);
@@ -120,7 +170,7 @@ class _FriendDetailBody extends ConsumerWidget {
   }
 
   // 2.9/AC1: set concern flag with optional note.
-  Future<void> _handleSetConcern(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleSetConcern(BuildContext context) async {
     final noteController = TextEditingController();
     final confirmed = await showDialog<bool>(
           context: context,
@@ -158,7 +208,7 @@ class _FriendDetailBody extends ConsumerWidget {
   }
 
   // 2.9/AC3: clear concern with confirmation.
-  Future<void> _handleClearConcern(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleClearConcern(BuildContext context) async {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -183,7 +233,7 @@ class _FriendDetailBody extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tags = decodeFriendTags(friend.tags);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
@@ -222,7 +272,7 @@ class _FriendDetailBody extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.delete_outline),
             tooltip: 'Delete',
-            onPressed: () => _handleDelete(context, ref),
+            onPressed: () => _handleDelete(context),
           ),
         ],
       ),
@@ -265,6 +315,10 @@ class _FriendDetailBody extends ConsumerWidget {
               mobile: friend.mobile,
               actionService: ref.read(contactActionServiceProvider),
             ),
+            const SizedBox(height: 8),
+
+            // ── Story 5.2: OEM fallback manual acquittement button ────────
+            ManualAcquittementButton(friendId: friend.id),
             const SizedBox(height: 24),
 
             // ── Mobile — AC1 ─────────────────────────────────────────────────
@@ -314,7 +368,7 @@ class _FriendDetailBody extends ConsumerWidget {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
                   ),
-                  onPressed: () => _handleSetConcern(context, ref),
+                  onPressed: () => _handleSetConcern(context),
                   icon: const Icon(
                     Icons.warning_amber_rounded,
                     color: Colors.orange,
@@ -362,7 +416,7 @@ class _FriendDetailBody extends ConsumerWidget {
                         foregroundColor: Colors.orange,
                         padding: EdgeInsets.zero,
                       ),
-                      onPressed: () => _handleClearConcern(context, ref),
+                      onPressed: () => _handleClearConcern(context),
                       icon: const Icon(Icons.cancel_outlined, size: 16),
                       label: const Text('Clear concern'),
                     ),
@@ -419,8 +473,11 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
   Future<void> _handleCall() async {
     setState(() => _actionError = null);
     try {
-      await widget.actionService
-          .call(widget.mobile, friendId: widget.friendId);
+      await widget.actionService.call(
+        widget.mobile,
+        friendId: widget.friendId,
+        origin: AcquittementOrigin.friendCard,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
@@ -433,8 +490,11 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
   Future<void> _handleSms() async {
     setState(() => _actionError = null);
     try {
-      await widget.actionService
-          .sms(widget.mobile, friendId: widget.friendId);
+      await widget.actionService.sms(
+        widget.mobile,
+        friendId: widget.friendId,
+        origin: AcquittementOrigin.friendCard,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
@@ -447,8 +507,11 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
   Future<void> _handleWhatsApp() async {
     setState(() => _actionError = null);
     try {
-      await widget.actionService
-          .whatsapp(widget.mobile, friendId: widget.friendId);
+      await widget.actionService.whatsapp(
+        widget.mobile,
+        friendId: widget.friendId,
+        origin: AcquittementOrigin.friendCard,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
