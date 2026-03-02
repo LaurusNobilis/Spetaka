@@ -29,38 +29,45 @@ class ContactActionService {
   final PhoneNormalizer _normalizer;
   final AppLifecycleService _lifecycleService;
 
+  Future<void> _launchExternal(
+    Uri uri, {
+    required String action,
+    required String? friendId,
+  }) async {
+    if (friendId != null) {
+      _lifecycleService.setPendingFriendId(friendId);
+    }
+
+    var launched = false;
+    try {
+      launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      launched = false;
+    }
+
+    if (!launched) {
+      if (friendId != null) {
+        _lifecycleService.setPendingFriendId(null);
+      }
+      throw ContactActionFailedAppError(action);
+    }
+  }
+
   /// Launches a phone call to [rawNumber].
   ///
   /// Records [friendId] as the pending acquittement candidate so the
   /// acquittement sheet can appear when the user returns.
   Future<void> call(String rawNumber, {String? friendId}) async {
     final e164 = _normalizer.normalize(rawNumber);
-    if (friendId != null) {
-      _lifecycleService.setPendingFriendId(friendId);
-    }
     final uri = Uri.parse('tel:$e164');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      // Rollback pending state — launch failed so the user never left the app.
-      if (friendId != null) {
-        _lifecycleService.setPendingFriendId(null);
-      }
-      throw const ContactActionFailedAppError('call');
-    }
+    await _launchExternal(uri, action: 'call', friendId: friendId);
   }
 
   /// Launches the default SMS app pre-filled with [rawNumber].
   Future<void> sms(String rawNumber, {String? friendId}) async {
     final e164 = _normalizer.normalize(rawNumber);
-    if (friendId != null) {
-      _lifecycleService.setPendingFriendId(friendId);
-    }
     final uri = Uri.parse('sms:$e164');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (friendId != null) {
-        _lifecycleService.setPendingFriendId(null);
-      }
-      throw const ContactActionFailedAppError('sms');
-    }
+    await _launchExternal(uri, action: 'sms', friendId: friendId);
   }
 
   /// Opens WhatsApp with a new conversation to [rawNumber].
@@ -69,16 +76,8 @@ class ContactActionService {
   Future<void> whatsapp(String rawNumber, {String? friendId}) async {
     final e164 = _normalizer.normalize(rawNumber);
     final digitsOnly = e164.substring(1); // strip leading '+'
-    if (friendId != null) {
-      _lifecycleService.setPendingFriendId(friendId);
-    }
     final uri = Uri.parse('https://wa.me/$digitsOnly');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (friendId != null) {
-        _lifecycleService.setPendingFriendId(null);
-      }
-      throw const ContactActionFailedAppError('whatsapp');
-    }
+    await _launchExternal(uri, action: 'whatsapp', friendId: friendId);
   }
 }
 

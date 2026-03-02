@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/errors/app_error.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
@@ -12,6 +14,25 @@ import 'package:spetaka/features/friends/presentation/friend_card_screen.dart';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Fake service that throws [ContactActionFailedAppError] on every action.
+class _FailingContactActionService extends Fake
+    implements ContactActionService {
+  @override
+  Future<void> call(String rawNumber, {String? friendId}) async {
+    throw const ContactActionFailedAppError('call');
+  }
+
+  @override
+  Future<void> sms(String rawNumber, {String? friendId}) async {
+    throw const ContactActionFailedAppError('sms');
+  }
+
+  @override
+  Future<void> whatsapp(String rawNumber, {String? friendId}) async {
+    throw const ContactActionFailedAppError('whatsapp');
+  }
+}
 
 Friend _makeFriend({
   String id = 'f1',
@@ -67,6 +88,35 @@ Widget _harnessWithRouter({required Friend? friend}) {
       watchEventTypesProvider.overrideWith(
         (_) => Stream.value(<EventTypeEntry>[]),
       ),
+    ],
+    child: MaterialApp.router(routerConfig: router),
+  );
+}
+
+/// Harness that injects a [_FailingContactActionService] so action-button
+/// error paths can be exercised without platform channel setup.
+Widget _harnessWithFailingActions({required Friend? friend}) {
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, __) => const FriendCardScreen(id: 'f1'),
+      ),
+    ],
+  );
+  return ProviderScope(
+    overrides: [
+      watchFriendByIdProvider('f1').overrideWith(
+        (_) => Stream.value(friend),
+      ),
+      watchEventsByFriendProvider('f1').overrideWith(
+        (_) => Stream.value([]),
+      ),
+      watchEventTypesProvider.overrideWith(
+        (_) => Stream.value(<EventTypeEntry>[]),
+      ),
+      contactActionServiceProvider
+          .overrideWithValue(_FailingContactActionService()),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -208,6 +258,91 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Clear concern'), findsNothing);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tests — Story 5.1
+  // ---------------------------------------------------------------------------
+
+  group('FriendCardScreen — Story 5.1', () {
+    testWidgets('AC1 — Call, SMS, WhatsApp buttons are enabled (not null)', (tester) async {
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verify buttons exist and are enabled (onPressed is not null).
+      final callButton = find.widgetWithText(OutlinedButton, 'Call');
+      final smsButton = find.widgetWithText(OutlinedButton, 'SMS');
+      final waButton = find.widgetWithText(OutlinedButton, 'WhatsApp');
+
+      expect(callButton, findsOneWidget);
+      expect(smsButton, findsOneWidget);
+      expect(waButton, findsOneWidget);
+
+      // Buttons must not be disabled (the old placeholder had onPressed: null).
+      final callWidget = tester.widget<OutlinedButton>(callButton);
+      expect(callWidget.onPressed, isNotNull);
+    });
+
+    testWidgets('AC6 — inline error shown when Call action fails', (tester) async {
+      await tester.pumpWidget(
+        _harnessWithFailingActions(friend: _makeFriend()),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Tap the Call button.
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Call'));
+      // Allow the async handler to complete.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Inline error text must appear.
+      expect(find.byKey(const Key('action_error_text')), findsOneWidget);
+    });
+
+    testWidgets('AC6 — inline error shown when SMS action fails', (tester) async {
+      await tester.pumpWidget(
+        _harnessWithFailingActions(friend: _makeFriend()),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'SMS'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const Key('action_error_text')), findsOneWidget);
+    });
+
+    testWidgets('AC6 — inline error shown when WhatsApp action fails', (tester) async {
+      await tester.pumpWidget(
+        _harnessWithFailingActions(friend: _makeFriend()),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'WhatsApp'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const Key('action_error_text')), findsOneWidget);
+    });
+
+    testWidgets('AC8 — action buttons meet 48dp minimum touch target', (tester) async {
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Each OutlinedButton for actions is wrapped in a ConstrainedBox with
+      // minHeight: 48.  Verify the rendered height via getRect.
+      for (final label in ['Call', 'SMS', 'WhatsApp']) {
+        final buttonFinder = find.widgetWithText(OutlinedButton, label);
+        final rect = tester.getRect(buttonFinder);
+        expect(rect.height, greaterThanOrEqualTo(48),
+            reason: '$label button must be at least 48dp tall');
+      }
     });
   });
 }

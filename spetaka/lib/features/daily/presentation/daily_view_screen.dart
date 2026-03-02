@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/actions/contact_action_service.dart';
+import '../../../core/errors/app_error.dart';
+import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
 import '../data/daily_view_provider.dart';
 import '../data/density_provider.dart';
@@ -400,7 +402,7 @@ class _CollapsedContent extends StatelessWidget {
 // _ExpandedContent
 // ---------------------------------------------------------------------------
 
-class _ExpandedContent extends StatelessWidget {
+class _ExpandedContent extends StatefulWidget {
   const _ExpandedContent({
     required this.entry,
     required this.tierColor,
@@ -418,9 +420,58 @@ class _ExpandedContent extends StatelessWidget {
   final ContactActionService actionService;
 
   @override
+  State<_ExpandedContent> createState() => _ExpandedContentState();
+}
+
+class _ExpandedContentState extends State<_ExpandedContent> {
+  String? _actionError;
+
+  Future<void> _handleCall() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService
+          .call(widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
+
+  Future<void> _handleSms() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService
+          .sms(widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
+
+  Future<void> _handleWhatsApp() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService.whatsapp(
+          widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final friend = entry.friend;
+    final friend = widget.entry.friend;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -434,7 +485,7 @@ class _ExpandedContent extends StatelessWidget {
                 width: 4,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: tierColor,
+                  color: widget.tierColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -454,7 +505,7 @@ class _ExpandedContent extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (hasConcern) ...[
+                        if (widget.hasConcern) ...[
                           const SizedBox(width: 6),
                           Icon(
                             Icons.warning_amber_rounded,
@@ -467,7 +518,7 @@ class _ExpandedContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      entry.surfacingReason,
+                      widget.entry.surfacingReason,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                       ),
@@ -478,13 +529,13 @@ class _ExpandedContent extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: tierColor.withValues(alpha: 0.12),
+                  color: widget.tierColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  tierLabel,
+                  widget.tierLabel,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: tierColor,
+                    color: widget.tierColor,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -507,26 +558,33 @@ class _ExpandedContent extends StatelessWidget {
                 key: Key('action_call_${friend.id}'),
                 icon: Icons.phone_outlined,
                 label: 'Call',
-                onPressed: () =>
-                    actionService.call(friend.mobile, friendId: friend.id),
+                onPressed: _handleCall,
               ),
               _ActionButton(
                 key: Key('action_sms_${friend.id}'),
                 icon: Icons.sms_outlined,
                 label: 'SMS',
-                onPressed: () =>
-                    actionService.sms(friend.mobile, friendId: friend.id),
+                onPressed: _handleSms,
               ),
               _ActionButton(
                 key: Key('action_wa_${friend.id}'),
                 icon: Icons.chat_outlined,
                 label: 'WhatsApp',
-                onPressed: () =>
-                    actionService.whatsapp(friend.mobile, friendId: friend.id),
+                onPressed: _handleWhatsApp,
               ),
             ],
           ),
         ),
+        if (_actionError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            child: Text(
+              _actionError!,
+              key: const Key('action_error_text'),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.error),
+            ),
+          ),
         if (friend.notes != null && friend.notes!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -575,7 +633,9 @@ class _ExpandedContent extends StatelessWidget {
 // _ActionButton
 // ---------------------------------------------------------------------------
 
-class _ActionButton extends StatelessWidget {
+/// Action button that accepts an async callback and properly awaits it,
+/// preventing unhandled async exceptions on launch failures.
+class _ActionButton extends StatefulWidget {
   const _ActionButton({
     super.key,
     required this.icon,
@@ -585,17 +645,36 @@ class _ActionButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+
+  /// Async callback — awaited internally so futures are never dropped.
+  final Future<void> Function() onPressed;
+
+  @override
+  State<_ActionButton> createState() => _ActionButtonState();
+}
+
+class _ActionButtonState extends State<_ActionButton> {
+  bool _busy = false;
+
+  Future<void> _handlePress() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onPressed();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: label,
+      label: widget.label,
       button: true,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 72, minHeight: 48),
         child: TextButton(
-          onPressed: onPressed,
+          onPressed: _busy ? null : _handlePress,
           style: TextButton.styleFrom(
             minimumSize: const Size(48, 48),
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -604,9 +683,9 @@ class _ActionButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 20),
+              Icon(widget.icon, size: 20),
               const SizedBox(height: 2),
-              Text(label, style: const TextStyle(fontSize: 10)),
+              Text(widget.label, style: const TextStyle(fontSize: 10)),
             ],
           ),
         ),

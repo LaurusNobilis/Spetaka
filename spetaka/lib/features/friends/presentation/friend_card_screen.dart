@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/actions/contact_action_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
@@ -258,8 +259,12 @@ class _FriendDetailBody extends ConsumerWidget {
               ),
             ],
 
-            // ── Contact action row — AC2 (placeholder, Epic 5) ──────────────
-            _ActionButtonRow(friendId: friend.id),
+            // ── Contact action row — Story 5.1 ────────────────────────────
+            _ActionButtonRow(
+              friendId: friend.id,
+              mobile: friend.mobile,
+              actionService: ref.read(contactActionServiceProvider),
+            ),
             const SizedBox(height: 24),
 
             // ── Mobile — AC1 ─────────────────────────────────────────────────
@@ -390,40 +395,121 @@ class _FriendDetailBody extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Action button row — AC2 placeholders
+// Action button row — Story 5.1
 // ---------------------------------------------------------------------------
 
-class _ActionButtonRow extends StatelessWidget {
-  const _ActionButtonRow({required this.friendId});
+class _ActionButtonRow extends StatefulWidget {
+  const _ActionButtonRow({
+    required this.friendId,
+    required this.mobile,
+    required this.actionService,
+  });
 
   final String friendId;
+  final String mobile;
+  final ContactActionService actionService;
+
+  @override
+  State<_ActionButtonRow> createState() => _ActionButtonRowState();
+}
+
+class _ActionButtonRowState extends State<_ActionButtonRow> {
+  String? _actionError;
+
+  Future<void> _handleCall() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService
+          .call(widget.mobile, friendId: widget.friendId);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
+
+  Future<void> _handleSms() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService
+          .sms(widget.mobile, friendId: widget.friendId);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
+
+  Future<void> _handleWhatsApp() async {
+    setState(() => _actionError = null);
+    try {
+      await widget.actionService
+          .whatsapp(widget.mobile, friendId: widget.friendId);
+    } on AppError catch (e) {
+      if (mounted) setState(() => _actionError = errorMessageFor(e));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _actionError = 'Something went wrong. Please try again.');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ActionButton(
-          icon: Icons.phone_outlined,
-          label: 'Call',
-          onPressed: null, // Epic 5 will wire ContactActionService
+        Row(
+          children: [
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.phone_outlined,
+                label: 'Call',
+                onPressed: _handleCall,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.sms_outlined,
+                label: 'SMS',
+                onPressed: _handleSms,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.chat_outlined,
+                label: 'WhatsApp',
+                onPressed: _handleWhatsApp,
+              ),
+            ),
+          ],
         ),
-        _ActionButton(
-          icon: Icons.sms_outlined,
-          label: 'SMS',
-          onPressed: null,
-        ),
-        _ActionButton(
-          icon: Icons.chat_outlined,
-          label: 'WhatsApp',
-          onPressed: null,
-        ),
+        if (_actionError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: Text(
+              _actionError!,
+              key: const Key('action_error_text'),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.error),
+            ),
+          ),
       ],
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
+/// Individual action button with 48×48dp minimum touch target and
+/// TalkBack-readable semantics (AC8). Async action is properly awaited
+/// so launch failures never produce unhandled exceptions.
+class _ActionButton extends StatefulWidget {
   const _ActionButton({
     required this.icon,
     required this.label,
@@ -432,16 +518,43 @@ class _ActionButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback? onPressed;
+  final Future<void> Function() onPressed;
+
+  @override
+  State<_ActionButton> createState() => _ActionButtonState();
+}
+
+class _ActionButtonState extends State<_ActionButton> {
+  bool _busy = false;
+
+  Future<void> _handlePress() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onPressed();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: '$label (coming soon)',
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
+    return Semantics(
+      label: widget.label,
+      button: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: OutlinedButton.icon(
+          onPressed: _busy ? null : _handlePress,
+          icon: Icon(widget.icon),
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(widget.label),
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 48),
+          ),
+        ),
       ),
     );
   }
