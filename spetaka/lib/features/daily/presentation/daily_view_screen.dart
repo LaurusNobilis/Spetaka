@@ -134,6 +134,15 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
               tooltip: 'Friends',
               onPressed: () => const FriendsRoute().go(context),
             ),
+            Semantics(
+              label: 'Settings',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: 'Settings',
+                onPressed: () => const SettingsRoute().push(context),
+              ),
+            ),
           ],
         ),
         body: dailyAsync.when(
