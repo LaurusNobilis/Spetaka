@@ -15,8 +15,7 @@ import 'encryption_state_notifier.dart';
 
 class EncryptionService {
   static const String saltPrefsKey = 'spetaka_pbkdf2_salt';
-  static const String _verifierPrefsKey = 'spetaka_unlock_verifier';
-  static const String _verifierPlaintext = 'spetaka_unlock_ok';
+  static const String _deviceKeyPrefsKey = 'spetaka_device_key';
 
   static const int _pbkdf2Iterations = 100000;
   static const int _saltLengthBytes = 16;
@@ -40,49 +39,36 @@ class EncryptionService {
   }
 
   // ---------------------------------------------------------------------------
-  // Passphrase verifier helpers
+  // Device-local key (Phase 1 field encryption — no passphrase required)
   // ---------------------------------------------------------------------------
 
-  /// Returns `true` when a passphrase has already been set up on this
-  /// installation (i.e. an encrypted verifier blob exists in prefs).
-  Future<bool> hasPassphraseSetup() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_verifierPrefsKey);
-  }
-
-  /// Encrypts [_verifierPlaintext] with the current in-memory key and persists
-  /// it so future launches can verify the passphrase.
+  /// Loads the per-install random AES-256 key from [SharedPreferences].
   ///
-  /// Must only be called *after* [initialize].
-  Future<void> setupVerifier() async {
-    if (_keyBytes == null) throw const EncryptionNotInitializedAppError();
-    final verifier = encrypt(_verifierPlaintext);
+  /// On first launch a fresh 32-byte key is generated and persisted.
+  /// Subsequent calls reuse the stored key — **no passphrase is ever needed**
+  /// for day-to-day field encryption; the passphrase is only used for backup
+  /// file export/import via [BackupRepository].
+  Future<void> initializeWithDeviceKey() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_verifierPrefsKey, verifier);
-  }
-
-  /// Calls [initialize] then verifies the stored verifier blob.
-  ///
-  /// Throws [DecryptionFailedAppError] if the passphrase is wrong.
-  /// Returns normally on success.
-  Future<void> verifyAndInitialize(String passphrase) async {
-    await initialize(passphrase);
-    final prefs = await SharedPreferences.getInstance();
-    final verifier = prefs.getString(_verifierPrefsKey);
-    if (verifier == null) {
-      // No verifier yet — should not happen after setup, ignore.
-      return;
-    }
-    try {
-      final result = decrypt(verifier);
-      if (result != _verifierPlaintext) {
-        clearKey();
-        throw const DecryptionFailedAppError();
+    final stored = prefs.getString(_deviceKeyPrefsKey);
+    Uint8List keyBytes;
+    if (stored != null && stored.isNotEmpty) {
+      try {
+        keyBytes = Uint8List.fromList(base64Url.decode(stored));
+        if (keyBytes.length == _keyLengthBytes) {
+          _setKeyBytes(keyBytes);
+          keyBytes.fillRange(0, keyBytes.length, 0);
+          return;
+        }
+      } on FormatException {
+        // Corrupted — fall through to re-generate.
       }
-    } catch (_) {
-      clearKey();
-      rethrow;
     }
+    // Generate and persist a new random key.
+    keyBytes = _randomBytes(_keyLengthBytes);
+    await prefs.setString(_deviceKeyPrefsKey, base64UrlEncode(keyBytes));
+    _setKeyBytes(keyBytes);
+    keyBytes.fillRange(0, keyBytes.length, 0);
   }
 
   // ---------------------------------------------------------------------------
@@ -315,6 +301,12 @@ class EncryptionService {
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.hidden) {
       clearKey();
+    } else if (state == AppLifecycleState.resumed && _keyBytes == null) {
+      // Re-initialize with device key after returning from background.
+      // This is fire-and-forget; any encrypt/decrypt call made while the key is
+      // loading will throw EncryptionNotInitializedAppError (very unlikely in
+      // practice — UI renders a frame before user interaction).
+      initializeWithDeviceKey();
     }
   }
 
