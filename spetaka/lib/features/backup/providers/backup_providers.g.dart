@@ -235,7 +235,7 @@ final class BackupResetNotifierProvider
 }
 
 String _$backupResetNotifierHash() =>
-    r'da0a66191b2fb201441e6383e8415901f3866bcc';
+    r'98dc550d5a8de5e0614406306cc0c64e7f321c1a';
 
 /// Manages async state for the "Reset backup settings" action.
 ///
