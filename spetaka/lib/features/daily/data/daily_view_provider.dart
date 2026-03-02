@@ -15,6 +15,7 @@ import '../../../core/database/app_database.dart';
 import '../../events/data/events_providers.dart';
 import '../../friends/data/friends_providers.dart';
 import '../../friends/domain/friend_tags_codec.dart';
+import '../../settings/data/category_tags_provider.dart';
 import '../domain/priority_engine.dart';
 
 // ---------------------------------------------------------------------------
@@ -59,10 +60,12 @@ final watchDailyViewProvider =
     Provider.autoDispose<AsyncValue<List<DailyViewEntry>>>((ref) {
   final friendsAsync = ref.watch(allFriendsProvider);
   final eventsAsync = ref.watch(watchPriorityInputEventsProvider);
+  final categoryWeights = ref.watch(categoryWeightsMapProvider);
 
   return friendsAsync.when(
     data: (friends) => eventsAsync.when(
-      data: (events) => AsyncData(buildDailyView(friends, events)),
+      data: (events) =>
+          AsyncData(buildDailyView(friends, events, categoryWeights: categoryWeights)),
       loading: () => const AsyncLoading(),
       error: AsyncError.new,
     ),
@@ -81,8 +84,9 @@ final watchDailyViewProvider =
 /// and sorting logic without a Riverpod container.
 List<DailyViewEntry> buildDailyView(
   List<Friend> friends,
-  List<Event> events,
-) {
+  List<Event> events, {
+  Map<String, double>? categoryWeights,
+}) {
   // Surface window: any event before midnight of (today + 4 days) qualifies,
   // which covers overdue + today + +3 days of future events.
   final now = DateTime.now();
@@ -130,7 +134,11 @@ List<DailyViewEntry> buildDailyView(
 
   // Sort via PriorityEngine (excludeDemo removes Sophie).
   const engine = PriorityEngine();
-  final sorted = engine.sort(inputs, excludeDemo: true);
+  final sorted = engine.sort(
+    inputs,
+    excludeDemo: true,
+    categoryWeights: categoryWeights,
+  );
 
   // Map back to DailyViewEntry, joining with the Friend record.
   final friendById = {for (final f in friends) f.id: f};

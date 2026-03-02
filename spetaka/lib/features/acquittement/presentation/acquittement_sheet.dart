@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
+import '../../../features/settings/data/category_tags_provider.dart';
 import '../data/acquittement_repository_provider.dart';
 import '../domain/pending_action_state.dart';
 
@@ -124,7 +125,11 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
         createdAt: now,
       );
 
-      await ref.read(acquittementRepositoryProvider).insertAndUpdateCareScore(entry);
+      final catWeights = ref.read(categoryWeightsMapProvider);
+      await ref.read(acquittementRepositoryProvider).insertAndUpdateCareScore(
+        entry,
+        categoryWeights: catWeights,
+      );
 
       if (mounted) {
         Navigator.of(context).pop();

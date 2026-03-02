@@ -9,6 +9,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/settings/data/category_tags_provider.dart';
 import '../data/friend_repository_provider.dart';
 import '../domain/friend_tags_codec.dart';
 
@@ -334,6 +335,10 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   @override
   Widget build(BuildContext context) {
     final title = _isEditMode ? 'Edit Friend' : 'Add Friend';
+    final availableTags = ref
+        .watch(categoryTagsProvider)
+        .map((t) => t.name)
+        .toList();
 
     if (_isEditMode && _editLoading) {
       return Scaffold(
@@ -347,14 +352,14 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: _isManualFormVisible
-            ? _buildManualForm(context)
+            ? _buildManualForm(context, availableTags)
             : _buildChoiceButtons(context),
       ),
     );
   }
 
   /// Manual-entry form — 2.2/AC1, AC2, AC3, AC4.
-  Widget _buildManualForm(BuildContext context) {
+  Widget _buildManualForm(BuildContext context, List<String> availableTags) {
     final theme = Theme.of(context);
     final onPrimary = theme.colorScheme.onPrimary;
 
@@ -383,7 +388,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
               spacing: 12,
               runSpacing: 12,
               children: [
-                for (final tag in predefinedFriendTags)
+                for (final tag in availableTags)
                   _TagChip(
                     tag: tag,
                     selected: _selectedTags.contains(tag),

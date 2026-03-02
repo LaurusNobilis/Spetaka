@@ -88,6 +88,7 @@ class AcquittementRepository {
   Future<void> insertAndUpdateCareScore(
     Acquittement entry, {
     DateTime? now,
+    Map<String, double>? categoryWeights,
   }) async {
     final ts = now ?? DateTime.now();
 
@@ -115,6 +116,7 @@ class AcquittementRepository {
         daysSinceLastContact: 0, // just logged → fully reset
         expectedIntervalDays: minCadence,
         tags: tags,
+        categoryWeights: categoryWeights,
       );
 
       // Step 5: persist updated careScore (non-sensitive — no encryption).

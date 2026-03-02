@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart';
 
 /// Predefined friend category tags (Story 2.3).
 ///
-/// This list defines the canonical ordering used for storage and display.
+/// Canonical ordering for display; also used as fallback when no custom tags
+/// have been persisted yet.
+///
+/// NOTE: these names must stay in sync with
+/// `settings/domain/category_tag.dart` → `kDefaultCategoryTags`.
 const predefinedFriendTags = <String>[
   'Family',
   'Close friends',
@@ -21,16 +25,19 @@ final Map<String, int> _tagOrder = <String, int>{
 ///
 /// Returns `null` when [tags] is empty (represents "no tags").
 ///
-/// Storage format (recommended): JSON array string, deterministically ordered.
-/// Example: `["Family","Work"]`.
+/// Storage format: JSON array string.
+/// Known tags are sorted by their canonical order; custom tags are appended
+/// alphabetically.
 String? encodeFriendTags(Set<String> tags) {
   if (tags.isEmpty) return null;
 
-  final filtered = tags.where(_tagOrder.containsKey).toList(growable: false);
-  if (filtered.isEmpty) return null;
-
-  filtered.sort((a, b) => (_tagOrder[a] ?? 1 << 30).compareTo(_tagOrder[b] ?? 1 << 30));
-  return jsonEncode(filtered);
+  final known = tags.where(_tagOrder.containsKey).toList(growable: false)
+    ..sort((a, b) => _tagOrder[a]!.compareTo(_tagOrder[b]!));
+  final custom = tags.where((t) => !_tagOrder.containsKey(t)).toList(growable: false)
+    ..sort();
+  final ordered = [...known, ...custom];
+  if (ordered.isEmpty) return null;
+  return jsonEncode(ordered);
 }
 
 /// Decodes the stored tags string (or legacy variants) into a canonical list.
@@ -62,13 +69,21 @@ List<String> decodeFriendTags(String? raw) {
 
     final tags = <String>{};
     for (final item in parsed) {
-      if (item is String && _tagOrder.containsKey(item)) {
+      // Accept any non-empty string — custom tags created by the user are
+      // valid even if they are not in the predefined list.
+      if (item is String && item.isNotEmpty) {
         tags.add(item);
       }
     }
 
+    // Sort: known tags first (canonical order), then custom tags alphabetically.
     final ordered = tags.toList(growable: false)
-      ..sort((a, b) => (_tagOrder[a] ?? 1 << 30).compareTo(_tagOrder[b] ?? 1 << 30));
+      ..sort((a, b) {
+        final ia = _tagOrder[a] ?? (1 << 30);
+        final ib = _tagOrder[b] ?? (1 << 30);
+        if (ia != ib) return ia.compareTo(ib);
+        return a.compareTo(b);
+      });
     return ordered;
   } catch (e, stack) {
     FlutterError.reportError(

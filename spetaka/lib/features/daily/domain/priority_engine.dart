@@ -118,15 +118,15 @@ class PrioritizedFriend {
 /// Base score constant used in the concern multiplier formula.
 const double kBaseScore = 10.0;
 
-/// Weights assigned to individual category tags.
+/// Default weights for the built-in category tags.
+/// Must stay in sync with `settings/domain/category_tag.dart` → `kDefaultCategoryTags`.
 /// Unknown tags resolve to [kDefaultCategoryWeight].
 const Map<String, double> kCategoryWeights = {
   'Family': 3.0,
-  'Close Friend': 2.5,
-  'Friend': 2.0,
-  'Colleague': 1.5,
-  'Acquaintance': 1.0,
+  'Close friends': 2.5,
+  'Friends': 2.0,
   'Work': 1.5,
+  'Other': 1.0,
 };
 
 const double kDefaultCategoryWeight = 1.0;
@@ -171,6 +171,7 @@ double computeCareScore({
   required int daysSinceLastContact,
   int? expectedIntervalDays,
   List<String> tags = const [],
+  Map<String, double>? categoryWeights,
 }) {
   final interval = (expectedIntervalDays == null || expectedIntervalDays <= 0)
       ? kDefaultExpectedIntervalDays
@@ -178,10 +179,12 @@ double computeCareScore({
 
   final rawCare = (interval - daysSinceLastContact) / interval;
 
-  // Determine the maximum tag weight for this friend (same map as scoring engine).
+  // Determine the maximum tag weight for this friend.
+  // If [categoryWeights] is provided it overrides the built-in map.
+  final weights = categoryWeights ?? kCategoryWeights;
   var maxTagWeight = kDefaultCategoryWeight;
   for (final tag in tags) {
-    final w = kCategoryWeights[tag] ?? kDefaultCategoryWeight;
+    final w = weights[tag] ?? kDefaultCategoryWeight;
     if (w > maxTagWeight) maxTagWeight = w;
   }
   final careWeight = maxTagWeight / kMaxCareWeight;
@@ -215,6 +218,7 @@ class PriorityEngine {
     List<FriendScoringInput> friends, {
     DateTime? now,
     bool excludeDemo = false,
+    Map<String, double>? categoryWeights,
   }) {
     final today = _toDateOnly(now ?? DateTime.now());
 
@@ -223,7 +227,7 @@ class PriorityEngine {
       inputs = friends.where((f) => !f.isDemo).toList();
     }
 
-    final scored = inputs.map((f) => _score(f, today)).toList()
+    final scored = inputs.map((f) => _score(f, today, categoryWeights: categoryWeights)).toList()
       ..sort((a, b) {
         // Primary: tier (urgent > important > normal)
         final tierCmp = a.tier.index.compareTo(b.tier.index);
@@ -236,16 +240,24 @@ class PriorityEngine {
   }
 
   /// Scores a single friend without sorting (useful for unit tests).
-  PrioritizedFriend scoreOne(FriendScoringInput friend, {DateTime? now}) {
+  PrioritizedFriend scoreOne(
+    FriendScoringInput friend, {
+    DateTime? now,
+    Map<String, double>? categoryWeights,
+  }) {
     final today = _toDateOnly(now ?? DateTime.now());
-    return _score(friend, today);
+    return _score(friend, today, categoryWeights: categoryWeights);
   }
 
   // -------------------------------------------------------------------------
   // Scoring internals
   // -------------------------------------------------------------------------
 
-  PrioritizedFriend _score(FriendScoringInput f, DateTime today) {
+  PrioritizedFriend _score(
+    FriendScoringInput f,
+    DateTime today, {
+    Map<String, double>? categoryWeights,
+  }) {
     // Nearest unacknowledged event relative to today.
     final nearest = _nearestUnacknowledged(f.events, today);
 
@@ -256,7 +268,7 @@ class PriorityEngine {
     final tier = _urgencyTier(daysUntil);
     final eventWeight = _eventWeight(daysUntil);
     final overdueBonus = _overdueBonus(daysUntil);
-    final categoryWeight = _categoryWeight(f.tags);
+    final categoryWeight = _categoryWeight(f.tags, categoryWeights);
     final concernContrib = f.hasConcern ? 2.0 * kBaseScore : 0.0;
     final careBoost = f.careScore.clamp(0.0, 1.0) * kCareScoreMultiplier;
 
@@ -313,11 +325,15 @@ class PriorityEngine {
     return ((-daysUntil) * kOverdueBonusRate).clamp(0.0, kMaxOverdueBonus);
   }
 
-  double _categoryWeight(List<String> tags) {
+  double _categoryWeight(
+    List<String> tags,
+    Map<String, double>? categoryWeights,
+  ) {
     if (tags.isEmpty) return kDefaultCategoryWeight;
+    final weights = categoryWeights ?? kCategoryWeights;
     var maxWeight = kDefaultCategoryWeight;
     for (final tag in tags) {
-      final w = kCategoryWeights[tag] ?? kDefaultCategoryWeight;
+      final w = weights[tag] ?? kDefaultCategoryWeight;
       if (w > maxWeight) maxWeight = w;
     }
     return maxWeight;

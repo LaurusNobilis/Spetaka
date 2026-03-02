@@ -34,6 +34,7 @@ class SettingsScreen extends ConsumerWidget {
             _BackupSection(),
             _DisplaySection(),
             _EventTypesSection(),
+            _CategoryTagsSection(),
             _SyncPlaceholderSection(),
           ],
         ),
@@ -555,6 +556,37 @@ class _DisplaySection extends ConsumerWidget {
             subtitle: const Text('Show more friends on screen at once'),
             value: isCompact,
             onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
+          ),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Category Tags section
+// ---------------------------------------------------------------------------
+
+class _CategoryTagsSection extends StatelessWidget {
+  const _CategoryTagsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Category Tags'),
+        Semantics(
+          label: 'Manage category tags',
+          button: true,
+          child: ListTile(
+            minVerticalPadding: 12,
+            leading: const Icon(Icons.label_outline),
+            title: const Text('Manage Category Tags'),
+            subtitle: const Text('Edit names and priority weights'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => const ManageCategoryTagsRoute().push(context),
           ),
         ),
         const Divider(height: 24),

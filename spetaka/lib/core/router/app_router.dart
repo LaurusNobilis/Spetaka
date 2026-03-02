@@ -11,6 +11,7 @@ import '../../features/events/presentation/manage_event_types_screen.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
+import '../../features/settings/presentation/manage_category_tags_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 
 sealed class AppRoute {
@@ -102,6 +103,13 @@ class ManageEventTypesRoute extends AppRoute {
   String get location => '/settings/event-types';
 }
 
+class ManageCategoryTagsRoute extends AppRoute {
+  const ManageCategoryTagsRoute();
+
+  @override
+  String get location => '/settings/category-tags';
+}
+
 GoRouter createAppRouter() => GoRouter(
       routes: <RouteBase>[
         GoRoute(
@@ -161,6 +169,11 @@ GoRouter createAppRouter() => GoRouter(
                   path: 'event-types',
                   builder: (context, state) =>
                       const ManageEventTypesScreen(),
+                ),
+                GoRoute(
+                  path: 'category-tags',
+                  builder: (context, state) =>
+                      const ManageCategoryTagsScreen(),
                 ),
               ],
             ),
