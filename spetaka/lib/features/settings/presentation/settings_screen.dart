@@ -132,12 +132,11 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     final proceed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Reset backup settings'),
+        title: const Text('Reset encryption key'),
         content: const Text(
-          'This will reset the encryption salt stored on this device.\n\n'
-          'Your existing backups are NOT affected — each backup file '
-          'contains its own encryption data. You may need to re-enter '
-          'your passphrase on your next export.',
+          'This will generate a new encryption key for this device and '
+          're-encrypt all your data. Your existing backup files are NOT '
+          'affected — they carry their own backup passphrase.',
         ),
         actions: [
           TextButton(
@@ -156,15 +155,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     );
     if (proceed != true || !mounted) return;
 
-    final passphrase = await _showPassphraseDialog(
-      context,
-      title: 'Reset backup settings',
-      hint: 'Enter your passphrase to continue. It is never stored.',
-      confirmField: false,
-    );
-    if (passphrase == null || !mounted) return;
-
-    ref.read(backupResetProvider.notifier).resetBackupSettings(passphrase);
+    ref.read(backupResetProvider.notifier).resetBackupSettings();
   }
 
   void _handleResetState(AsyncValue<bool>? prev, AsyncValue<bool> next) {

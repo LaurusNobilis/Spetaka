@@ -8,7 +8,6 @@ import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
-import 'package:spetaka/core/encryption/encryption_state_notifier.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_providers.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
@@ -146,10 +145,6 @@ void main() {
   });
 
   group('appRouter navigation', () {
-    // Navigation tests need encryption initialized; the global notifier gates
-    // the router redirect.
-    setUp(() => encryptionStateNotifier.setInitialized(true));
-    tearDown(() => encryptionStateNotifier.setInitialized(false));
     /// Pump a full app with a real router; stream providers for DailyViewScreen
     /// are always stubbed so pumpAndSettle resolves without Drift timer leaks.
     ///

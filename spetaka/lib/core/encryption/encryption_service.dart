@@ -71,6 +71,23 @@ class EncryptionService {
     keyBytes.fillRange(0, keyBytes.length, 0);
   }
 
+  /// Generates a new random 32-byte device key, persists it, and sets it
+  /// as the active in-memory key.
+  ///
+  /// All sensitive DB fields must be decrypted with the OLD key before calling
+  /// this and re-encrypted with the new key after (handled by
+  /// [BackupRepository.resetBackupSettings]).
+  Future<void> generateNewDeviceKey() async {
+    final newKey = _randomBytes(_keyLengthBytes);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_deviceKeyPrefsKey, base64UrlEncode(newKey));
+      _setKeyBytes(newKey);
+    } finally {
+      newKey.fillRange(0, newKey.length, 0);
+    }
+  }
+
   // ---------------------------------------------------------------------------
 
   Future<void> initialize(String passphrase) async {

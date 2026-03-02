@@ -94,11 +94,12 @@ class BackupResetNotifier extends _$BackupResetNotifier {
   @override
   AsyncValue<bool> build() => const AsyncData(false);
 
-  /// Rotates the per-install PBKDF2 salt and re-encrypts sensitive fields.
-  Future<void> resetBackupSettings(String passphrase) async {
+  /// Rotates the per-install device encryption key and re-encrypts all
+  /// sensitive DB fields. No passphrase required.
+  Future<void> resetBackupSettings() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref.read(backupRepositoryProvider).resetBackupSettings(passphrase);
+      await ref.read(backupRepositoryProvider).resetBackupSettings();
       return true;
     });
   }

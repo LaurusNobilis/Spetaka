@@ -101,8 +101,8 @@ class BackupRepository {
   /// dependencies of `path_provider`.
   // ignore: avoid_returning_from_callbacks
   Future<Uint8List> exportToBytes(String passphrase) async {
-    // Ensure we can decrypt sensitive fields stored encrypted-at-rest.
-    await _encryptionService.initialize(passphrase);
+    // The device-local key is already initialised at app startup.
+    // No passphrase is needed here — passphrase only protects the backup file.
 
     // ── 1. Collect data ──────────────────────────────────────────────────────
     final friends = await _friendRepository.findAll(); // decrypted
@@ -233,7 +233,8 @@ class BackupRepository {
 
     // Ensure the per-install EncryptionService is initialised so we can
     // persist sensitive fields encrypted-at-rest (Story 1.7–1.8).
-    await _encryptionService.initialize(passphrase);
+    // The device key is already in memory (auto-initialised at app startup);
+    // no passphrase is needed to re-encrypt fields on restore.
 
     // ── 7. Replace-all restore inside a single Drift transaction ─────────────
     await _db.transaction(() async {
@@ -262,20 +263,13 @@ class BackupRepository {
     await _restoreSettingsBestEffort(payload.settings);
   }
 
-  /// Story 7.1 (AC4): resets backup crypto settings by rotating the per-install
-  /// PBKDF2 salt stored in SharedPreferences.
+  /// Story 7.1 (AC4): rotates the per-install device encryption key and
+  /// re-encrypts all sensitive SQLite fields with the new key.
   ///
-  /// This operation is **destructive** in the sense that the derived key changes
-  /// with the salt. To keep the app functional, we re-encrypt all sensitive
-  /// fields in SQLite inside a single transaction using a new key derived from
-  /// the same [passphrase] + a fresh random salt.
-  ///
-  /// Throws if decryption fails (wrong passphrase or corrupted ciphertext).
-  Future<void> resetBackupSettings(String passphrase) async {
-    // Make sure we can decrypt existing ciphertext first.
-    await _encryptionService.initialize(passphrase);
-
-    // Load raw rows (ciphertext-at-rest) and decrypt in-memory using the current key.
+  /// The device key is auto-managed (no passphrase required): a fresh random
+  /// 32-byte key is generated, saved to SharedPreferences, and activated.
+  Future<void> resetBackupSettings() async {
+    // Load raw rows and decrypt using the current device key (already in memory).
     final friends = await _db.friendDao.selectAll();
     final acquittements = await _db.acquittementDao.selectAllRaw();
 
@@ -283,7 +277,6 @@ class BackupRepository {
       try {
         return _encryptionService.decrypt(value);
       } on CiphertextFormatAppError {
-        // Legacy plaintext passthrough (e.g. demo-seeded rows).
         return value;
       }
     }
@@ -311,60 +304,37 @@ class BackupRepository {
       decryptedAcqs.add(a.copyWith(note: Value<String?>(note)));
     }
 
-    // Derive a NEW key from the same passphrase + NEW salt.
-    final newSalt = EncryptionService.generateRandomBytes(_saltLengthBytes);
-    final passBytes = Uint8List.fromList(utf8.encode(passphrase));
-    late final Uint8List newKey;
-    try {
-      newKey = EncryptionService.deriveKeyForBackup(passBytes, newSalt);
-    } finally {
-      passBytes.fillRange(0, passBytes.length, 0);
-    }
+    // Generate a new device key and activate it.
+    await _encryptionService.generateNewDeviceKey();
 
-    // Re-encrypt everything with the new key inside a single DB transaction.
-    try {
-      await _db.transaction(() async {
-        for (final f in decryptedFriends) {
-          final encName = EncryptionService.encryptWithKeyBytes(newKey, f.name);
-          final encMobile =
-              EncryptionService.encryptWithKeyBytes(newKey, f.mobile);
-          final encNotes = f.notes != null
-              ? EncryptionService.encryptWithKeyBytes(newKey, f.notes!)
-              : null;
-          final encConcern = f.concernNote != null
-              ? EncryptionService.encryptWithKeyBytes(newKey, f.concernNote!)
-              : null;
-
-          await _db.friendDao.updateFriend(
-            f.copyWith(
-              name: encName,
-              mobile: encMobile,
-              notes: Value<String?>(encNotes),
-              concernNote: Value<String?>(encConcern),
+    // Re-encrypt using the new in-memory key inside a single DB transaction.
+    await _db.transaction(() async {
+      for (final f in decryptedFriends) {
+        await _db.friendDao.updateFriend(
+          f.copyWith(
+            name: _encryptionService.encrypt(f.name),
+            mobile: _encryptionService.encrypt(f.mobile),
+            notes: Value<String?>(
+              f.notes != null ? _encryptionService.encrypt(f.notes!) : null,
             ),
-          );
-        }
-
-        for (final a in decryptedAcqs) {
-          final encNote = a.note != null
-              ? EncryptionService.encryptWithKeyBytes(newKey, a.note!)
-              : null;
-          await _db.acquittementDao.updateAcquittement(
-            a.copyWith(note: Value<String?>(encNote)),
-          );
-        }
-      });
-    } finally {
-      newKey.fillRange(0, newKey.length, 0);
-    }
-
-    // Persist the new salt and re-initialise the in-memory key.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      EncryptionService.saltPrefsKey,
-      base64UrlEncode(newSalt),
-    );
-    await _encryptionService.initialize(passphrase);
+            concernNote: Value<String?>(
+              f.concernNote != null
+                  ? _encryptionService.encrypt(f.concernNote!)
+                  : null,
+            ),
+          ),
+        );
+      }
+      for (final a in decryptedAcqs) {
+        await _db.acquittementDao.updateAcquittement(
+          a.copyWith(
+            note: Value<String?>(
+              a.note != null ? _encryptionService.encrypt(a.note!) : null,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   // --------------------------------------------------------------------------
