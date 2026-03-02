@@ -1,5 +1,29 @@
 import '../../../core/database/app_database.dart';
 
+/// Small snapshot of lightweight app settings that must survive restore.
+///
+/// This is Phase-1 scoped: only preferences that exist today and are
+/// user-facing are included.
+class BackupSettings {
+  const BackupSettings({this.densityMode});
+
+  /// Daily view density preference stored in SharedPreferences.
+  ///
+  /// Expected values: 'compact' | 'expanded' (see DensityMode enum).
+  final String? densityMode;
+
+  Map<String, dynamic> toJson() => {
+        'densityMode': densityMode,
+      };
+
+  factory BackupSettings.fromJson(Map<String, dynamic>? json) {
+    final map = json ?? const <String, dynamic>{};
+    return BackupSettings(
+      densityMode: map['densityMode'] as String?,
+    );
+  }
+}
+
 /// Serializable snapshot of all user data for a portable encrypted backup.
 ///
 /// - Demo friends (`isDemo == true`) are **always excluded** (Story 6.5 AC1).
@@ -11,6 +35,7 @@ class BackupPayload {
   const BackupPayload({
     required this.version,
     required this.exportedAt,
+    required this.settings,
     required this.friends,
     required this.events,
     required this.acquittements,
@@ -25,6 +50,9 @@ class BackupPayload {
 
   /// ISO 8601 timestamp of when the backup was created.
   final String exportedAt;
+
+  /// Lightweight user settings snapshot (excluding any secrets/passphrases).
+  final BackupSettings settings;
 
   /// Non-demo friend records (sensitive fields arrive decrypted).
   final List<Friend> friends;
@@ -49,10 +77,13 @@ class BackupPayload {
   Map<String, dynamic> toJson() => {
         'version': version,
         'exportedAt': exportedAt,
-        'friends': friends.map((f) => f.toJson()).toList(),
-        'events': events.map((e) => e.toJson()).toList(),
-        'acquittements': acquittements.map((a) => a.toJson()).toList(),
-        'eventTypes': eventTypes.map((t) => t.toJson()).toList(),
+        'settings': settings.toJson(),
+        'friends': friends.map((f) => _friendToBackupJson(f)).toList(),
+        'events': events.map((e) => _eventToBackupJson(e)).toList(),
+        'acquittements':
+            acquittements.map((a) => _acquittementToBackupJson(a)).toList(),
+        'eventTypes':
+            eventTypes.map((t) => _eventTypeToBackupJson(t)).toList(),
       };
 
   /// Deserialises from a JSON map produced by [toJson].
@@ -60,18 +91,117 @@ class BackupPayload {
     return BackupPayload(
       version: (json['version'] as num?)?.toInt() ?? currentVersion,
       exportedAt: json['exportedAt'] as String? ?? '',
-      friends: (json['friends'] as List<dynamic>)
-          .map((e) => Friend.fromJson(e as Map<String, dynamic>))
+      settings:
+          BackupSettings.fromJson(json['settings'] as Map<String, dynamic>?),
+      friends: (json['friends'] as List<dynamic>? ?? const [])
+          .map(
+            (e) => Friend.fromJson(
+              _friendFromBackupJson(e as Map<String, dynamic>),
+            ),
+          )
           .toList(),
-      events: (json['events'] as List<dynamic>)
-          .map((e) => Event.fromJson(e as Map<String, dynamic>))
+      events: (json['events'] as List<dynamic>? ?? const [])
+          .map(
+            (e) => Event.fromJson(
+              _eventFromBackupJson(e as Map<String, dynamic>),
+            ),
+          )
           .toList(),
-      acquittements: (json['acquittements'] as List<dynamic>)
-          .map((e) => Acquittement.fromJson(e as Map<String, dynamic>))
+      acquittements: (json['acquittements'] as List<dynamic>? ?? const [])
+          .map(
+            (e) => Acquittement.fromJson(
+              _acquittementFromBackupJson(e as Map<String, dynamic>),
+            ),
+          )
           .toList(),
-      eventTypes: (json['eventTypes'] as List<dynamic>)
-          .map((e) => EventTypeEntry.fromJson(e as Map<String, dynamic>))
+      eventTypes: (json['eventTypes'] as List<dynamic>? ?? const [])
+          .map(
+            (e) => EventTypeEntry.fromJson(
+              _eventTypeFromBackupJson(e as Map<String, dynamic>),
+            ),
+          )
           .toList(),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Timestamp conversion helpers (AC: ISO 8601 timestamps in JSON)
+  // ---------------------------------------------------------------------------
+
+  static Map<String, dynamic> _friendToBackupJson(Friend f) {
+    final map = Map<String, dynamic>.from(f.toJson());
+    _intMsToIso(map, 'createdAt');
+    _intMsToIso(map, 'updatedAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _friendFromBackupJson(Map<String, dynamic> json) {
+    final map = Map<String, dynamic>.from(json);
+    _isoToIntMs(map, 'createdAt');
+    _isoToIntMs(map, 'updatedAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _eventToBackupJson(Event e) {
+    final map = Map<String, dynamic>.from(e.toJson());
+    _intMsToIso(map, 'date');
+    _intMsToIso(map, 'acknowledgedAt');
+    _intMsToIso(map, 'createdAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _eventFromBackupJson(Map<String, dynamic> json) {
+    final map = Map<String, dynamic>.from(json);
+    _isoToIntMs(map, 'date');
+    _isoToIntMs(map, 'acknowledgedAt');
+    _isoToIntMs(map, 'createdAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _acquittementToBackupJson(Acquittement a) {
+    final map = Map<String, dynamic>.from(a.toJson());
+    _intMsToIso(map, 'createdAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _acquittementFromBackupJson(
+    Map<String, dynamic> json,
+  ) {
+    final map = Map<String, dynamic>.from(json);
+    _isoToIntMs(map, 'createdAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _eventTypeToBackupJson(EventTypeEntry t) {
+    final map = Map<String, dynamic>.from(t.toJson());
+    _intMsToIso(map, 'createdAt');
+    return map;
+  }
+
+  static Map<String, dynamic> _eventTypeFromBackupJson(
+    Map<String, dynamic> json,
+  ) {
+    final map = Map<String, dynamic>.from(json);
+    _isoToIntMs(map, 'createdAt');
+    return map;
+  }
+
+  static void _intMsToIso(Map<String, dynamic> map, String key) {
+    final v = map[key];
+    if (v is int) {
+      map[key] =
+          DateTime.fromMillisecondsSinceEpoch(v, isUtc: true).toIso8601String();
+    } else if (v is num) {
+      map[key] = DateTime.fromMillisecondsSinceEpoch(v.toInt(), isUtc: true)
+          .toIso8601String();
+    }
+  }
+
+  static void _isoToIntMs(Map<String, dynamic> map, String key) {
+    final v = map[key];
+    if (v is String && v.isNotEmpty) {
+      // Accept ISO 8601 strings for portable backups.
+      map[key] = DateTime.parse(v).toUtc().millisecondsSinceEpoch;
+    }
   }
 }

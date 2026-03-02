@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:media_store_plus/media_store_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/encryption/encryption_service.dart';
@@ -53,6 +55,10 @@ class BackupRepository {
   static const int _saltLengthBytes = 16;
   static const int _headerSize = 4 + 1 + _saltLengthBytes; // 21 bytes
 
+  static const String _prefsDensityModeKey = 'density_mode';
+
+  static bool _mediaStoreInitialized = false;
+
   // --------------------------------------------------------------------------
   // Public API
   // --------------------------------------------------------------------------
@@ -68,9 +74,18 @@ class BackupRepository {
   Future<String> exportEncrypted(String passphrase) async {
     final bytes = await exportToBytes(passphrase);
 
-    // Write to external storage (scoped storage, no permissions needed Android 10+).
     final fileName = 'spetaka_backup_${_dateTag()}.enc';
-    final filePath = await _resolveExportPath(fileName);
+
+    // Android: save to Downloads via MediaStore (scoped storage compliant).
+    if (Platform.isAndroid) {
+      final saved = await _exportToAndroidDownloads(bytes: bytes, fileName: fileName);
+      if (saved != null && saved.isNotEmpty) {
+        return saved;
+      }
+    }
+
+    // Fallback (non-Android / safety): write to app-accessible storage.
+    final filePath = await _resolveFallbackExportPath(fileName);
     await File(filePath).writeAsBytes(bytes, flush: true);
     return filePath;
   }
@@ -83,17 +98,33 @@ class BackupRepository {
   // ignore: avoid_returning_from_callbacks
   Future<Uint8List> exportToBytes(String passphrase) async {
     // ── 1. Collect data ──────────────────────────────────────────────────────
-    final friends = await _friendRepository.findAll(); // decrypted, no demos
+    final friends = await _friendRepository.findAll(); // decrypted
+    final realFriends = friends.where((f) => !f.isDemo).toList();
+    final friendIds = realFriends.map((f) => f.id).toSet();
+
     final rawAcqs = await _db.acquittementDao.selectAllRaw();
-    final decryptedAcqs = rawAcqs.map(_decryptAcquittement).toList();
-    final events = await _db.eventDao.selectAll();
+    final decryptedAcqs = rawAcqs
+        .where((a) => friendIds.contains(a.friendId))
+        .map(_decryptAcquittement)
+        .toList();
+
+    final events = (await _db.eventDao.selectAll())
+        .where((e) => friendIds.contains(e.friendId))
+        .toList();
     final eventTypes = await _db.eventTypeDao.getAll();
+
+    // Lightweight settings snapshot (SharedPreferences).
+    final prefs = await SharedPreferences.getInstance();
+    final settings = BackupSettings(
+      densityMode: prefs.getString(_prefsDensityModeKey),
+    );
 
     // ── 2. Serialize ─────────────────────────────────────────────────────────
     final payload = BackupPayload(
       version: BackupPayload.currentVersion,
       exportedAt: DateTime.now().toUtc().toIso8601String(),
-      friends: friends.where((f) => !f.isDemo).toList(),
+      settings: settings,
+      friends: realFriends,
       events: events,
       acquittements: decryptedAcqs,
       eventTypes: eventTypes,
@@ -150,15 +181,15 @@ class BackupRepository {
     // ── 1. Read file ──────────────────────────────────────────────────────────
     final fileBytes = await File(filePath).readAsBytes();
     if (fileBytes.length < _headerSize + 1) {
-      throw const BackupFileFormatAppError();
+      throw const CiphertextFormatAppError();
     }
 
     // ── 2. Validate header ────────────────────────────────────────────────────
     for (var i = 0; i < _magic.length; i++) {
-      if (fileBytes[i] != _magic[i]) throw const BackupFileFormatAppError();
+      if (fileBytes[i] != _magic[i]) throw const CiphertextFormatAppError();
     }
     final fileVersion = fileBytes[4];
-    if (fileVersion != _version) throw const BackupFileFormatAppError();
+    if (fileVersion != _version) throw const CiphertextFormatAppError();
 
     // ── 3. Extract salt ───────────────────────────────────────────────────────
     final salt = fileBytes.sublist(5, 5 + _saltLengthBytes);
@@ -211,6 +242,9 @@ class BackupRepository {
         await _db.eventTypeDao.insertEventType(et.toCompanion(true));
       }
     });
+
+    // Restore lightweight settings (best-effort, must not break atomic DB restore).
+    await _restoreSettingsBestEffort(payload.settings);
   }
 
   // --------------------------------------------------------------------------
@@ -231,9 +265,9 @@ class BackupRepository {
   ///   1. External storage directory (app-specific, no permissions on Android 10+)
   ///   2. Application documents directory (internal storage fallback)
   Future<String> resolveExportPath(String fileName) =>
-      _resolveExportPath(fileName);
+      _resolveFallbackExportPath(fileName);
 
-  Future<String> _resolveExportPath(String fileName) async {
+  Future<String> _resolveFallbackExportPath(String fileName) async {
     try {
       final extDir = await getExternalStorageDirectory();
       if (extDir != null) {
@@ -244,6 +278,52 @@ class BackupRepository {
     }
     final docsDir = await getApplicationDocumentsDirectory();
     return '${docsDir.path}/$fileName';
+  }
+
+  Future<String?> _exportToAndroidDownloads({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    try {
+      if (!_mediaStoreInitialized) {
+        await MediaStore.ensureInitialized();
+        // Save under: /storage/emulated/0/Download/Spetaka/
+        MediaStore.appFolder = 'Spetaka';
+        _mediaStoreInitialized = true;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName';
+      await File(tempPath).writeAsBytes(bytes, flush: true);
+
+      final ms = MediaStore();
+      final info = await ms.saveFile(
+        tempFilePath: tempPath,
+        dirType: DirType.download,
+        dirName: DirName.download,
+      );
+
+      // The plugin returns a content:// URI. For user-facing messaging we
+      // return a stable, human-readable location.
+      if (info != null) {
+        return 'Downloads/Spetaka/$fileName';
+      }
+    } catch (_) {
+      // Fall back to app-accessible path.
+    }
+    return null;
+  }
+
+  Future<void> _restoreSettingsBestEffort(BackupSettings settings) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final density = settings.densityMode;
+      if (density != null && density.isNotEmpty) {
+        await prefs.setString(_prefsDensityModeKey, density);
+      }
+    } catch (_) {
+      // Best-effort only; must never compromise DB atomic restore.
+    }
   }
 
   // --------------------------------------------------------------------------

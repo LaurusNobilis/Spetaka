@@ -13,6 +13,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -34,6 +35,8 @@ import 'package:uuid/uuid.dart';
 const _testPass = 'backup-test-passphrase-6.5';
 const _wrongPass = 'wrong-passphrase-!@#';
 const _uuid = Uuid();
+
+const _densityPrefsKey = 'density_mode';
 
 AppDatabase _buildDb() => AppDatabase(NativeDatabase.memory());
 
@@ -96,16 +99,6 @@ Acquittement _makeAcq({required String friendId}) {
   );
 }
 
-EventTypeEntry _makeEventType({String name = 'Birthday'}) {
-  final now = DateTime.now().millisecondsSinceEpoch;
-  return EventTypeEntry(
-    id: _uuid.v4(),
-    name: name,
-    sortOrder: 0,
-    createdAt: now,
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -118,6 +111,10 @@ void main() {
     test('all entities are restored with same IDs and plaintext values',
         () async {
       final (:repo, :db, :friendRepo, :enc) = await _buildFixture();
+
+      // Seed a lightweight setting so we can verify it is exported/restored.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_densityPrefsKey, 'compact');
 
       // Insert test data through repositories (which encrypt sensitive fields).
       final friend = _makeFriend();
@@ -149,6 +146,28 @@ void main() {
       final bytes = await repo.exportToBytes(_testPass);
       expect(bytes.length, greaterThan(21), reason: 'file must be > header');
 
+      // Decrypt to JSON and validate timestamp encoding (ISO 8601 strings).
+      // Header is 21 bytes: magic(4)+version(1)+salt(16)
+      final salt = bytes.sublist(5, 21);
+      final key = EncryptionService.deriveKeyForBackup(
+        Uint8List.fromList(utf8.encode(_testPass)),
+        Uint8List.fromList(salt),
+      );
+      final ciphertextB64 = utf8.decode(bytes.sublist(21));
+      final jsonString = EncryptionService.decryptWithKeyBytes(key, ciphertextB64);
+      key.fillRange(0, key.length, 0);
+      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      expect(decoded['exportedAt'], isA<String>());
+      final friendsJson = (decoded['friends'] as List<dynamic>);
+      expect(friendsJson, isNotEmpty);
+      final friendJson = friendsJson.first as Map<String, dynamic>;
+      expect(friendJson['createdAt'], isA<String>());
+      expect(friendJson['updatedAt'], isA<String>());
+      // Settings snapshot present
+      final settings = decoded['settings'] as Map<String, dynamic>?;
+      expect(settings, isNotNull);
+      expect(settings!['densityMode'], 'compact');
+
       // Write bytes to a temp file for importEncrypted.
       final dir = Directory.systemTemp.createTempSync('spetaka_test_');
       final tmpFile = File('${dir.path}/backup.enc');
@@ -160,12 +179,19 @@ void main() {
         await db.acquittementDao.deleteAll();
         await db.eventTypeDao.deleteAll();
 
+        // Also clear prefs to ensure restore writes them back.
+        SharedPreferences.setMockInitialValues({});
+
         // Confirm clean state.
-        var friends = await db.friendDao.selectAll();
+        final friends = await db.friendDao.selectAll();
         expect(friends, isEmpty, reason: 'DB should be empty before import');
 
         // Import.
         await repo.importEncrypted(tmpFile.path, _testPass);
+
+        // Verify settings restored.
+        final prefs2 = await SharedPreferences.getInstance();
+        expect(prefs2.getString(_densityPrefsKey), 'compact');
 
         // Verify friend restored with correct plaintext values.
         final restoredFriends = await friendRepo.findAll();
@@ -260,7 +286,7 @@ void main() {
 
   // ── (d) Corrupt file ─────────────────────────────────────────────────────
   group('corrupt / invalid file', () {
-    test('throws BackupFileFormatAppError for bad magic bytes', () async {
+    test('throws CiphertextFormatAppError for bad magic bytes', () async {
       final (:repo, :db, :friendRepo, enc: _) = await _buildFixture();
 
       final friend = _makeFriend(name: 'OriginalData');
@@ -274,7 +300,7 @@ void main() {
       try {
         await expectLater(
           repo.importEncrypted(tmpFile.path, _testPass),
-          throwsA(isA<BackupFileFormatAppError>()),
+          throwsA(isA<CiphertextFormatAppError>()),
         );
 
         // DB must be unmodified.
@@ -287,7 +313,7 @@ void main() {
       }
     });
 
-    test('throws BackupFileFormatAppError for truncated header', () async {
+    test('throws CiphertextFormatAppError for truncated header', () async {
       final (:repo, :db, :friendRepo, enc: _) = await _buildFixture();
 
       final dir = Directory.systemTemp.createTempSync('spetaka_test_');
@@ -298,7 +324,7 @@ void main() {
       try {
         await expectLater(
           repo.importEncrypted(tmpFile.path, _testPass),
-          throwsA(isA<BackupFileFormatAppError>()),
+          throwsA(isA<CiphertextFormatAppError>()),
         );
       } finally {
         dir.deleteSync(recursive: true);

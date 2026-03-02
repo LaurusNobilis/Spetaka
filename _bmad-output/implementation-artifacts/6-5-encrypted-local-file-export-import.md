@@ -4,7 +4,7 @@
 > This is the **sole Phase 1 backup story**. Some planning docs may refer to it
 > as “6.1” (internal epic story #1), but the tracking key remains `6-5-*`._
 
-Status: review
+Status: done
 
 ## Story
 
@@ -215,12 +215,12 @@ test/
 
 ### Implementation Plan
 
-- **Task 1 — Dependencies:** Added `file_picker: ^8.3.7` to `pubspec.yaml`. Chose `file_picker` for import (open `.enc` file via `pickFiles`). For export: wrote directly to `getExternalStorageDirectory()` (scoped storage, no permissions on Android 10+). No `permission_handler` needed.
+- **Task 1 — Dependencies:** Added `file_picker: ^8.3.7` (import) and `media_store_plus: ^0.1.3` (Android Downloads export) to `pubspec.yaml`. Chose MediaStore for scoped-storage compliant saves to `Downloads/Spetaka/` without broad storage permissions.
 - **Task 2 — Serialization:** Created `BackupPayload` in `lib/features/backup/domain/backup_payload.dart`. Used Drift-generated `.toJson()` / `.fromJson()` on each data class (Friend, Event, Acquittement, EventTypeEntry). Demo friends filtered with `where((f) => !f.isDemo)`.
-- **Task 3 — BackupRepository:** V1 binary format: `SPBK` (4B) + version (1B) + PBKDF2 salt (16B) + ciphertext UTF-8 bytes. PBKDF2 and AES-GCM logic exposed as public static methods on `EncryptionService` (`deriveKeyForBackup`, `encryptWithKeyBytes`, `decryptWithKeyBytes`, `generateRandomBytes`). Import uses a single `db.transaction()` with `deleteAll()` + DAO inserts for atomic replace-all. Sensitive re-encryption uses the per-install `EncryptionService`. Added `exportToBytes()` (no file I/O) for testability.
+- **Task 3 — BackupRepository:** V1 binary format: `SPBK` (4B) + version (1B) + PBKDF2 salt (16B) + ciphertext UTF-8 bytes. Export writes via MediaStore on Android (Downloads), with fallback to app-accessible storage. Export filters out demo friends and avoids orphan exports by selecting events/acquittements only for exported friend IDs. Import uses a single `db.transaction()` with `deleteAll()` + DAO inserts for atomic replace-all; settings restore runs best-effort after a successful DB commit.
 - **Task 4 — Settings UI:** Extracted `SettingsScreen` from `app_router.dart` into `lib/features/settings/presentation/settings_screen.dart`. Added `_BackupSection` with export/import `_ActionTile` widgets (48dp touch target, Semantics, TalkBack). Passphrase dialog captures and validates input; confirm-field on export. `ref.listen` on `backupExportProvider` / `backupImportProvider` drives snackbar + navigation.
 - **Task 5 — Providers:** `@Riverpod(keepAlive: true) BackupRepository` + autoDispose `BackupExportNotifier` (state: `AsyncValue<String?>`) + `BackupImportNotifier` (state: `AsyncValue<bool>`). Generated `backup_providers.g.dart` via `build_runner`.
-- **Task 6 — Tests:** 7 tests covering: full roundtrip, ciphertext-at-rest, wrong passphrase (`DecryptionFailedAppError`), bad magic (`BackupFileFormatAppError`), truncated header, demo exclusion, replace-all restore. All use in-memory DB + `Directory.systemTemp` for file I/O (no platform channels needed).
+- **Task 6 — Tests:** Tests cover full roundtrip (including settings restore), ciphertext-at-rest, wrong passphrase (`DecryptionFailedAppError`), invalid/corrupt header (`CiphertextFormatAppError`), demo exclusion, and replace-all restore. Export payload is decrypted in-test to assert ISO 8601 timestamps and settings snapshot.
 
 ### Completion Notes
 
@@ -229,13 +229,24 @@ test/
 ✅ AC2 (self-contained snapshot including all entity types): done.
 ✅ AC3 (import → replace-all → daily view reload via Drift stream): done.
 ✅ AC4 (failure safety — typed errors, no partial write, transaction rollback): done.
-✅ AC5 (passphrase never persisted): key zeroed after every operation.
+✅ AC5 (passphrase never persisted): derived key bytes are zeroed after file operations.
 ✅ AC6 (AsyncValue loading state on buttons): done.
 ✅ AC7 (accessibility — 48dp targets, Semantics, passphrase accessible): done.
 ✅ All 371 tests pass (`flutter test`), zero regressions.
 ✅ `flutter analyze`: No issues.
 
-**Export strategy decision:** `getExternalStorageDirectory()` (app-specific external, `/storage/emulated/0/Android/data/{pkg}/files/`) chosen over MediaStore or `file_picker.saveFile()` for maximum reliability across Android API levels without requiring WRITE_EXTERNAL_STORAGE. Path shown in snackbar for discoverability.
+**Export strategy decision (Android):** Save to Downloads via MediaStore (scoped storage, no broad storage permissions), under `Downloads/Spetaka/`. If MediaStore fails, fallback to app-accessible storage and still show the resulting path in the snackbar.
+
+### Senior Developer Review (AI)
+
+Post-implementation code review fixes applied to ensure AC alignment:
+
+- Export now targets Android Downloads (MediaStore) instead of app-specific external storage.
+- Backup payload now includes a minimal settings snapshot (e.g. density mode) and restores it best-effort after a successful DB import.
+- JSON timestamps are exported as ISO 8601 strings (and converted back on import before calling Drift `fromJson`).
+- Import picker restricted to `.enc` files.
+- Invalid/corrupt file headers are surfaced as `CiphertextFormatAppError` per AC.
+- Android auto-backup is explicitly disabled (`android:allowBackup="false"`).
 
 ## File List
 
@@ -248,7 +259,8 @@ test/
 - `spetaka/test/repositories/backup_repository_test.dart`
 
 ### Modified Files
-- `spetaka/pubspec.yaml` — added `file_picker: ^8.3.7`
+- `spetaka/pubspec.yaml` — added `file_picker: ^8.3.7`, `media_store_plus: ^0.1.3`
+- `spetaka/pubspec.lock` — updated by dependency resolution
 - `spetaka/lib/core/encryption/encryption_service.dart` — added 4 public static helpers: `generateRandomBytes`, `deriveKeyForBackup`, `encryptWithKeyBytes`, `decryptWithKeyBytes`
 - `spetaka/lib/core/errors/app_error.dart` — added `BackupFileFormatAppError`
 - `spetaka/lib/core/errors/error_messages.dart` — added case for `BackupFileFormatAppError`
@@ -257,11 +269,32 @@ test/
 - `spetaka/lib/core/database/daos/event_dao.dart` — added `selectAll()`, `deleteAll()`
 - `spetaka/lib/core/database/daos/acquittement_dao.dart` — added `selectAllRaw()`, `deleteAll()`
 - `spetaka/lib/core/database/daos/event_type_dao.dart` — added `deleteAll()`
-- `spetaka/_bmad-output/implementation-artifacts/sprint-status.yaml` — 6-5 → review
-- `spetaka/_bmad-output/implementation-artifacts/6-5-encrypted-local-file-export-import.md` — this file
+- `spetaka/android/app/src/main/AndroidManifest.xml` — set `android:allowBackup="false"`
+- `spetaka/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java` — regenerated
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — 6-5 status
+- `_bmad-output/implementation-artifacts/6-5-encrypted-local-file-export-import.md` — this file
 
 ## Change Log
 
 | Date       | Change                                                                     |
 |------------|----------------------------------------------------------------------------|
 | 2026-03-02 | Story 6.5 implemented: encrypted local backup export & import (Amelia/AI) |
+| 2026-03-02 | Code review fixes: Downloads export (MediaStore), settings snapshot, ISO timestamps, stricter import + error typing (Amelia/AI) |
+
+## Handoff (Epic 6 → Epic 7 Gate)
+
+### Sécurité (smoke)
+
+- Passphrase: jamais persistée (pas de `shared_preferences`, pas de logs). Utilisée uniquement pour dériver une clé de backup en mémoire.
+- Chiffrement: AES-256-GCM, clé dérivée via PBKDF2-HMAC-SHA256 (100k itérations) avec **salt par-backup** stocké dans l’en-tête du fichier.
+- Import “fail-safe”: toute restauration DB est encapsulée dans **une transaction Drift** (succès total ou rollback total). Sur échec (mauvaise passphrase / fichier corrompu), la DB locale reste inchangée.
+
+### Android Downloads
+
+- Export cible `Downloads/Spetaka/` via MediaStore (scoped storage). Fallback vers un chemin app-accessible si MediaStore échoue.
+
+### Vérification rapide
+
+1) Settings → Backup: exporter un fichier `spetaka_backup_*.enc`.
+2) Désinstaller/réinstaller (ou vider données) puis importer le `.enc` avec la même passphrase.
+3) Vérifier: données présentes (friends/events/…), setting `density_mode` restauré, aucune donnée partielle en cas d’échec (tester mauvaise passphrase).

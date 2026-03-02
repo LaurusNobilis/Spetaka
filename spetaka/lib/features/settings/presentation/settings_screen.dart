@@ -70,7 +70,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Future<void> _onImport() async {
     // Step 1 — pick a .enc file
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
+      type: FileType.custom,
+      allowedExtensions: const ['enc'],
       withData: false,
     );
     if (result == null || result.files.isEmpty) return;
@@ -199,7 +200,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           semanticsLabel: 'Import encrypted backup from file',
           isLoading: isImporting,
           onTap: isExporting || isImporting ? null : _onImport,
-        ),        const Divider(height: 24),
+        ),
+        const Divider(height: 24),
       ],
     );
   }
@@ -340,9 +342,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                   suffixIcon: IconButton(
                     tooltip: _obscure1 ? 'Show passphrase' : 'Hide passphrase',
                     icon: Icon(
-                        _obscure1
-                            ? Icons.visibility
-                            : Icons.visibility_off,),
+                      _obscure1
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
                     onPressed: () =>
                         setState(() => _obscure1 = !_obscure1),
                   ),
@@ -364,9 +367,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                       tooltip:
                           _obscure2 ? 'Show passphrase' : 'Hide passphrase',
                       icon: Icon(
-                          _obscure2
-                              ? Icons.visibility
-                              : Icons.visibility_off,),
+                      _obscure2
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                      ),
                       onPressed: () =>
                           setState(() => _obscure2 = !_obscure2),
                     ),

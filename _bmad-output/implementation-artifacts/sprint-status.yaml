@@ -88,9 +88,9 @@ development_status:
   5-5-care-score-update-after-acquittement: done
   epic-5-retrospective: optional
 
-  epic-6: in-progress
+  epic-6: done
   # Phase 1: Local encrypted backup only (WebDAV → Phase 2)
-  6-5-encrypted-local-file-export-import: review
+  6-5-encrypted-local-file-export-import: done
   epic-6-retrospective: optional
 
   epic-7: in-progress
