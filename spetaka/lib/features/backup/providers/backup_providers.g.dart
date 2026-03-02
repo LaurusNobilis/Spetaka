@@ -107,7 +107,7 @@ final class BackupExportNotifierProvider
 }
 
 String _$backupExportNotifierHash() =>
-    r'51b352cd47bf0666fa651c054c21d9fd1f869843';
+    r'102285cfba1c2da73ed1974ad02ed0ea051d9c01';
 
 /// Manages async state for the "Export backup" action.
 ///
@@ -171,77 +171,13 @@ final class BackupImportNotifierProvider
 }
 
 String _$backupImportNotifierHash() =>
-    r'37e9f6de4974984468481d74ddbdfcefceb7dadc';
+    r'229da6e9945a3dbb3a20a9b0ec76d8a4b1cf0504';
 
 /// Manages async state for the "Import backup" action.
 ///
 /// State is `true` on successful import, `false` while idle.
 
 abstract class _$BackupImportNotifier extends $Notifier<AsyncValue<bool>> {
-  AsyncValue<bool> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<bool>, AsyncValue<bool>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<bool>, AsyncValue<bool>>,
-        AsyncValue<bool>,
-        Object?,
-        Object?>;
-    element.handleCreate(ref, build);
-  }
-}
-
-/// Manages async state for the "Reset backup settings" action.
-///
-/// State is `true` after a successful reset, `false` while idle.
-
-@ProviderFor(BackupResetNotifier)
-final backupResetProvider = BackupResetNotifierProvider._();
-
-/// Manages async state for the "Reset backup settings" action.
-///
-/// State is `true` after a successful reset, `false` while idle.
-final class BackupResetNotifierProvider
-    extends $NotifierProvider<BackupResetNotifier, AsyncValue<bool>> {
-  /// Manages async state for the "Reset backup settings" action.
-  ///
-  /// State is `true` after a successful reset, `false` while idle.
-  BackupResetNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'backupResetProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
-
-  @override
-  String debugGetCreateSourceHash() => _$backupResetNotifierHash();
-
-  @$internal
-  @override
-  BackupResetNotifier create() => BackupResetNotifier();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AsyncValue<bool> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<AsyncValue<bool>>(value),
-    );
-  }
-}
-
-String _$backupResetNotifierHash() =>
-    r'98dc550d5a8de5e0614406306cc0c64e7f321c1a';
-
-/// Manages async state for the "Reset backup settings" action.
-///
-/// State is `true` after a successful reset, `false` while idle.
-
-abstract class _$BackupResetNotifier extends $Notifier<AsyncValue<bool>> {
   AsyncValue<bool> build();
   @$mustCallSuper
   @override

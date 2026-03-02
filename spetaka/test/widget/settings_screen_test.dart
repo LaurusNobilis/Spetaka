@@ -89,14 +89,6 @@ void main() {
       );
     });
 
-    // ── AC4: Reset backup settings tile present ──────────────────────────────
-    testWidgets('AC4 — Reset backup settings tile present', (tester) async {
-      await tester.pumpWidget(_buildHarness());
-      await tester.pump();
-
-      expect(find.text('Reset backup settings'), findsOneWidget);
-    });
-
     // ── AC5: Sync & Backup Phase 2 placeholder tile is disabled ─────────────
     testWidgets('AC5 — Sync & Backup (Coming in Phase 2) tile is disabled',
         (tester) async {

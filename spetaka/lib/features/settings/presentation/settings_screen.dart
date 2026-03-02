@@ -106,15 +106,15 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   // --------------------------------------------------------------------------
 
   Future<void> _onImport() async {
-    // Step 1 — pick a .enc file
+    // Step 1 — pick a .enc file (withData: true returns bytes directly,
+    // avoiding Android scoped-storage content-URI issues)
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['enc'],
-      withData: false,
+      type: FileType.any,
+      withData: true,
     );
     if (result == null || result.files.isEmpty) return;
-    final filePath = result.files.first.path;
-    if (filePath == null || !mounted) return;
+    final bytes = result.files.first.bytes;
+    if (bytes == null || !mounted) return;
 
     // Step 2 — ask for passphrase
     final passphrase = await _showPassphraseDialog(
@@ -125,60 +125,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     );
     if (passphrase == null || !mounted) return;
 
-    ref.read(backupImportProvider.notifier).importBackup(filePath, passphrase);
-  }
-
-  // --------------------------------------------------------------------------
-  // Reset backup settings
-  // --------------------------------------------------------------------------
-
-  Future<void> _onResetBackupSettings() async {
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(context.l10n.resetEncryptionKeyTitle),
-        content: Text(context.l10n.resetEncryptionKeyContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.actionReset),
-          ),
-        ],
-      ),
-    );
-    if (proceed != true || !mounted) return;
-
-    ref.read(backupResetProvider.notifier).resetBackupSettings();
-  }
-
-  void _handleResetState(AsyncValue<bool>? prev, AsyncValue<bool> next) {
-    if (!mounted) return;
-    next.whenOrNull(
-      data: (done) {
-        if (done) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.backupSettingsResetSuccess)),
-          );
-          ref.read(backupResetProvider.notifier).reset();
-        }
-      },
-      error: (e, _) {
-        final msg = e is AppError
-            ? errorMessageFor(e)
-            : context.l10n.resetFailed;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg)),
-        );
-        ref.read(backupResetProvider.notifier).reset();
-      },
-    );
+    ref.read(backupImportProvider.notifier).importBackup(bytes, passphrase);
   }
 
   // --------------------------------------------------------------------------
@@ -246,18 +193,14 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Widget build(BuildContext context) {
     ref.listen(backupExportProvider, _handleExportState);
     ref.listen(backupImportProvider, _handleImportState);
-    ref.listen(backupResetProvider, _handleResetState);
 
     final exportState = ref.watch(backupExportProvider);
     final importState = ref.watch(backupImportProvider);
-    final resetState = ref.watch(backupResetProvider);
 
     final isExporting = exportState is AsyncLoading;
     final isImporting = importState is AsyncLoading;
-    final isResetting = resetState is AsyncLoading;
 
-    final isBusy = isExporting || isImporting || isResetting;
-    final resetOnTap = isBusy ? null : _onResetBackupSettings;
+    final isBusy = isExporting || isImporting;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,32 +229,6 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           semanticsLabel: context.l10n.importBackupSemantics,
           isLoading: isImporting,
           onTap: isBusy ? null : _onImport,
-        ),
-        Semantics(
-          label: context.l10n.resetBackupSettingsLabel,
-          button: resetOnTap != null,
-          child: ListTile(
-            minVerticalPadding: 12,
-            enabled: resetOnTap != null,
-            leading: Icon(
-              Icons.restore_outlined,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            title: Text(
-              context.l10n.resetBackupSettingsLabel,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-            trailing: isResetting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  )
-                : null,
-            onTap: resetOnTap,
-          ),
         ),
         const Divider(height: 24),
       ],

@@ -192,9 +192,21 @@ class BackupRepository {
   Future<void> importEncrypted(String filePath, String passphrase) async {
     // ── 1. Read file ──────────────────────────────────────────────────────────
     final fileBytes = await File(filePath).readAsBytes();
+    return importFromBytes(fileBytes, passphrase);
+  }
+
+  /// Decrypts [fileBytes] with [passphrase] and performs a replace-all restore
+  /// inside a single Drift transaction.
+  ///
+  /// Unlike [importEncrypted], this method does not perform any file I/O, which
+  /// avoids content-URI issues on Android 10+ scoped storage.
+  ///
+  /// Throws the same errors as [importEncrypted].
+  Future<void> importFromBytes(Uint8List fileBytes, String passphrase) async {
     if (fileBytes.length < _headerSize + 1) {
       throw const CiphertextFormatAppError();
     }
+    // (was read from file in importEncrypted — bytes already available here)
 
     // ── 2. Validate header ────────────────────────────────────────────────────
     for (var i = 0; i < _magic.length; i++) {
