@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/encryption/encryption_state_notifier.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
@@ -40,6 +41,8 @@ Widget _appScaffold() => ProviderScope(
 
 void main() {
   group('SpetakaApp — scaffold smoke tests', () {
+    setUp(() => encryptionStateNotifier.setInitialized(true));
+    tearDown(() => encryptionStateNotifier.setInitialized(false));
     testWidgets('App renders without exceptions (AC: 1)', (tester) async {
       await tester.pumpWidget(_appScaffold());
       await tester.pump();

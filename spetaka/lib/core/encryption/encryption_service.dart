@@ -11,9 +11,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../errors/app_error.dart';
 import '../lifecycle/app_lifecycle_service.dart';
+import 'encryption_state_notifier.dart';
 
 class EncryptionService {
   static const String saltPrefsKey = 'spetaka_pbkdf2_salt';
+  static const String _verifierPrefsKey = 'spetaka_unlock_verifier';
+  static const String _verifierPlaintext = 'spetaka_unlock_ok';
 
   static const int _pbkdf2Iterations = 100000;
   static const int _saltLengthBytes = 16;
@@ -28,10 +31,61 @@ class EncryptionService {
 
   Uint8List? _keyBytes;
 
+  /// `true` when a derived key is held in memory and encrypt/decrypt can proceed.
+  bool get isInitialized => _keyBytes != null;
+
   EncryptionService({required AppLifecycleService lifecycleService})
       : _lifecycleService = lifecycleService {
     _lifecycleSub = _lifecycleService.lifecycleStates.listen(_onLifecycleState);
   }
+
+  // ---------------------------------------------------------------------------
+  // Passphrase verifier helpers
+  // ---------------------------------------------------------------------------
+
+  /// Returns `true` when a passphrase has already been set up on this
+  /// installation (i.e. an encrypted verifier blob exists in prefs).
+  Future<bool> hasPassphraseSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey(_verifierPrefsKey);
+  }
+
+  /// Encrypts [_verifierPlaintext] with the current in-memory key and persists
+  /// it so future launches can verify the passphrase.
+  ///
+  /// Must only be called *after* [initialize].
+  Future<void> setupVerifier() async {
+    if (_keyBytes == null) throw const EncryptionNotInitializedAppError();
+    final verifier = encrypt(_verifierPlaintext);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_verifierPrefsKey, verifier);
+  }
+
+  /// Calls [initialize] then verifies the stored verifier blob.
+  ///
+  /// Throws [DecryptionFailedAppError] if the passphrase is wrong.
+  /// Returns normally on success.
+  Future<void> verifyAndInitialize(String passphrase) async {
+    await initialize(passphrase);
+    final prefs = await SharedPreferences.getInstance();
+    final verifier = prefs.getString(_verifierPrefsKey);
+    if (verifier == null) {
+      // No verifier yet — should not happen after setup, ignore.
+      return;
+    }
+    try {
+      final result = decrypt(verifier);
+      if (result != _verifierPlaintext) {
+        clearKey();
+        throw const DecryptionFailedAppError();
+      }
+    } catch (_) {
+      clearKey();
+      rethrow;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
 
   Future<void> initialize(String passphrase) async {
     final passwordBytes = Uint8List.fromList(utf8.encode(passphrase));
@@ -148,6 +202,7 @@ class EncryptionService {
       keyBytes.fillRange(0, keyBytes.length, 0);
     }
     _keyBytes = null;
+    encryptionStateNotifier.setInitialized(false);
   }
 
   void dispose() {
@@ -284,9 +339,12 @@ class EncryptionService {
     return salt;
   }
 
-  void _setKeyBytes(Uint8List keyBytes) {
-    clearKey();
-    _keyBytes = Uint8List.fromList(keyBytes);
+  void _setKeyBytes(Uint8List newKey) {
+    // Zero out and replace without calling clearKey() to avoid double-notify.
+    final old = _keyBytes;
+    if (old != null) old.fillRange(0, old.length, 0);
+    _keyBytes = Uint8List.fromList(newKey);
+    encryptionStateNotifier.setInitialized(true);
   }
 
   static Uint8List _randomBytes(int length) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/encryption/encryption_state_notifier.dart';
 import '../../features/daily/presentation/daily_view_screen.dart';
 import '../../features/events/data/event_repository_provider.dart';
 import '../../features/events/presentation/add_event_screen.dart';
@@ -13,6 +14,7 @@ import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
 import '../../features/settings/presentation/manage_category_tags_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/unlock/presentation/unlock_screen.dart';
 
 sealed class AppRoute {
   const AppRoute();
@@ -110,7 +112,22 @@ class ManageCategoryTagsRoute extends AppRoute {
   String get location => '/settings/category-tags';
 }
 
+class UnlockRoute extends AppRoute {
+  const UnlockRoute();
+
+  @override
+  String get location => '/unlock';
+}
+
 GoRouter createAppRouter() => GoRouter(
+      refreshListenable: encryptionStateNotifier,
+      redirect: (context, state) {
+        final isLocked = !encryptionStateNotifier.isInitialized;
+        final onUnlock = state.matchedLocation == '/unlock';
+        if (isLocked && !onUnlock) return '/unlock';
+        if (!isLocked && onUnlock) return '/';
+        return null;
+      },
       routes: <RouteBase>[
         GoRoute(
           path: const HomeRoute().location,
@@ -178,6 +195,10 @@ GoRouter createAppRouter() => GoRouter(
               ],
             ),
           ],
+        ),
+        GoRoute(
+          path: const UnlockRoute().location,
+          builder: (context, state) => const UnlockScreen(),
         ),
       ],
     );
