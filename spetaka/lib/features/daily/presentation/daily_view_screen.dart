@@ -295,8 +295,8 @@ class _ExpandableFriendCard extends ConsumerWidget {
     };
 
     final tierLabel = switch (tier) {
-      UrgencyTier.urgent => 'Urgent',
-      UrgencyTier.important => 'Important',
+      UrgencyTier.urgent => context.l10n.urgentLabel,
+      UrgencyTier.important => context.l10n.importantLabel,
       UrgencyTier.normal => 'Normal',
     };
 

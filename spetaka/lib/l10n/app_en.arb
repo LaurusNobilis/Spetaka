@@ -277,6 +277,14 @@
   "@every3Months": {
     "description": "Cadence label"
   },
+  "every6Months": "Every 6 months",
+  "@every6Months": {
+    "description": "Cadence label"
+  },
+  "everyYear": "Every year",
+  "@everyYear": {
+    "description": "Cadence label"
+  },
   "couldNotLoadEventTypes": "Could not load event types.",
   "@couldNotLoadEventTypes": {
     "description": "Error message in event type selector"
@@ -624,11 +632,11 @@
   "@demoLabel": {
     "description": "Label for demo friend entries"
   },
-  "importantLabel": "Important",
+  "importantLabel": "My selection",
   "@importantLabel": {
     "description": "Priority level label"
   },
-  "urgentLabel": "Urgent",
+  "urgentLabel": "My selection",
   "@urgentLabel": {
     "description": "Priority level label"
   },
@@ -679,5 +687,13 @@
   "demoFriendDescription": "This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.",
   "@demoFriendDescription": {
     "description": "Info banner on the demo friend card"
+  },
+  "feedbackSectionTitle": "Feedback",
+  "@feedbackSectionTitle": {
+    "description": "Settings section title for feedback / suggestions"
+  },
+  "feedbackEmailLabel": "Send us your suggestions",
+  "@feedbackEmailLabel": {
+    "description": "ListTile label to open feedback email"
   }
 }

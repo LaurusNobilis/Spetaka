@@ -68,6 +68,8 @@
   "monthly": "Mensuel",
   "every2Months": "Tous les 2 mois",
   "every3Months": "Tous les 3 mois",
+  "every6Months": "Tous les 6 mois",
+  "everyYear": "Chaque année",
   "couldNotLoadEventTypes": "Impossible de charger les types d'événements.",
   "eventTypesTitle": "Types d'événements",
   "newEventTypePlaceholder": "Nouveau type d'événement…",
@@ -146,8 +148,8 @@
   "importFailed": "Importation échouée. Vérifiez votre phrase secrète et votre fichier.",
   "resetFailed": "Réinitialisation échouée. Veuillez réessayer.",
   "demoLabel": "Démo",
-  "importantLabel": "Important",
-  "urgentLabel": "Urgent",
+  "importantLabel": "Ma sélection",
+  "urgentLabel": "Ma sélection",
   "tagsSection": "Tags",
   "noTags": "Pas de tags",
   "mobileSection": "Mobile",
@@ -159,5 +161,7 @@
   "markAsDone": "Marquer comme fait",
   "typeLabel": "Type",
   "noteOptionalLabel": "Note (optionnel)",
-  "demoFriendDescription": "Ceci est un ami de démonstration. Ajoutez un vrai contact pour commencer — Sophie sera supprimée automatiquement."
+  "demoFriendDescription": "Ceci est un ami de démonstration. Ajoutez un vrai contact pour commencer — Sophie sera supprimée automatiquement.",
+  "feedbackSectionTitle": "Suggestions",
+  "feedbackEmailLabel": "Envoyer vos suggestions"
 }

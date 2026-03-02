@@ -91,7 +91,6 @@ class AppDatabase extends _$AppDatabase {
           if (count == 0) {
             final now = DateTime.now().millisecondsSinceEpoch;
             const defaults = [
-              'Birthday',
               'Wedding Anniversary',
               'Important Life Event',
               'Regular Check-in',

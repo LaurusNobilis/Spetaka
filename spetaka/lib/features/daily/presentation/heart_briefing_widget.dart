@@ -8,6 +8,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_extension.dart';
+
 import '../../../core/router/app_router.dart';
 import '../data/daily_view_provider.dart';
 import '../domain/priority_engine.dart';
@@ -65,14 +67,14 @@ class HeartBriefingWidget extends StatelessWidget {
           ),
           if (urgent.isNotEmpty) ...[
             _SectionLabel(
-              label: 'Urgent',
+              label: context.l10n.urgentLabel,
               color: theme.colorScheme.error,
             ),
             for (final entry in urgent) _BriefingRow(entry: entry),
           ],
           if (important.isNotEmpty) ...[
             _SectionLabel(
-              label: 'Important',
+              label: context.l10n.importantLabel,
               color: theme.colorScheme.secondary,
             ),
             for (final entry in important) _BriefingRow(entry: entry),

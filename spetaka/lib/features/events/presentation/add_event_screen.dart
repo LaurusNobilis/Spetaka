@@ -7,7 +7,7 @@ import '../data/event_repository_provider.dart';
 import '../data/event_type_providers.dart';
 
 /// Cadence option days — labels resolved from l10n at build time.
-const _kCadenceDays = [7, 14, 21, 30, 60, 90];
+const _kCadenceDays = [7, 14, 21, 30, 60, 90, 180, 365];
 
 /// Screen for adding a dated or recurring event to a friend card.
 ///
@@ -217,6 +217,8 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
                 30: context.l10n.monthly,
                 60: context.l10n.every2Months,
                 90: context.l10n.every3Months,
+                180: context.l10n.every6Months,
+                365: context.l10n.everyYear,
               };
               return Wrap(
                 spacing: 8,
