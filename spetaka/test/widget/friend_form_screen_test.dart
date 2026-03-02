@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
@@ -12,7 +13,6 @@ import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 /// Builds the full router-test scaffold with an in-memory repo.
 /// Friends list data is reactive via repository watchAll() (StreamProvider).
@@ -174,7 +174,8 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
       ),
     );
 
@@ -222,7 +223,8 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
       ),
     );
 

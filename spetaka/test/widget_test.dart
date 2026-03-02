@@ -13,11 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/shared/theme/app_theme.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 /// Minimal router scaffold with stubbed stream providers so the
 /// DailyViewScreen (root route) renders immediately without Drift timers.

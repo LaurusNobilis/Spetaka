@@ -478,8 +478,10 @@ class _DisplaySection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Row(
             children: [
-              Icon(Icons.text_fields_outlined,
-                  color: Theme.of(context).colorScheme.onSurface),
+              Icon(
+                Icons.text_fields_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const SizedBox(width: 16),
               Expanded(child: Text(l.fontSizeLabel)),
               SegmentedButton<FontScaleMode>(
@@ -490,18 +492,24 @@ class _DisplaySection extends ConsumerWidget {
                 segments: [
                   ButtonSegment(
                     value: FontScaleMode.small,
-                    label: Text(l.sizeSmall,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeSmall,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                   ButtonSegment(
                     value: FontScaleMode.medium,
-                    label: Text(l.sizeMedium,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeMedium,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                   ButtonSegment(
                     value: FontScaleMode.large,
-                    label: Text(l.sizeLarge,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeLarge,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
                 selected: {fontScale},
@@ -516,8 +524,10 @@ class _DisplaySection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: Row(
             children: [
-              Icon(Icons.interests_outlined,
-                  color: Theme.of(context).colorScheme.onSurface),
+              Icon(
+                Icons.interests_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const SizedBox(width: 16),
               Expanded(child: Text(l.iconSizeLabel)),
               SegmentedButton<IconSizeMode>(
@@ -528,18 +538,24 @@ class _DisplaySection extends ConsumerWidget {
                 segments: [
                   ButtonSegment(
                     value: IconSizeMode.small,
-                    label: Text(l.sizeSmall,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeSmall,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                   ButtonSegment(
                     value: IconSizeMode.medium,
-                    label: Text(l.sizeMedium,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeMedium,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                   ButtonSegment(
                     value: IconSizeMode.large,
-                    label: Text(l.sizeLarge,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.sizeLarge,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
                 selected: {iconSize},
@@ -554,8 +570,10 @@ class _DisplaySection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: Row(
             children: [
-              Icon(Icons.language_outlined,
-                  color: Theme.of(context).colorScheme.onSurface),
+              Icon(
+                Icons.language_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const SizedBox(width: 16),
               Expanded(child: Text(l.languageLabel)),
               SegmentedButton<String>(
@@ -566,13 +584,17 @@ class _DisplaySection extends ConsumerWidget {
                 segments: [
                   ButtonSegment(
                     value: 'fr',
-                    label: Text(l.languageFrench,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.languageFrench,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                   ButtonSegment(
                     value: 'en',
-                    label: Text(l.languageEnglish,
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text(
+                      l.languageEnglish,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
                 selected: {locale.languageCode},

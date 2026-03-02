@@ -6,13 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/errors/app_error.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_providers.dart';
 import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/presentation/friend_card_screen.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -112,7 +112,8 @@ Widget _harnessWithRouter({required Friend? friend}) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
   );
 }
 
@@ -148,7 +149,8 @@ Widget _harnessWithFailingActions({required Friend? friend}) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
   );
 }
 
@@ -440,7 +442,8 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
       );
 
       await tester.pumpWidget(widget);
@@ -493,7 +496,8 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
       );
       await tester.pumpWidget(widget);
       await tester.pump();

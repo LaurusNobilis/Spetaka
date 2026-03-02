@@ -14,12 +14,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/encryption/encryption_service_provider.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_repository.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_repository_provider.dart';
 import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/acquittement/presentation/acquittement_sheet.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Test helpers

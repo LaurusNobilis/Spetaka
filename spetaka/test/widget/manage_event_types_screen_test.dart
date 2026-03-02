@@ -18,10 +18,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/event_type_repository.dart';
 import 'package:spetaka/features/events/presentation/manage_event_types_screen.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 /// Helper: builds a fake [EventTypeEntry] list matching the 4 seed defaults.
 List<EventTypeEntry> _defaultTypes() {
@@ -51,11 +51,12 @@ Widget _buildHarness({List<EventTypeEntry>? types}) {
         (ref) => Stream.value(data),
       ),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: ManageEventTypesScreen()),
+      locale: Locale('en'),
+      home: ManageEventTypesScreen(),
+    ),
   );
 }
 
@@ -152,11 +153,12 @@ void main() {
               (ref) => ref.watch(eventTypeRepositoryProvider).watchAll(),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: ManageEventTypesScreen()),
+      locale: Locale('en'),
+      home: ManageEventTypesScreen(),
+    ),
         ),
       );
       await tester.pump();

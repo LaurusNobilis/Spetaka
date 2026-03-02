@@ -218,30 +218,32 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           // ── Cadence options (visible when recurring) ─────────────────────
           if (_isRecurring) ...[
             const SizedBox(height: 8),
-            Builder(builder: (context) {
-              final cadenceLabels = {
-                7: context.l10n.everyWeek,
-                14: context.l10n.every2Weeks,
-                21: context.l10n.every3Weeks,
-                30: context.l10n.monthly,
-                60: context.l10n.every2Months,
-                90: context.l10n.every3Months,
-                180: context.l10n.every6Months,
-                365: context.l10n.everyYear,
-              };
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final days in _kCadenceDays)
-                    _TypeChip(
-                      label: cadenceLabels[days] ?? '$days d',
-                      selected: _cadenceDays == days,
-                      onTap: () => setState(() => _cadenceDays = days),
-                    ),
-                ],
-              );
-            }),
+            Builder(
+              builder: (context) {
+                final cadenceLabels = {
+                  7: context.l10n.everyWeek,
+                  14: context.l10n.every2Weeks,
+                  21: context.l10n.every3Weeks,
+                  30: context.l10n.monthly,
+                  60: context.l10n.every2Months,
+                  90: context.l10n.every3Months,
+                  180: context.l10n.every6Months,
+                  365: context.l10n.everyYear,
+                };
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final days in _kCadenceDays)
+                      _TypeChip(
+                        label: cadenceLabels[days] ?? '$days d',
+                        selected: _cadenceDays == days,
+                        onTap: () => setState(() => _cadenceDays = days),
+                      ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 16),
           ],
 

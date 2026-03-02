@@ -9,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
 import 'package:spetaka/features/daily/domain/priority_engine.dart';
 import 'package:spetaka/features/daily/presentation/heart_briefing_widget.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -84,7 +84,8 @@ Widget _harness(List<DailyViewEntry> entries) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: router),
+      routerConfig: router,
+    ),
   );
 }
 

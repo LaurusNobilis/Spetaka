@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:spetaka/core/database/app_database.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/presentation/friends_list_screen.dart';
-import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -65,7 +65,8 @@ Widget _harness({
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      routerConfig: r),
+      routerConfig: r,
+    ),
   );
 }
 
