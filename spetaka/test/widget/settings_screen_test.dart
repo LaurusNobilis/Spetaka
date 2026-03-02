@@ -75,7 +75,13 @@ void main() {
       await tester.pump();
 
       // AC3 — passphrase hint copy appears near backup actions
-      expect(find.textContaining('passphrase'), findsWidgets);
+      expect(
+        find.text(
+          'Your passphrase encrypts your backup. It is never stored. If you '
+          'lose it, your backup cannot be recovered.',
+        ),
+        findsOneWidget,
+      );
     });
 
     // ── AC4: Reset backup settings tile present ──────────────────────────────
@@ -127,14 +133,18 @@ void main() {
       // Toggle to compact
       await tester.tap(find.byType(SwitchListTile));
       await tester.pump();
-      expect(tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-          isTrue,);
+      expect(
+        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+        isTrue,
+      );
 
       // Toggle back to expanded
       await tester.tap(find.byType(SwitchListTile));
       await tester.pump();
-      expect(tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-          isFalse,);
+      expect(
+        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+        isFalse,
+      );
     });
   });
 }

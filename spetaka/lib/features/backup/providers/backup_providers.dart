@@ -81,3 +81,28 @@ class BackupImportNotifier extends _$BackupImportNotifier {
   /// Resets the notifier back to idle.
   void reset() => state = const AsyncData(false);
 }
+
+// ---------------------------------------------------------------------------
+// BackupNotifier — reset backup settings state
+// ---------------------------------------------------------------------------
+
+/// Manages async state for the "Reset backup settings" action.
+///
+/// State is `true` after a successful reset, `false` while idle.
+@riverpod
+class BackupResetNotifier extends _$BackupResetNotifier {
+  @override
+  AsyncValue<bool> build() => const AsyncData(false);
+
+  /// Rotates the per-install PBKDF2 salt and re-encrypts sensitive fields.
+  Future<void> resetBackupSettings(String passphrase) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(backupRepositoryProvider).resetBackupSettings(passphrase);
+      return true;
+    });
+  }
+
+  /// Resets the notifier back to idle.
+  void reset() => state = const AsyncData(false);
+}

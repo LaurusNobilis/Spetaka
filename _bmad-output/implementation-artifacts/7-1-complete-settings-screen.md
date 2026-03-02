@@ -1,6 +1,6 @@
 # Story 7.1: Complete Settings Screen
 
-Status: review
+Status: done
 
 ## Story
 
@@ -33,36 +33,36 @@ so that app configuration is discoverable, simple, and never requires digging th
 
 ## Tasks / Subtasks
 
-- [ ] Settings screen structure (AC: 1, 2)
-	- [ ] Keep `/settings` as the single entry point for user-configurable settings
-	- [ ] Group content into visible sections: Backup, Display, Event Types (headings + tiles)
+- [x] Settings screen structure (AC: 1, 2)
+	- [x] Keep `/settings` as the single entry point for user-configurable settings
+	- [x] Group content into visible sections: Backup, Display, Event Types (headings + tiles)
 
-- [ ] Backup section completeness (AC: 1, 3)
-	- [ ] Ensure existing Export/Import flows remain unchanged and stable
-	- [ ] Keep passphrase helper copy visible near export/import actions
+- [x] Backup section completeness (AC: 1, 3)
+	- [x] Ensure existing Export/Import flows remain unchanged and stable
+	- [x] Keep passphrase helper copy visible near export/import actions
 
-- [ ] Display section: density preference (AC: 1, 2)
-	- [ ] Reuse the existing density preference source of truth (`densityModeProvider`)
-	- [ ] Provide a settings toggle that updates immediately and persists via existing shared prefs key
-	- [ ] Verify daily view reflects changes immediately after toggling (no app restart)
+- [x] Display section: density preference (AC: 1, 2)
+	- [x] Reuse the existing density preference source of truth (`densityModeProvider`)
+	- [x] Provide a settings toggle that updates immediately and persists via existing shared prefs key
+	- [x] Verify daily view reflects changes immediately after toggling (no app restart)
 
-- [ ] Event Types section: deep link (AC: 1)
-	- [ ] Add a navigation tile that routes to `/settings/event-types` (Manage Event Types screen)
+- [x] Event Types section: deep link (AC: 1)
+	- [x] Add a navigation tile that routes to `/settings/event-types` (Manage Event Types screen)
 
-- [ ] Sync & Backup placeholder (AC: 5)
-	- [ ] Add a disabled/greyed-out entry labeled “Sync & Backup (Coming in Phase 2)”
-	- [ ] Do not expose functional WebDAV actions in Phase 1
-	- [ ] If tapping is allowed, it must not imply functionality (prefer disabled tile)
+- [x] Sync & Backup placeholder (AC: 5)
+	- [x] Add a disabled/greyed-out entry labeled “Sync & Backup (Coming in Phase 2)”
+	- [x] Do not expose functional WebDAV actions in Phase 1
+	- [x] If tapping is allowed, it must not imply functionality (prefer disabled tile)
 
-- [ ] Reset backup settings (AC: 4)
-	- [ ] Add a “Reset backup settings” action
-	- [ ] Show a destructive confirmation dialog warning that this does not decrypt backups and may require re-entering passphrases
-	- [ ] On confirm: clear the PBKDF2 salt stored in `shared_preferences` (see Dev Notes)
+- [x] Reset backup settings (AC: 4)
+	- [x] Add a “Reset backup settings” action
+	- [x] Show a destructive confirmation dialog warning that this does not decrypt backups and may require re-entering passphrases
+	- [x] On confirm: reset/rotate the PBKDF2 salt stored in `shared_preferences` (see Dev Notes)
 
-- [ ] Accessibility verification (AC: 6)
-	- [ ] Confirm each tile meets minimum touch target height (≥ 48dp)
-	- [ ] Provide `Semantics` labels for tiles that aren’t self-descriptive
-	- [ ] Ensure disabled placeholder is still understandable via TalkBack (state announced)
+- [x] Accessibility verification (AC: 6)
+	- [x] Confirm each tile meets minimum touch target height (≥ 48dp)
+	- [x] Provide `Semantics` labels for tiles that aren’t self-descriptive
+	- [x] Ensure disabled placeholder is still understandable via TalkBack (state announced)
 
 ## Dev Notes
 
@@ -112,7 +112,8 @@ so that app configuration is discoverable, simple, and never requires digging th
 
 ### Agent Model Used
 
-Claude Sonnet 4.6
+Claude Sonnet 4.6 (initial implementation)
+GPT-5.2 (post-review fixes)
 
 ### Debug Log References
 
@@ -125,25 +126,36 @@ Claude Sonnet 4.6
 3. Added `_DisplaySection` — `ConsumerWidget` that reads `densityModeProvider` and renders a `SwitchListTile`; toggle calls `notifier.toggle()` immediately (no save button).
 4. Added `_EventTypesSection` — navigates to `ManageEventTypesRoute` via `const ManageEventTypesRoute().go(context)`; `Semantics` wrapper annotates the tile.
 5. Added `_SyncPlaceholderSection` — `ListTile(enabled: false)` with subtitle "Coming in Phase 2"; `Semantics(enabled: false)` wrapper announces the disabled state to TalkBack.
-6. Added `_onResetBackupSettings()` to `_BackupSectionState`: shows `AlertDialog` with destructive "Reset" action, then clears `EncryptionService.saltPrefsKey` from `SharedPreferences` on confirm.
+6. Updated `_onResetBackupSettings()` to require confirmation + passphrase; delegates to `BackupRepository.resetBackupSettings(passphrase)` to rotate PBKDF2 salt safely.
 7. All tiles use `minVerticalPadding: 12` (≥ 48 dp tap targets).
 
 ### Completion Notes List
 
 - All 7 tasks completed in a single session; no new dependencies required.
 - Reused 100% of existing providers (`densityModeProvider`, backup providers, router routes) per guardrails.
-- 8 new widget tests added (`test/widget/settings_screen_test.dart`); 379 total tests pass for the full suite.
+- Widget tests updated (`test/widget/settings_screen_test.dart`); full test suite passes.
 - `flutter analyze` reports zero issues.
+
+### Senior Developer Review (AI) — Fixes Applied
+
+- Reset backup settings now rotates the per-install PBKDF2 salt safely by re-encrypting sensitive DB fields in a single transaction.
+- Backup export/import ensure `EncryptionService.initialize(passphrase)` is called before decrypting/encrypting sensitive-at-rest fields.
+- Settings UX tightened: exact AC3 copy, passphrase fields disable autocorrect/suggestions, and Sync placeholder no longer shows a chevron.
 
 ## File List
 
 | File | Change |
 |------|--------|
-| `spetaka/lib/features/settings/presentation/settings_screen.dart` | Added `_SectionHeading`, `_DisplaySection`, `_EventTypesSection`, `_SyncPlaceholderSection`; `_BackupSection` gains Reset action |
-| `spetaka/test/widget/settings_screen_test.dart` | New — 8 widget tests covering AC1-AC6 |
-| `_bmad-output/implementation-artifacts/sprint-status.yaml` | Status updated: ready-for-dev → in-progress → review |
+| `spetaka/lib/features/settings/presentation/settings_screen.dart` | Complete settings screen (sections, density toggle, event types link, Sync placeholder) + Reset backup settings wiring |
+| `spetaka/lib/features/backup/data/backup_repository.dart` | Safe PBKDF2 salt rotation + ensures encryption initialization for export/import |
+| `spetaka/lib/features/backup/providers/backup_providers.dart` | Added `BackupResetNotifier` for reset action state |
+| `spetaka/lib/features/backup/providers/backup_providers.g.dart` | Generated provider updates |
+| `spetaka/lib/core/database/daos/acquittement_dao.dart` | Added `updateAcquittement(...)` for transactional re-encryption |
+| `spetaka/test/widget/settings_screen_test.dart` | Widget tests covering AC1-AC6 (copy assertion updated) |
+| `_bmad-output/implementation-artifacts/sprint-status.yaml` | Status updated: ready-for-dev → in-progress → review → done |
 | `_bmad-output/implementation-artifacts/7-1-complete-settings-screen.md` | Story updated (tasks, notes, status) |
 
 ## Change Log
 
 - 2026-03-02: Story 7.1 implemented — complete settings screen with Display, Event Types and Sync placeholder sections, plus Reset backup settings action. 8 widget tests added. All 379 tests pass, zero lint issues. Status → review.
+- 2026-03-02: Post-review fixes — safe reset backup settings (salt rotation + DB re-encryption), backup encryption initialization on export/import, tightened UX copy + placeholder affordance. Status → done.

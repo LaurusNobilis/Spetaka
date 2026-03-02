@@ -1,9 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/encryption/encryption_service.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
@@ -122,9 +120,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     );
     if (passphrase == null || !mounted) return;
 
-    ref
-        .read(backupImportProvider.notifier)
-        .importBackup(filePath, passphrase);
+    ref.read(backupImportProvider.notifier).importBackup(filePath, passphrase);
   }
 
   // --------------------------------------------------------------------------
@@ -137,7 +133,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       builder: (_) => AlertDialog(
         title: const Text('Reset backup settings'),
         content: const Text(
-          'This will clear the encryption salt stored on this device.\n\n'
+          'This will reset the encryption salt stored on this device.\n\n'
           'Your existing backups are NOT affected — each backup file '
           'contains its own encryption data. You may need to re-enter '
           'your passphrase on your next export.',
@@ -149,7 +145,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           ),
           TextButton(
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+              foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Reset'),
@@ -158,11 +154,38 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       ),
     );
     if (proceed != true || !mounted) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(EncryptionService.saltPrefsKey);
+
+    final passphrase = await _showPassphraseDialog(
+      context,
+      title: 'Reset backup settings',
+      hint: 'Enter your passphrase to continue. It is never stored.',
+      confirmField: false,
+    );
+    if (passphrase == null || !mounted) return;
+
+    ref.read(backupResetProvider.notifier).resetBackupSettings(passphrase);
+  }
+
+  void _handleResetState(AsyncValue<bool>? prev, AsyncValue<bool> next) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Backup settings have been reset.')),
+    next.whenOrNull(
+      data: (done) {
+        if (done) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Backup settings have been reset.')),
+          );
+          ref.read(backupResetProvider.notifier).reset();
+        }
+      },
+      error: (e, _) {
+        final msg = e is AppError
+            ? errorMessageFor(e)
+            : 'Reset failed. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+        ref.read(backupResetProvider.notifier).reset();
+      },
     );
   }
 
@@ -171,7 +194,9 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   // --------------------------------------------------------------------------
 
   void _handleExportState(
-      AsyncValue<String?>? prev, AsyncValue<String?> next,) {
+    AsyncValue<String?>? prev,
+    AsyncValue<String?> next,
+  ) {
     if (!mounted) return;
     next.whenOrNull(
       data: (path) {
@@ -229,12 +254,18 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Widget build(BuildContext context) {
     ref.listen(backupExportProvider, _handleExportState);
     ref.listen(backupImportProvider, _handleImportState);
+    ref.listen(backupResetProvider, _handleResetState);
 
     final exportState = ref.watch(backupExportProvider);
     final importState = ref.watch(backupImportProvider);
+    final resetState = ref.watch(backupResetProvider);
 
     final isExporting = exportState is AsyncLoading;
     final isImporting = importState is AsyncLoading;
+    final isResetting = resetState is AsyncLoading;
+
+    final isBusy = isExporting || isImporting || isResetting;
+    final resetOnTap = isBusy ? null : _onResetBackupSettings;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,8 +274,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
-            'Your passphrase is the only key to your backup. If you lose it, '
-            'the backup cannot be recovered.',
+            'Your passphrase encrypts your backup. It is never stored. If you '
+            'lose it, your backup cannot be recovered.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -256,20 +287,21 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           label: 'Export backup',
           semanticsLabel: 'Export encrypted backup',
           isLoading: isExporting,
-          onTap: isExporting || isImporting ? null : _onExport,
+          onTap: isBusy ? null : _onExport,
         ),
         _ActionTile(
           icon: Icons.download_outlined,
           label: 'Import backup',
           semanticsLabel: 'Import encrypted backup from file',
           isLoading: isImporting,
-          onTap: isExporting || isImporting ? null : _onImport,
+          onTap: isBusy ? null : _onImport,
         ),
         Semantics(
           label: 'Reset backup settings',
-          button: true,
+          button: resetOnTap != null,
           child: ListTile(
             minVerticalPadding: 12,
+            enabled: resetOnTap != null,
             leading: Icon(
               Icons.restore_outlined,
               color: Theme.of(context).colorScheme.error,
@@ -280,7 +312,14 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
-            onTap: isExporting || isImporting ? null : _onResetBackupSettings,
+            trailing: isResetting
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
+                : null,
+            onTap: resetOnTap,
           ),
         ),
         const Divider(height: 24),
@@ -314,7 +353,7 @@ class _ActionTile extends StatelessWidget {
       label: semanticsLabel,
       button: true,
       child: ListTile(
-        minVerticalPadding: 12,   // ≥ 48 dp total tap height
+        minVerticalPadding: 12, // ≥ 48 dp total tap height
         leading: Icon(icon),
         title: Text(label),
         trailing: isLoading
@@ -415,6 +454,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                 controller: _passphraseCtrl,
                 obscureText: _obscure1,
                 autofocus: true,
+                autocorrect: false,
+                enableSuggestions: false,
+                keyboardType: TextInputType.visiblePassword,
+                textCapitalization: TextCapitalization.none,
                 textInputAction: widget.confirmField
                     ? TextInputAction.next
                     : TextInputAction.done,
@@ -424,16 +467,14 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                   suffixIcon: IconButton(
                     tooltip: _obscure1 ? 'Show passphrase' : 'Hide passphrase',
                     icon: Icon(
-                      _obscure1
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                      _obscure1 ? Icons.visibility : Icons.visibility_off,
                     ),
-                    onPressed: () =>
-                        setState(() => _obscure1 = !_obscure1),
+                    onPressed: () => setState(() => _obscure1 = !_obscure1),
                   ),
                 ),
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Please enter a passphrase.' : null,
+                validator: (v) => (v == null || v.isEmpty)
+                    ? 'Please enter a passphrase.'
+                    : null,
               ),
               if (widget.confirmField) ...[
                 const SizedBox(height: 12),
@@ -441,6 +482,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                 TextFormField(
                   controller: _confirmCtrl,
                   obscureText: _obscure2,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  textCapitalization: TextCapitalization.none,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
@@ -449,12 +494,9 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                       tooltip:
                           _obscure2 ? 'Show passphrase' : 'Hide passphrase',
                       icon: Icon(
-                      _obscure2
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                        _obscure2 ? Icons.visibility : Icons.visibility_off,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscure2 = !_obscure2),
+                      onPressed: () => setState(() => _obscure2 = !_obscure2),
                     ),
                   ),
                   validator: (v) {
@@ -567,7 +609,6 @@ class _SyncPlaceholderSection extends StatelessWidget {
             leading: Icon(Icons.cloud_sync_outlined),
             title: Text('Sync & Backup'),
             subtitle: Text('Coming in Phase 2'),
-            trailing: Icon(Icons.chevron_right),
           ),
         ),
         const Divider(height: 24),

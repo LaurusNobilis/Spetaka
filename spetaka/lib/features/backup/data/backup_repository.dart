@@ -57,6 +57,9 @@ class BackupRepository {
 
   static const String _prefsDensityModeKey = 'density_mode';
 
+  // Uses the same salt key as EncryptionService (per-install PBKDF2 salt).
+  // Story 7.1: Settings → "Reset backup settings".
+
   static bool _mediaStoreInitialized = false;
 
   // --------------------------------------------------------------------------
@@ -78,7 +81,8 @@ class BackupRepository {
 
     // Android: save to Downloads via MediaStore (scoped storage compliant).
     if (Platform.isAndroid) {
-      final saved = await _exportToAndroidDownloads(bytes: bytes, fileName: fileName);
+      final saved =
+          await _exportToAndroidDownloads(bytes: bytes, fileName: fileName);
       if (saved != null && saved.isNotEmpty) {
         return saved;
       }
@@ -97,6 +101,9 @@ class BackupRepository {
   /// dependencies of `path_provider`.
   // ignore: avoid_returning_from_callbacks
   Future<Uint8List> exportToBytes(String passphrase) async {
+    // Ensure we can decrypt sensitive fields stored encrypted-at-rest.
+    await _encryptionService.initialize(passphrase);
+
     // ── 1. Collect data ──────────────────────────────────────────────────────
     final friends = await _friendRepository.findAll(); // decrypted
     final realFriends = friends.where((f) => !f.isDemo).toList();
@@ -145,7 +152,8 @@ class BackupRepository {
     // ── 4. Encrypt payload ───────────────────────────────────────────────────
     final String ciphertextB64;
     try {
-      ciphertextB64 = EncryptionService.encryptWithKeyBytes(keyBytes, jsonString);
+      ciphertextB64 =
+          EncryptionService.encryptWithKeyBytes(keyBytes, jsonString);
     } finally {
       keyBytes.fillRange(0, keyBytes.length, 0);
     }
@@ -161,7 +169,11 @@ class BackupRepository {
     for (var i = 0; i < _saltLengthBytes; i++) {
       fileBytes[offset++] = salt[i];
     }
-    fileBytes.setRange(offset, offset + ciphertextBytes.length, ciphertextBytes);
+    fileBytes.setRange(
+      offset,
+      offset + ciphertextBytes.length,
+      ciphertextBytes,
+    );
 
     return fileBytes;
   }
@@ -195,8 +207,7 @@ class BackupRepository {
     final salt = fileBytes.sublist(5, 5 + _saltLengthBytes);
 
     // ── 4. Ciphertext (UTF-8 base64url string) ────────────────────────────────
-    final ciphertextB64 =
-        utf8.decode(fileBytes.sublist(_headerSize));
+    final ciphertextB64 = utf8.decode(fileBytes.sublist(_headerSize));
 
     // ── 5. Derive key + decrypt ───────────────────────────────────────────────
     final passBytes = Uint8List.fromList(utf8.encode(passphrase));
@@ -209,7 +220,8 @@ class BackupRepository {
 
     final String jsonString;
     try {
-      jsonString = EncryptionService.decryptWithKeyBytes(keyBytes, ciphertextB64);
+      jsonString =
+          EncryptionService.decryptWithKeyBytes(keyBytes, ciphertextB64);
     } finally {
       keyBytes.fillRange(0, keyBytes.length, 0);
     }
@@ -218,6 +230,10 @@ class BackupRepository {
     final payload = BackupPayload.fromJson(
       jsonDecode(jsonString) as Map<String, dynamic>,
     );
+
+    // Ensure the per-install EncryptionService is initialised so we can
+    // persist sensitive fields encrypted-at-rest (Story 1.7–1.8).
+    await _encryptionService.initialize(passphrase);
 
     // ── 7. Replace-all restore inside a single Drift transaction ─────────────
     await _db.transaction(() async {
@@ -232,8 +248,7 @@ class BackupRepository {
         await _db.friendDao.insertFriend(_encryptFriend(friend));
       }
       for (final acq in payload.acquittements) {
-        await _db.acquittementDao
-            .insertAcquittement(_encryptAcquittement(acq));
+        await _db.acquittementDao.insertAcquittement(_encryptAcquittement(acq));
       }
       for (final event in payload.events) {
         await _db.eventDao.insertEvent(event.toCompanion(true));
@@ -245,6 +260,111 @@ class BackupRepository {
 
     // Restore lightweight settings (best-effort, must not break atomic DB restore).
     await _restoreSettingsBestEffort(payload.settings);
+  }
+
+  /// Story 7.1 (AC4): resets backup crypto settings by rotating the per-install
+  /// PBKDF2 salt stored in SharedPreferences.
+  ///
+  /// This operation is **destructive** in the sense that the derived key changes
+  /// with the salt. To keep the app functional, we re-encrypt all sensitive
+  /// fields in SQLite inside a single transaction using a new key derived from
+  /// the same [passphrase] + a fresh random salt.
+  ///
+  /// Throws if decryption fails (wrong passphrase or corrupted ciphertext).
+  Future<void> resetBackupSettings(String passphrase) async {
+    // Make sure we can decrypt existing ciphertext first.
+    await _encryptionService.initialize(passphrase);
+
+    // Load raw rows (ciphertext-at-rest) and decrypt in-memory using the current key.
+    final friends = await _db.friendDao.selectAll();
+    final acquittements = await _db.acquittementDao.selectAllRaw();
+
+    String decryptOrPlaintext(String value) {
+      try {
+        return _encryptionService.decrypt(value);
+      } on CiphertextFormatAppError {
+        // Legacy plaintext passthrough (e.g. demo-seeded rows).
+        return value;
+      }
+    }
+
+    final decryptedFriends = <Friend>[];
+    for (final f in friends) {
+      final name = decryptOrPlaintext(f.name);
+      final mobile = decryptOrPlaintext(f.mobile);
+      final notes = f.notes != null ? decryptOrPlaintext(f.notes!) : null;
+      final concern =
+          f.concernNote != null ? decryptOrPlaintext(f.concernNote!) : null;
+      decryptedFriends.add(
+        f.copyWith(
+          name: name,
+          mobile: mobile,
+          notes: Value<String?>(notes),
+          concernNote: Value<String?>(concern),
+        ),
+      );
+    }
+
+    final decryptedAcqs = <Acquittement>[];
+    for (final a in acquittements) {
+      final note = a.note != null ? decryptOrPlaintext(a.note!) : null;
+      decryptedAcqs.add(a.copyWith(note: Value<String?>(note)));
+    }
+
+    // Derive a NEW key from the same passphrase + NEW salt.
+    final newSalt = EncryptionService.generateRandomBytes(_saltLengthBytes);
+    final passBytes = Uint8List.fromList(utf8.encode(passphrase));
+    late final Uint8List newKey;
+    try {
+      newKey = EncryptionService.deriveKeyForBackup(passBytes, newSalt);
+    } finally {
+      passBytes.fillRange(0, passBytes.length, 0);
+    }
+
+    // Re-encrypt everything with the new key inside a single DB transaction.
+    try {
+      await _db.transaction(() async {
+        for (final f in decryptedFriends) {
+          final encName = EncryptionService.encryptWithKeyBytes(newKey, f.name);
+          final encMobile =
+              EncryptionService.encryptWithKeyBytes(newKey, f.mobile);
+          final encNotes = f.notes != null
+              ? EncryptionService.encryptWithKeyBytes(newKey, f.notes!)
+              : null;
+          final encConcern = f.concernNote != null
+              ? EncryptionService.encryptWithKeyBytes(newKey, f.concernNote!)
+              : null;
+
+          await _db.friendDao.updateFriend(
+            f.copyWith(
+              name: encName,
+              mobile: encMobile,
+              notes: Value<String?>(encNotes),
+              concernNote: Value<String?>(encConcern),
+            ),
+          );
+        }
+
+        for (final a in decryptedAcqs) {
+          final encNote = a.note != null
+              ? EncryptionService.encryptWithKeyBytes(newKey, a.note!)
+              : null;
+          await _db.acquittementDao.updateAcquittement(
+            a.copyWith(note: Value<String?>(encNote)),
+          );
+        }
+      });
+    } finally {
+      newKey.fillRange(0, newKey.length, 0);
+    }
+
+    // Persist the new salt and re-initialise the in-memory key.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      EncryptionService.saltPrefsKey,
+      base64UrlEncode(newSalt),
+    );
+    await _encryptionService.initialize(passphrase);
   }
 
   // --------------------------------------------------------------------------
@@ -345,16 +465,14 @@ class BackupRepository {
       mobile: Value(_encryptionService.encrypt(friend.mobile)),
       tags: Value(friend.tags),
       notes: Value(
-          friend.notes != null
-              ? _encryptionService.encrypt(friend.notes!)
-              : null,
+        friend.notes != null ? _encryptionService.encrypt(friend.notes!) : null,
       ),
       careScore: Value(friend.careScore),
       isConcernActive: Value(friend.isConcernActive),
       concernNote: Value(
-          friend.concernNote != null
-              ? _encryptionService.encrypt(friend.concernNote!)
-              : null,
+        friend.concernNote != null
+            ? _encryptionService.encrypt(friend.concernNote!)
+            : null,
       ),
       isDemo: Value(friend.isDemo),
       createdAt: Value(friend.createdAt),
@@ -368,7 +486,9 @@ class BackupRepository {
       id: Value(acq.id),
       friendId: Value(acq.friendId),
       type: Value(acq.type),
-      note: Value(acq.note != null ? _encryptionService.encrypt(acq.note!) : null),
+      note: Value(
+        acq.note != null ? _encryptionService.encrypt(acq.note!) : null,
+      ),
       createdAt: Value(acq.createdAt),
     );
   }

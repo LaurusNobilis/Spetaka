@@ -191,3 +191,67 @@ abstract class _$BackupImportNotifier extends $Notifier<AsyncValue<bool>> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Manages async state for the "Reset backup settings" action.
+///
+/// State is `true` after a successful reset, `false` while idle.
+
+@ProviderFor(BackupResetNotifier)
+final backupResetProvider = BackupResetNotifierProvider._();
+
+/// Manages async state for the "Reset backup settings" action.
+///
+/// State is `true` after a successful reset, `false` while idle.
+final class BackupResetNotifierProvider
+    extends $NotifierProvider<BackupResetNotifier, AsyncValue<bool>> {
+  /// Manages async state for the "Reset backup settings" action.
+  ///
+  /// State is `true` after a successful reset, `false` while idle.
+  BackupResetNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'backupResetProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$backupResetNotifierHash();
+
+  @$internal
+  @override
+  BackupResetNotifier create() => BackupResetNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<bool>>(value),
+    );
+  }
+}
+
+String _$backupResetNotifierHash() =>
+    r'da0a66191b2fb201441e6383e8415901f3866bcc';
+
+/// Manages async state for the "Reset backup settings" action.
+///
+/// State is `true` after a successful reset, `false` while idle.
+
+abstract class _$BackupResetNotifier extends $Notifier<AsyncValue<bool>> {
+  AsyncValue<bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<bool>, AsyncValue<bool>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<bool>, AsyncValue<bool>>,
+        AsyncValue<bool>,
+        Object?,
+        Object?>;
+    element.handleCreate(ref, build);
+  }
+}

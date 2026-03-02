@@ -23,8 +23,7 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
 
   /// Returns the [Acquittement] row with the given UUID [id], or null.
   Future<Acquittement?> findById(String id) =>
-      (select(acquittements)..where((a) => a.id.equals(id)))
-          .getSingleOrNull();
+      (select(acquittements)..where((a) => a.id.equals(id))).getSingleOrNull();
 
   /// Returns all acquittement rows for a given [friendId].
   Future<List<Acquittement>> selectByFriendId(String friendId) =>
@@ -42,6 +41,12 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
 
   /// Deletes all acquittement rows (used by [BackupRepository] restore — replace-all).
   Future<int> deleteAll() => delete(acquittements).go();
+
+  /// Replaces an existing acquittement row identified by the primary key.
+  ///
+  /// Used by Story 7.1 "Reset backup settings" to rotate encryption-at-rest.
+  Future<bool> updateAcquittement(Insertable<Acquittement> entry) =>
+      update(acquittements).replace(entry);
 
   /// Watches all acquittements; emits on every database change.
   Stream<List<Acquittement>> watchAll() => select(acquittements).watch();
