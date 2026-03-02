@@ -1,19 +1,26 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/encryption/encryption_service.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/router/app_router.dart';
 import '../../backup/providers/backup_providers.dart';
+import '../../daily/data/density_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Public widget
 // ---------------------------------------------------------------------------
 
-/// Main Settings screen — wraps all settings sections.
+/// Main Settings screen — single organised entry point for all app settings.
 ///
-/// Currently contains a **Backup & Restore** section (Story 6.5).
+/// Sections (Story 7.1):
+///  - **Backup & Restore** — export, import, passphrase note, reset
+///  - **Display** — density-mode toggle (compact / expanded)
+///  - **Event Types** — deep-link to the Manage Event Types screen
+///  - **Sync & Backup** — Phase 2 placeholder (disabled)
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -27,7 +34,35 @@ class SettingsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _BackupSection(),
+            _DisplaySection(),
+            _EventTypesSection(),
+            _SyncPlaceholderSection(),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reusable section heading
+// ---------------------------------------------------------------------------
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -90,6 +125,45 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     ref
         .read(backupImportProvider.notifier)
         .importBackup(filePath, passphrase);
+  }
+
+  // --------------------------------------------------------------------------
+  // Reset backup settings
+  // --------------------------------------------------------------------------
+
+  Future<void> _onResetBackupSettings() async {
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Reset backup settings'),
+        content: const Text(
+          'This will clear the encryption salt stored on this device.\n\n'
+          'Your existing backups are NOT affected — each backup file '
+          'contains its own encryption data. You may need to re-enter '
+          'your passphrase on your next export.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true || !mounted) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(EncryptionService.saltPrefsKey);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Backup settings have been reset.')),
+    );
   }
 
   // --------------------------------------------------------------------------
@@ -165,17 +239,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Text(
-            'Backup & Restore',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
+        const _SectionHeading('Backup & Restore'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
@@ -200,6 +264,24 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           semanticsLabel: 'Import encrypted backup from file',
           isLoading: isImporting,
           onTap: isExporting || isImporting ? null : _onImport,
+        ),
+        Semantics(
+          label: 'Reset backup settings',
+          button: true,
+          child: ListTile(
+            minVerticalPadding: 12,
+            leading: Icon(
+              Icons.restore_outlined,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(
+              'Reset backup settings',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            onTap: isExporting || isImporting ? null : _onResetBackupSettings,
+          ),
         ),
         const Divider(height: 24),
       ],
@@ -399,6 +481,96 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
           onPressed: _submit,
           child: const Text('Continue'),
         ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Display section — density preference toggle
+// ---------------------------------------------------------------------------
+
+class _DisplaySection extends ConsumerWidget {
+  const _DisplaySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(densityModeProvider);
+    final isCompact = mode == DensityMode.compact;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Display'),
+        SwitchListTile(
+          secondary: const Icon(Icons.density_medium_outlined),
+          title: const Text('Compact view'),
+          subtitle: const Text('Show more friends on screen at once'),
+          value: isCompact,
+          onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event Types section — deep link to Manage Event Types
+// ---------------------------------------------------------------------------
+
+class _EventTypesSection extends StatelessWidget {
+  const _EventTypesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Event Types'),
+        Semantics(
+          label: 'Manage event types',
+          button: true,
+          child: ListTile(
+            minVerticalPadding: 12,
+            leading: const Icon(Icons.event_note_outlined),
+            title: const Text('Manage Event Types'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => const ManageEventTypesRoute().go(context),
+          ),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sync & Backup — Phase 2 placeholder (disabled)
+// ---------------------------------------------------------------------------
+
+class _SyncPlaceholderSection extends StatelessWidget {
+  const _SyncPlaceholderSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Sync & Backup'),
+        Semantics(
+          label: 'Sync & Backup \u2014 Coming in Phase 2, not yet available',
+          enabled: false,
+          child: const ListTile(
+            minVerticalPadding: 12,
+            enabled: false,
+            leading: Icon(Icons.cloud_sync_outlined),
+            title: Text('Sync & Backup'),
+            subtitle: Text('Coming in Phase 2'),
+            trailing: Icon(Icons.chevron_right),
+          ),
+        ),
+        const Divider(height: 24),
       ],
     );
   }
