@@ -24,4 +24,28 @@ As Laurus, I want automatic acquittement prompt on app return so the loop closes
 
 ## Dev Agent Record
 ### Agent Model Used
-GPT-5.3-Codex
+Claude Sonnet 4.6
+
+### Handoff (5-2 → 5-3)
+
+**Status:** done | Commit: `aa92def`
+
+**PendingActionState contract** (shared with 5-3):
+- File: `lib/features/acquittement/domain/pending_action_state.dart`
+- Fields: `friendId`, `origin` (AcquittementOrigin enum), `actionType` ('call'|'sms'|'whatsapp'), `timestamp`
+- Expiry: 30 min via `isExpired` getter
+
+**Key new APIs:**
+- `AppLifecycleService.setActionState(PendingActionState?)` — set before leaving app
+- `AppLifecycleService.clearActionState()` — call when sheet opens (AC3)
+- `AppLifecycleService.pendingActionStream` — emits non-expired states on resume
+- `showAcquittementSheet(context, ref, pendingState)` — opens bottom sheet + clears state
+
+**Stub AcquittementSheet** in `lib/features/acquittement/presentation/acquittement_sheet.dart`:
+- Story 5-3 must replace the `AcquittementSheet.build()` body with full implementation
+- The `showAcquittementSheet` helper already calls `clearActionState()` — keep this
+
+**DB:** No migration needed. `acquittements` table already exists (v1.7, schema v7).
+Use `AcquittementRepository.insert(Acquittement)` for persistence.
+
+**Tests added:** `test/unit/app_lifecycle_pending_state_test.dart` (13 tests, all green)

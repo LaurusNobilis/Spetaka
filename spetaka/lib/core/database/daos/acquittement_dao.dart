@@ -39,4 +39,14 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
 
   /// Watches all acquittements; emits on every database change.
   Stream<List<Acquittement>> watchAll() => select(acquittements).watch();
+
+  /// Watches acquittements for [friendId] in reverse chronological order.
+  ///
+  /// Emits on every database change; used by Story 5-4 contact history log
+  /// and Story 5-5 care-score update.
+  Stream<List<Acquittement>> watchByFriendId(String friendId) =>
+      (select(acquittements)
+            ..where((a) => a.friendId.equals(friendId))
+            ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]))
+          .watch();
 }

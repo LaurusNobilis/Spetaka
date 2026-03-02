@@ -1,16 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../../core/database/app_database.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
+import '../data/acquittement_repository_provider.dart';
 import '../domain/pending_action_state.dart';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/// Ordered list of selectable action types for [AcquittementSheet].
+const _kActionTypes = ['call', 'sms', 'whatsapp', 'vocal', 'in_person'];
+
+/// Human-readable labels for each action type.
+const _kTypeLabels = <String, String>{
+  'call': 'Appel',
+  'sms': 'SMS',
+  'whatsapp': 'WhatsApp',
+  'vocal': 'Message vocal',
+  'in_person': 'Vu en personne',
+};
+
+/// Icons for each action type.
+const _kTypeIcons = <String, IconData>{
+  'call': Icons.phone_outlined,
+  'sms': Icons.sms_outlined,
+  'whatsapp': Icons.chat_outlined,
+  'vocal': Icons.mic_none_outlined,
+  'in_person': Icons.people_outline,
+};
+
+// ---------------------------------------------------------------------------
+// Top-level helper (kept from 5-2 stub — API unchanged)
+// ---------------------------------------------------------------------------
 
 /// Shows the acquittement bottom sheet for the given [pendingState].
 ///
 /// Clears the pending action state from [AppLifecycleService] as soon as it
 /// mounts (AC3 — clear on open).
-///
-/// The [isBackground] flag controls whether the route below is still
-/// visible (transparent barrier when true).
 Future<void> showAcquittementSheet({
   required BuildContext context,
   required WidgetRef ref,
@@ -30,12 +59,19 @@ Future<void> showAcquittementSheet({
   );
 }
 
-/// Bottom sheet that captures a contact acquittement.
+// ---------------------------------------------------------------------------
+// AcquittementSheet — Story 5-3 full implementation
+// ---------------------------------------------------------------------------
+
+/// Bottom sheet that captures a contact acquittement in one tap.
 ///
-/// **Story 5-2 stub** — displays the pending state; interaction is wired in
-/// Story 5-3 which replaces this widget body with the full implementation
-/// (type selector, optional note, one-tap confirm, Drift persistence).
-class AcquittementSheet extends StatelessWidget {
+/// **AC coverage (Story 5-3):**
+/// - AC1: `acquittements` table exists (created in Story 1.7, schema v7).
+/// - AC2: Pre-fills action type from [PendingActionState.actionType]; timestamp = now.
+/// - AC3: Type selector allows call / SMS / WhatsApp / vocal / vu en personne.
+/// - AC4: Confirm = 1 tap → saves acquittement → warm micro-feedback.
+/// - AC5: Note field is optional.
+class AcquittementSheet extends ConsumerStatefulWidget {
   const AcquittementSheet({
     super.key,
     required this.pendingState,
@@ -44,26 +80,116 @@ class AcquittementSheet extends StatelessWidget {
   final PendingActionState pendingState;
 
   @override
+  ConsumerState<AcquittementSheet> createState() => _AcquittementSheetState();
+}
+
+class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
+  static const _uuid = Uuid();
+
+  late String _selectedType;
+  final _noteController = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // AC2: pre-fill action type from pending state.
+    // Map raw actionType to selector value (default 'call' for 'manual'/unknown).
+    _selectedType = _normalizeType(widget.pendingState.actionType);
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  /// Maps raw actionType to a type present in [_kActionTypes].
+  String _normalizeType(String raw) {
+    return _kActionTypes.contains(raw) ? raw : 'call';
+  }
+
+  Future<void> _handleConfirm() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final note = _noteController.text.trim();
+      final entry = Acquittement(
+        id: _uuid.v4(),
+        friendId: widget.pendingState.friendId,
+        type: _selectedType,
+        note: note.isNotEmpty ? note : null,
+        createdAt: now,
+      );
+
+      await ref.read(acquittementRepositoryProvider).insert(entry);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        // Warm micro-feedback as a SnackBar after sheet closes.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.favorite, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Contact logged — bien joué 💛',
+                  key: const Key('acquittement_success_snackbar'),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      // Ensure sheet rises above keyboard when note field is focused.
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 16,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 32,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Drag handle
+          // ── Drag handle ─────────────────────────────────────────────────
           Center(
             child: Container(
               width: 40,
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: theme.colorScheme.outlineVariant,
+                color: colorScheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
+
+          // ── Title ────────────────────────────────────────────────────────
           Text(
             'Log contact',
             key: const Key('acquittement_sheet_title'),
@@ -71,18 +197,93 @@ class AcquittementSheet extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+
+          // ── AC3: Type selector ───────────────────────────────────────────
           Text(
-            'Action: ${pendingState.actionType}',
-            key: const Key('acquittement_sheet_action_type'),
-            style: theme.textTheme.bodyMedium,
+            'Type',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _kActionTypes.map((type) {
+              final selected = _selectedType == type;
+              final icon = _kTypeIcons[type] ?? Icons.contact_phone_outlined;
+              final label = _kTypeLabels[type] ?? type;
+              return ChoiceChip(
+                key: Key('type_chip_$type'),
+                avatar: Icon(
+                  icon,
+                  size: 16,
+                  color: selected
+                      ? colorScheme.onSecondaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+                label: Text(label),
+                selected: selected,
+                onSelected: (_) => setState(() => _selectedType = type),
+                labelStyle: TextStyle(
+                  color: selected
+                      ? colorScheme.onSecondaryContainer
+                      : colorScheme.onSurface,
+                  fontSize: 13,
+                ),
+                selectedColor: colorScheme.secondaryContainer,
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Optional note ────────────────────────────────────────────────
+          Text(
+            'Note (optional)',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('acquittement_note_field'),
+            controller: _noteController,
+            maxLines: 3,
+            minLines: 1,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _handleConfirm(),
+            decoration: InputDecoration(
+              hintText: 'Comment ça s\'est passé ?',
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: colorScheme.outlineVariant),
+              ),
+            ),
           ),
           const SizedBox(height: 24),
-          // Placeholder — replaced in Story 5-3 with full AcquittementSheet.
+
+          // ── AC4: One-tap confirm ─────────────────────────────────────────
           FilledButton(
             key: const Key('acquittement_sheet_confirm'),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            onPressed: _saving ? null : _handleConfirm,
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+            child: _saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Confirmer'),
           ),
         ],
       ),

@@ -54,6 +54,14 @@ class AcquittementRepository {
           .watchAll()
           .map((rows) => rows.map(_decryptRow).toList());
 
+  /// Watches acquittements for [friendId] in reverse chronological order.
+  ///
+  /// Used by Story 5-4 (contact history log) and 5-5 (care-score update).
+  Stream<List<Acquittement>> watchByFriendId(String friendId) =>
+      db.acquittementDao
+          .watchByFriendId(friendId)
+          .map((rows) => rows.map(_decryptRow).toList());
+
   // ---------------------------------------------------------------------------
   // Private helpers — encryption boundary
   // ---------------------------------------------------------------------------

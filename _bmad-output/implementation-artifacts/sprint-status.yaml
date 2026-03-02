@@ -82,7 +82,7 @@ development_status:
 
   epic-5: in-progress
   5-1-1-tap-call-sms-whatsapp-actions: done
-  5-2-app-return-detection-acquittement-trigger: ready-for-dev
+  5-2-app-return-detection-acquittement-trigger: done
   5-3-acquittement-sheet-type-note-one-tap-confirm: ready-for-dev
   5-4-contact-history-log-per-friend: ready-for-dev
   5-5-care-score-update-after-acquittement: ready-for-dev
