@@ -8,6 +8,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:   # allow manual trigger from GitHub Actions tab
 
 # Cancel any in-progress run for the same branch to avoid wasted minutes.
 concurrency:
