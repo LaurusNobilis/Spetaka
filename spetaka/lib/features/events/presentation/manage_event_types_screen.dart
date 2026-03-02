@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../data/event_type_providers.dart';
 
 /// Screen for managing event types (add, rename, reorder, delete).
@@ -46,25 +47,25 @@ class _ManageEventTypesScreenState
     final newName = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rename Event Type'),
+        title: Text(context.l10n.renameEventTypeTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.l10n.nameLabel,
+            border: const OutlineInputBorder(),
           ),
           onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(context.l10n.actionSave),
           ),
         ],
       ),
@@ -92,24 +93,24 @@ class _ManageEventTypesScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Event Type?'),
+        title: Text(context.l10n.deleteEventTypeTitle),
         content: usageCount > 0
             ? Text(
                 '$usageCount event${usageCount == 1 ? '' : 's'} use this type '
                 '— they will keep their current label.',
               )
-            : Text('Delete "${entry.name}"?'),
+            : Text(context.l10n.deleteEntryConfirm(entry.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.actionCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.actionDelete),
           ),
         ],
       ),
@@ -142,7 +143,7 @@ class _ManageEventTypesScreenState
     final typesAsync = ref.watch(watchEventTypesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Event Types')),
+      appBar: AppBar(title: Text(context.l10n.eventTypesTitle)),
       body: Column(
         children: [
           // ── Add type row — AC2 ───────────────────────────────────────────
@@ -154,9 +155,9 @@ class _ManageEventTypesScreenState
                   child: TextField(
                     controller: _addController,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      hintText: 'New event type…',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.newEventTypePlaceholder,
+                      border: const OutlineInputBorder(),
                       isDense: true,
                     ),
                     onSubmitted: (_) => _addType(),
@@ -166,7 +167,7 @@ class _ManageEventTypesScreenState
                 IconButton.filled(
                   onPressed: _addType,
                   icon: const Icon(Icons.add),
-                  tooltip: 'Add type',
+                  tooltip: context.l10n.addTypeTooltip,
                 ),
               ],
             ),
@@ -179,7 +180,7 @@ class _ManageEventTypesScreenState
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
                 child: Text(
-                  'Could not load event types.',
+                  context.l10n.couldNotLoadEventTypes,
                   style: theme.textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.error),
                 ),
@@ -188,7 +189,7 @@ class _ManageEventTypesScreenState
                 if (types.isEmpty) {
                   return Center(
                     child: Text(
-                      'No event types. Add one above.',
+                      context.l10n.noEventTypes,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.outline,
                         fontStyle: FontStyle.italic,
@@ -215,7 +216,7 @@ class _ManageEventTypesScreenState
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit_outlined, size: 20),
-                            tooltip: 'Rename',
+                            tooltip: context.l10n.actionRename,
                             onPressed: () => _rename(entry),
                           ),
                           IconButton(
@@ -224,7 +225,7 @@ class _ManageEventTypesScreenState
                               size: 20,
                               color: colorScheme.error,
                             ),
-                            tooltip: 'Delete',
+                            tooltip: context.l10n.actionDelete,
                             onPressed: () => _confirmDelete(entry),
                           ),
                         ],

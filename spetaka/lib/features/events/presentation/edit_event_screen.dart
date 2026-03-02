@@ -3,18 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../data/event_repository_provider.dart';
 import '../data/event_type_providers.dart';
 
-/// Human-readable cadence labels — matches AddEventScreen.
-const _cadenceOptions = [
-  (days: 7, label: 'Every week'),
-  (days: 14, label: 'Every 2 weeks'),
-  (days: 21, label: 'Every 3 weeks'),
-  (days: 30, label: 'Monthly'),
-  (days: 60, label: 'Every 2 months'),
-  (days: 90, label: 'Every 3 months'),
-];
+/// Cadence day values — labels resolved from l10n at build time.
+const _kCadenceDays = [7, 14, 21, 30, 60, 90];
 
 /// Screen for editing an existing event.
 ///
@@ -104,7 +98,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Event'),
+        title: Text(context.l10n.editEventTitle),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -116,7 +110,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(context.l10n.actionSave),
             ),
           ),
         ],
@@ -126,7 +120,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         children: [
           // ── Event type selector — AC6 (3.4) ──────────────────────────────
           Text(
-            'Event Type',
+            context.l10n.eventTypeLabel,
             style: theme.textTheme.titleSmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w700,
@@ -137,7 +131,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           eventTypesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => Text(
-              'Could not load event types.',
+              context.l10n.couldNotLoadEventTypes,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: colorScheme.error),
             ),
@@ -169,7 +163,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
           // ── Date picker ──────────────────────────────────────────────────
           Text(
-            'Date',
+            context.l10n.dateLabel,
             style: theme.textTheme.titleSmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w700,
@@ -209,14 +203,14 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
-              'Recurring',
+              context.l10n.recurringLabel,
               style: theme.textTheme.titleSmall?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
               ),
             ),
-            subtitle: const Text('Set a repeating check-in cadence'),
+            subtitle: Text(context.l10n.checkInCadence),
             value: _isRecurring,
             onChanged: (v) => setState(() => _isRecurring = v),
           ),
@@ -224,24 +218,34 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           // ── Cadence options (visible when recurring) ─────────────────────
           if (_isRecurring) ...[
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final opt in _cadenceOptions)
-                  _TypeChip(
-                    label: opt.label,
-                    selected: _cadenceDays == opt.days,
-                    onTap: () => setState(() => _cadenceDays = opt.days),
-                  ),
-              ],
-            ),
+            Builder(builder: (context) {
+              final cadenceLabels = {
+                7: context.l10n.everyWeek,
+                14: context.l10n.every2Weeks,
+                21: context.l10n.every3Weeks,
+                30: context.l10n.monthly,
+                60: context.l10n.every2Months,
+                90: context.l10n.every3Months,
+              };
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final days in _kCadenceDays)
+                    _TypeChip(
+                      label: cadenceLabels[days] ?? '$days d',
+                      selected: _cadenceDays == days,
+                      onTap: () => setState(() => _cadenceDays = days),
+                    ),
+                ],
+              );
+            }),
             const SizedBox(height: 16),
           ],
 
           // ── Comment ──────────────────────────────────────────────────────
           Text(
-            'Comment',
+            context.l10n.commentOptional,
             style: theme.textTheme.titleSmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w700,
@@ -254,7 +258,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             maxLines: 3,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
-              hintText: 'Optional note…',
+              hintText: context.l10n.addNoteHint,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

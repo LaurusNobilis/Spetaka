@@ -19,6 +19,7 @@ import 'package:spetaka/features/acquittement/data/acquittement_repository.dart'
 import 'package:spetaka/features/acquittement/data/acquittement_repository_provider.dart';
 import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/acquittement/presentation/acquittement_sheet.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -59,6 +60,9 @@ Widget _harness({
       ),
     ],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       home: Scaffold(
         body: AcquittementSheet(pendingState: pendingState),
       ),

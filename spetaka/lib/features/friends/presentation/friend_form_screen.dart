@@ -8,6 +8,7 @@ import '../../../core/actions/phone_normalizer.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/settings/data/category_tags_provider.dart';
 import '../data/friend_repository_provider.dart';
@@ -334,7 +335,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isEditMode ? 'Edit Friend' : 'Add Friend';
+    final title = _isEditMode ? context.l10n.editFriendTitle : context.l10n.addFriendTitle;
     final availableTags = ref
         .watch(categoryTagsProvider)
         .map((t) => t.name)
@@ -369,7 +370,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Enter details',
+            context.l10n.enterDetails,
             style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -377,13 +378,13 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
           // Category tags — Story 2.3.
           Text(
-            'Category tags',
+            context.l10n.categoryTagsLabel,
             style: theme.textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
           Semantics(
             container: true,
-            label: 'Category tags',
+            label: context.l10n.categoryTagsLabel,
             child: Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -411,7 +412,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           TextFormField(
             controller: _nameController,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: context.l10n.nameLabel),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return errorMessageFor(const FriendNameMissingAppError());
@@ -426,9 +427,9 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
             controller: _mobileController,
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'Mobile',
-              hintText: 'e.g. 06 12 34 56 78',
+            decoration: InputDecoration(
+              labelText: context.l10n.mobileLabel,
+              hintText: context.l10n.mobilePlaceholder,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -449,9 +450,9 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
             controller: _notesController,
             textInputAction: TextInputAction.newline,
             maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              hintText: 'Optional context notes…',
+            decoration: InputDecoration(
+              labelText: context.l10n.notesLabel,
+              hintText: context.l10n.optionalContextNotes,
               alignLabelWithHint: true,
             ),
             onFieldSubmitted: (_) => _saveFriend(),
@@ -473,7 +474,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                       color: onPrimary,
                     ),
                   )
-                : const Text('Save'),
+                : Text(context.l10n.actionSave),
           ),
           const SizedBox(height: 12),
 
@@ -499,7 +500,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                       });
                     }
                   },
-            child: const Text('Back'),
+            child: Text(context.l10n.actionBack),
           ),
         ],
       ),
@@ -538,7 +539,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                   ),
                 )
               : const Icon(Icons.contacts_outlined),
-          label: const Text('Import from contacts'),
+          label: Text(context.l10n.importFromContacts),
         ),
 
         const SizedBox(height: 16),
@@ -551,7 +552,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           ),
           onPressed: _isLoading ? null : () => _showManualForm(),
           icon: const Icon(Icons.edit_outlined),
-          label: const Text('Enter manually'),
+          label: Text(context.l10n.enterManually),
         ),
       ],
     );

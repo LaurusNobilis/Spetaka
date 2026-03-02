@@ -110,3 +110,10 @@ phase-2-backlog:
   p2-epic-6-webdav-sync-encrypt-upload: backlog
   p2-epic-6-automatic-background-webdav-sync: backlog
   p2-epic-6-full-restore-from-webdav-after-reinstall: backlog
+
+# =============================================================
+# UX BACKLOG — Filtering & Discovery (deferred)
+# =============================================================
+ux-backlog:
+  ux-2-10-filter-friends-list-by-tag: backlog
+  ux-3-6-filter-friends-by-event-type: backlog

@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/l10n/l10n_extension.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../backup/providers/backup_providers.dart';
 import '../../daily/data/density_provider.dart';
+import '../data/display_prefs_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Public widget
@@ -25,7 +28,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.settingsTitle)),
       body: const SingleChildScrollView(
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -87,9 +90,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Future<void> _onExport() async {
     final passphrase = await _showPassphraseDialog(
       context,
-      title: 'Export backup',
-      hint:
-          'Choose a passphrase to protect your backup. Write it down somewhere safe — it cannot be recovered.',
+      title: context.l10n.exportBackupLabel,
+      hint: context.l10n.exportPassphraseHint,
       confirmField: true,
     );
     if (passphrase == null || !mounted) return;
@@ -115,8 +117,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     // Step 2 — ask for passphrase
     final passphrase = await _showPassphraseDialog(
       context,
-      title: 'Import backup',
-      hint: 'Enter the passphrase you used when creating this backup.',
+      title: context.l10n.importBackupLabel,
+      hint: context.l10n.importPassphraseHint,
       confirmField: false,
     );
     if (passphrase == null || !mounted) return;
@@ -132,23 +134,19 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     final proceed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Reset encryption key'),
-        content: const Text(
-          'This will generate a new encryption key for this device and '
-          're-encrypt all your data. Your existing backup files are NOT '
-          'affected — they carry their own backup passphrase.',
-        ),
+        title: Text(context.l10n.resetEncryptionKeyTitle),
+        content: Text(context.l10n.resetEncryptionKeyContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.actionCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
+            child: Text(context.l10n.actionReset),
           ),
         ],
       ),
@@ -164,7 +162,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       data: (done) {
         if (done) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Backup settings have been reset.')),
+            SnackBar(content: Text(context.l10n.backupSettingsResetSuccess)),
           );
           ref.read(backupResetProvider.notifier).reset();
         }
@@ -172,7 +170,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       error: (e, _) {
         final msg = e is AppError
             ? errorMessageFor(e)
-            : 'Reset failed. Please try again.';
+            : context.l10n.resetFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg)),
         );
@@ -195,7 +193,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
         if (path != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Backup saved to:\n$path'),
+              content: Text(context.l10n.backupSavedTo(path)),
               duration: const Duration(seconds: 6),
             ),
           );
@@ -205,7 +203,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       error: (e, _) {
         final msg = e is AppError
             ? errorMessageFor(e)
-            : 'Export failed. Please try again.';
+            : context.l10n.resetExportFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg)),
         );
@@ -220,7 +218,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       data: (success) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Backup restored successfully.')),
+            SnackBar(content: Text(context.l10n.backupRestoredSuccess)),
           );
           ref.read(backupImportProvider.notifier).reset();
           const HomeRoute().go(context);
@@ -229,7 +227,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       error: (e, _) {
         final msg = e is AppError
             ? errorMessageFor(e)
-            : 'Import failed. Please check your passphrase and file.';
+            : context.l10n.importFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg)),
         );
@@ -262,12 +260,11 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('Backup & Restore'),
+        _SectionHeading(context.l10n.backupSectionTitle),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
-            'Your passphrase encrypts your backup. It is never stored. If you '
-            'lose it, your backup cannot be recovered.',
+            context.l10n.backupPassphraseNote,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -276,20 +273,20 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
         const SizedBox(height: 8),
         _ActionTile(
           icon: Icons.upload_file_outlined,
-          label: 'Export backup',
-          semanticsLabel: 'Export encrypted backup',
+          label: context.l10n.exportBackupLabel,
+          semanticsLabel: context.l10n.exportBackupSemantics,
           isLoading: isExporting,
           onTap: isBusy ? null : _onExport,
         ),
         _ActionTile(
           icon: Icons.download_outlined,
-          label: 'Import backup',
-          semanticsLabel: 'Import encrypted backup from file',
+          label: context.l10n.importBackupLabel,
+          semanticsLabel: context.l10n.importBackupSemantics,
           isLoading: isImporting,
           onTap: isBusy ? null : _onImport,
         ),
         Semantics(
-          label: 'Reset backup settings',
+          label: context.l10n.resetBackupSettingsLabel,
           button: resetOnTap != null,
           child: ListTile(
             minVerticalPadding: 12,
@@ -299,7 +296,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
-              'Reset backup settings',
+              context.l10n.resetBackupSettingsLabel,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.error,
               ),
@@ -455,9 +452,11 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                     : TextInputAction.done,
                 onFieldSubmitted: widget.confirmField ? null : (_) => _submit(),
                 decoration: InputDecoration(
-                  labelText: 'Passphrase',
+                  labelText: context.l10n.passphraseLabel,
                   suffixIcon: IconButton(
-                    tooltip: _obscure1 ? 'Show passphrase' : 'Hide passphrase',
+                    tooltip: _obscure1
+                        ? context.l10n.showPassphrase
+                        : context.l10n.hidePassphrase,
                     icon: Icon(
                       _obscure1 ? Icons.visibility : Icons.visibility_off,
                     ),
@@ -481,10 +480,11 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
-                    labelText: 'Confirm passphrase',
+                    labelText: context.l10n.confirmPassphraseLabel,
                     suffixIcon: IconButton(
-                      tooltip:
-                          _obscure2 ? 'Show passphrase' : 'Hide passphrase',
+                      tooltip: _obscure2
+                          ? context.l10n.showPassphrase
+                          : context.l10n.hidePassphrase,
                       icon: Icon(
                         _obscure2 ? Icons.visibility : Icons.visibility_off,
                       ),
@@ -509,11 +509,11 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.actionCancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text('Continue'),
+          child: Text(context.l10n.actionContinue),
         ),
       ],
     );
@@ -521,7 +521,7 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
 }
 
 // ---------------------------------------------------------------------------
-// Display section — density preference toggle
+// Display section — density + font size + icon size + language
 // ---------------------------------------------------------------------------
 
 class _DisplaySection extends ConsumerWidget {
@@ -530,23 +530,138 @@ class _DisplaySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(densityModeProvider);
+    final fontScale = ref.watch(fontScaleModeProvider);
+    final iconSize = ref.watch(iconSizeModeProvider);
+    final locale = ref.watch(localeProvider);
     final isCompact = mode == DensityMode.compact;
+    final l = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('Display'),
+        _SectionHeading(l.displaySectionTitle),
+        // ── Compact view toggle ───────────────────────────────────────────
         Semantics(
-          label: isCompact ? 'Compact view, on' : 'Compact view, off',
+          label: isCompact ? l.compactViewOn : l.compactViewOff,
           toggled: isCompact,
           excludeSemantics: true,
           child: SwitchListTile(
             key: const Key('density_switch'),
             secondary: const Icon(Icons.density_medium_outlined),
-            title: const Text('Compact view'),
-            subtitle: const Text('Show more friends on screen at once'),
+            title: Text(l.compactViewLabel),
+            subtitle: Text(l.compactViewSubtitle),
             value: isCompact,
             onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
+          ),
+        ),
+        // ── Font size ─────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              Icon(Icons.text_fields_outlined,
+                  color: Theme.of(context).colorScheme.onSurface),
+              const SizedBox(width: 16),
+              Expanded(child: Text(l.fontSizeLabel)),
+              SegmentedButton<FontScaleMode>(
+                showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                segments: [
+                  ButtonSegment(
+                    value: FontScaleMode.small,
+                    label: Text(l.sizeSmall,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                  ButtonSegment(
+                    value: FontScaleMode.medium,
+                    label: Text(l.sizeMedium,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                  ButtonSegment(
+                    value: FontScaleMode.large,
+                    label: Text(l.sizeLarge,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                ],
+                selected: {fontScale},
+                onSelectionChanged: (s) =>
+                    ref.read(fontScaleModeProvider.notifier).set(s.first),
+              ),
+            ],
+          ),
+        ),
+        // ── Icon size ─────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+          child: Row(
+            children: [
+              Icon(Icons.interests_outlined,
+                  color: Theme.of(context).colorScheme.onSurface),
+              const SizedBox(width: 16),
+              Expanded(child: Text(l.iconSizeLabel)),
+              SegmentedButton<IconSizeMode>(
+                showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                segments: [
+                  ButtonSegment(
+                    value: IconSizeMode.small,
+                    label: Text(l.sizeSmall,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                  ButtonSegment(
+                    value: IconSizeMode.medium,
+                    label: Text(l.sizeMedium,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                  ButtonSegment(
+                    value: IconSizeMode.large,
+                    label: Text(l.sizeLarge,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                ],
+                selected: {iconSize},
+                onSelectionChanged: (s) =>
+                    ref.read(iconSizeModeProvider.notifier).set(s.first),
+              ),
+            ],
+          ),
+        ),
+        // ── Language ──────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+          child: Row(
+            children: [
+              Icon(Icons.language_outlined,
+                  color: Theme.of(context).colorScheme.onSurface),
+              const SizedBox(width: 16),
+              Expanded(child: Text(l.languageLabel)),
+              SegmentedButton<String>(
+                showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                segments: [
+                  ButtonSegment(
+                    value: 'fr',
+                    label: Text(l.languageFrench,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                  ButtonSegment(
+                    value: 'en',
+                    label: Text(l.languageEnglish,
+                        style: const TextStyle(fontSize: 11)),
+                  ),
+                ],
+                selected: {locale.languageCode},
+                onSelectionChanged: (s) => ref
+                    .read(localeProvider.notifier)
+                    .set(Locale(s.first)),
+              ),
+            ],
           ),
         ),
         const Divider(height: 24),
@@ -567,15 +682,15 @@ class _CategoryTagsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('Category Tags'),
+        _SectionHeading(context.l10n.categoryTagsSectionTitle),
         Semantics(
-          label: 'Manage category tags',
+          label: context.l10n.manageCategoryTagsLabel,
           button: true,
           child: ListTile(
             minVerticalPadding: 12,
             leading: const Icon(Icons.label_outline),
-            title: const Text('Manage Category Tags'),
-            subtitle: const Text('Edit names and priority weights'),
+            title: Text(context.l10n.manageCategoryTagsLabel),
+            subtitle: Text(context.l10n.editNamesWeightsSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => const ManageCategoryTagsRoute().push(context),
           ),
@@ -598,14 +713,14 @@ class _EventTypesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('Event Types'),
+        _SectionHeading(context.l10n.eventTypesSectionTitle),
         Semantics(
-          label: 'Manage event types',
+          label: context.l10n.manageEventTypesLabel,
           button: true,
           child: ListTile(
             minVerticalPadding: 12,
             leading: const Icon(Icons.event_note_outlined),
-            title: const Text('Manage Event Types'),
+            title: Text(context.l10n.manageEventTypesLabel),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => const ManageEventTypesRoute().go(context),
           ),
@@ -628,16 +743,16 @@ class _SyncPlaceholderSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('Sync & Backup'),
+        _SectionHeading(context.l10n.syncSectionTitle),
         Semantics(
-          label: 'Sync & Backup \u2014 Coming in Phase 2, not yet available',
+          label: context.l10n.syncSemantics,
           enabled: false,
-          child: const ListTile(
+          child: ListTile(
             minVerticalPadding: 12,
             enabled: false,
-            leading: Icon(Icons.cloud_sync_outlined),
-            title: Text('Sync & Backup'),
-            subtitle: Text('Coming in Phase 2'),
+            leading: const Icon(Icons.cloud_sync_outlined),
+            title: Text(context.l10n.syncSectionTitle),
+            subtitle: Text(context.l10n.syncComingSoon),
           ),
         ),
         const Divider(height: 24),

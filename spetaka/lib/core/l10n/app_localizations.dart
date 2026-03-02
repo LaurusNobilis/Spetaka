@@ -1,0 +1,1093 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('fr')
+  ];
+
+  /// Application name
+  ///
+  /// In en, this message translates to:
+  /// **'Spetaka'**
+  String get appTitle;
+
+  /// Bottom nav / AppBar label for daily view
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get navDaily;
+
+  /// Bottom nav / AppBar label for friends list
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get navFriends;
+
+  /// AppBar / tooltip label for settings
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
+
+  /// Generic add button label
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get actionAdd;
+
+  /// Generic save button label
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get actionSave;
+
+  /// Generic cancel button label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// Generic delete button label
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// Generic edit button label
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get actionEdit;
+
+  /// Generic reset button label
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get actionReset;
+
+  /// Generic back button label
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get actionBack;
+
+  /// Generic continue button label
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get actionContinue;
+
+  /// Generic rename button label
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get actionRename;
+
+  /// Generic flag button label
+  ///
+  /// In en, this message translates to:
+  /// **'Flag'**
+  String get actionFlag;
+
+  /// Generic clear button label
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get actionClear;
+
+  /// Generic confirm button label
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get actionConfirm;
+
+  /// Generic error message
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get somethingWentWrong;
+
+  /// Error when save fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Please try again.'**
+  String get couldNotSave;
+
+  /// Friends list screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsTitle;
+
+  /// FAB tooltip on friends list
+  ///
+  /// In en, this message translates to:
+  /// **'Add friend'**
+  String get addFriendTooltip;
+
+  /// Empty state button on friends list
+  ///
+  /// In en, this message translates to:
+  /// **'Add first friend'**
+  String get addFirstFriend;
+
+  /// AppBar title when creating a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Add Friend'**
+  String get addFriendTitle;
+
+  /// AppBar title when editing a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Friend'**
+  String get editFriendTitle;
+
+  /// Choice screen headline on friend form
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like to add this friend?'**
+  String get howToAddFriend;
+
+  /// Button to import from phone contacts
+  ///
+  /// In en, this message translates to:
+  /// **'Import from contacts'**
+  String get importFromContacts;
+
+  /// Button to enter friend data manually
+  ///
+  /// In en, this message translates to:
+  /// **'Enter manually'**
+  String get enterManually;
+
+  /// Section heading on manual form
+  ///
+  /// In en, this message translates to:
+  /// **'Enter details'**
+  String get enterDetails;
+
+  /// Label for the tags section on friend form
+  ///
+  /// In en, this message translates to:
+  /// **'Category tags'**
+  String get categoryTagsLabel;
+
+  /// TextField label for friend name
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// TextField label for mobile number
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get mobileLabel;
+
+  /// Hint text for mobile field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 06 12 34 56 78'**
+  String get mobilePlaceholder;
+
+  /// TextField label for notes
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesLabel;
+
+  /// Hint text for notes field
+  ///
+  /// In en, this message translates to:
+  /// **'Optional context notes…'**
+  String get optionalContextNotes;
+
+  /// AppBar title on friend detail screen
+  ///
+  /// In en, this message translates to:
+  /// **'Friend'**
+  String get friendTitle;
+
+  /// Link to full friend detail from daily card
+  ///
+  /// In en, this message translates to:
+  /// **'Full details'**
+  String get fullDetails;
+
+  /// Semantics label for full details link
+  ///
+  /// In en, this message translates to:
+  /// **'Full details for {name}'**
+  String fullDetailsSemantics(String name);
+
+  /// Dialog title when deleting a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Delete friend?'**
+  String get deleteFriendTitle;
+
+  /// Action label / dialog title to flag a concern
+  ///
+  /// In en, this message translates to:
+  /// **'Flag concern'**
+  String get flagConcernTitle;
+
+  /// Dialog title to clear a concern
+  ///
+  /// In en, this message translates to:
+  /// **'Clear concern?'**
+  String get clearConcernTitle;
+
+  /// Button to clear concern
+  ///
+  /// In en, this message translates to:
+  /// **'Clear concern'**
+  String get clearConcernAction;
+
+  /// Label displayed when concern is active
+  ///
+  /// In en, this message translates to:
+  /// **'Concern'**
+  String get concernLabel;
+
+  /// Section heading for events on friend card
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get eventsLabel;
+
+  /// Button to add an event
+  ///
+  /// In en, this message translates to:
+  /// **'Add event'**
+  String get addEventAction;
+
+  /// Section heading for contact history
+  ///
+  /// In en, this message translates to:
+  /// **'Contact History'**
+  String get contactHistorySection;
+
+  /// Empty state for contact history
+  ///
+  /// In en, this message translates to:
+  /// **'No contact history yet.'**
+  String get noContactHistory;
+
+  /// Tooltip/action to log a contact
+  ///
+  /// In en, this message translates to:
+  /// **'Log contact'**
+  String get logContactTitle;
+
+  /// Title of the acquittement sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm contact log'**
+  String get confirmContactLog;
+
+  /// Hint text in the acquittement note field (kept in French)
+  ///
+  /// In en, this message translates to:
+  /// **'Comment ça s\'est passé ?'**
+  String get howDidItGo;
+
+  /// Action button label to call
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get callAction;
+
+  /// Action button label for SMS
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get smsAction;
+
+  /// Action button label for WhatsApp
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsappAction;
+
+  /// Tooltip text for contact action buttons
+  ///
+  /// In en, this message translates to:
+  /// **'Saves the contact to history'**
+  String get savesContactHistory;
+
+  /// AppBar title for add event screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add Event'**
+  String get addEventTitle;
+
+  /// AppBar title for edit event screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Event'**
+  String get editEventTitle;
+
+  /// Dialog title to delete an event
+  ///
+  /// In en, this message translates to:
+  /// **'Delete event?'**
+  String get deleteEventTitle;
+
+  /// Section heading in add/edit event
+  ///
+  /// In en, this message translates to:
+  /// **'Event Type'**
+  String get eventTypeLabel;
+
+  /// Section heading for date picker
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get dateLabel;
+
+  /// Switch label for recurring events
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get recurringLabel;
+
+  /// Subtitle for recurring switch
+  ///
+  /// In en, this message translates to:
+  /// **'Set a repeating check-in cadence'**
+  String get checkInCadence;
+
+  /// Section heading for comment field in events
+  ///
+  /// In en, this message translates to:
+  /// **'Comment (optional)'**
+  String get commentOptional;
+
+  /// Hint text for comment field in events
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note…'**
+  String get addNoteHint;
+
+  /// Hint text for note field in acquittement
+  ///
+  /// In en, this message translates to:
+  /// **'Optional note…'**
+  String get optionalNoteHint;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get everyWeek;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every 2 weeks'**
+  String get every2Weeks;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every 3 weeks'**
+  String get every3Weeks;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every 2 months'**
+  String get every2Months;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every 3 months'**
+  String get every3Months;
+
+  /// Error message in event type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load event types.'**
+  String get couldNotLoadEventTypes;
+
+  /// AppBar title for manage event types screen
+  ///
+  /// In en, this message translates to:
+  /// **'Event Types'**
+  String get eventTypesTitle;
+
+  /// Hint text in add event type field
+  ///
+  /// In en, this message translates to:
+  /// **'New event type…'**
+  String get newEventTypePlaceholder;
+
+  /// Tooltip for add event type button
+  ///
+  /// In en, this message translates to:
+  /// **'Add type'**
+  String get addTypeTooltip;
+
+  /// Dialog title to rename an event type
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Event Type'**
+  String get renameEventTypeTitle;
+
+  /// Dialog title to delete an event type
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Event Type?'**
+  String get deleteEventTypeTitle;
+
+  /// Empty state for event types list
+  ///
+  /// In en, this message translates to:
+  /// **'No event types. Add one above.'**
+  String get noEventTypes;
+
+  /// Dialog content when deleting a single entry
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String deleteEntryConfirm(String name);
+
+  /// AppBar title for manage category tags screen
+  ///
+  /// In en, this message translates to:
+  /// **'Category Tags'**
+  String get categoryTagsTitle;
+
+  /// Tooltip for reset tags button
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get resetToDefaultTagsTooltip;
+
+  /// FAB tooltip on manage category tags
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get addTagTooltip;
+
+  /// Empty state on manage category tags
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Tap + to add one.'**
+  String get noTagsYet;
+
+  /// Explanatory text on manage category tags
+  ///
+  /// In en, this message translates to:
+  /// **'Tags control the priority score. Higher weight = higher priority in the daily view. Drag to reorder.'**
+  String get tagsWeightHelp;
+
+  /// Dialog title to reset tags
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults?'**
+  String get resetToDefaultsTitle;
+
+  /// Dialog content to reset tags
+  ///
+  /// In en, this message translates to:
+  /// **'This will restore the original 5 tags and weights. Any custom tags you added will be lost.'**
+  String get resetToDefaultsContent;
+
+  /// Dialog title to delete a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Delete tag?'**
+  String get deleteTagTitle;
+
+  /// Dialog content when deleting a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\"? Friends already tagged with it keep the tag label, but it will score as the default weight.'**
+  String deleteTagContent(String name);
+
+  /// Dialog title for adding a new tag
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get addTagTitle;
+
+  /// Dialog title for editing a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tag'**
+  String get editTagTitle;
+
+  /// TextField label for tag name
+  ///
+  /// In en, this message translates to:
+  /// **'Tag name'**
+  String get tagNameLabel;
+
+  /// Hint text for tag name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Family'**
+  String get tagNamePlaceholder;
+
+  /// TextField label for tag weight
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// Hint text for weight field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2.5'**
+  String get weightPlaceholder;
+
+  /// Helper text for weight field
+  ///
+  /// In en, this message translates to:
+  /// **'Positive number — higher = more priority'**
+  String get weightHelperText;
+
+  /// Weight display in tag tile subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Weight: {value}'**
+  String weightValueLabel(String value);
+
+  /// Semantics label for drag handle
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder {name}'**
+  String dragToReorder(String name);
+
+  /// Semantics label for edit button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {name}'**
+  String editItemSemantics(String name);
+
+  /// Semantics label for delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}'**
+  String deleteItemSemantics(String name);
+
+  /// AppBar title for settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Section heading in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Restore'**
+  String get backupSectionTitle;
+
+  /// Important note about backup passphrase
+  ///
+  /// In en, this message translates to:
+  /// **'Your passphrase encrypts your backup. It is never stored. If you lose it, your backup cannot be recovered.'**
+  String get backupPassphraseNote;
+
+  /// Action label for export backup
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get exportBackupLabel;
+
+  /// Action label for import backup
+  ///
+  /// In en, this message translates to:
+  /// **'Import backup'**
+  String get importBackupLabel;
+
+  /// Action label for reset backup settings
+  ///
+  /// In en, this message translates to:
+  /// **'Reset backup settings'**
+  String get resetBackupSettingsLabel;
+
+  /// Semantics label for export
+  ///
+  /// In en, this message translates to:
+  /// **'Export encrypted backup'**
+  String get exportBackupSemantics;
+
+  /// Semantics label for import
+  ///
+  /// In en, this message translates to:
+  /// **'Import encrypted backup from file'**
+  String get importBackupSemantics;
+
+  /// Dialog title for reset encryption
+  ///
+  /// In en, this message translates to:
+  /// **'Reset encryption key'**
+  String get resetEncryptionKeyTitle;
+
+  /// Dialog content for reset encryption
+  ///
+  /// In en, this message translates to:
+  /// **'This will generate a new encryption key for this device and re-encrypt all your data. Your existing backup files are NOT affected — they carry their own backup passphrase.'**
+  String get resetEncryptionKeyContent;
+
+  /// Section heading in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get displaySectionTitle;
+
+  /// Switch label for compact view
+  ///
+  /// In en, this message translates to:
+  /// **'Compact view'**
+  String get compactViewLabel;
+
+  /// Subtitle for compact view switch
+  ///
+  /// In en, this message translates to:
+  /// **'Show more friends on screen at once'**
+  String get compactViewSubtitle;
+
+  /// Semantics label when compact view is on
+  ///
+  /// In en, this message translates to:
+  /// **'Compact view, on'**
+  String get compactViewOn;
+
+  /// Semantics label when compact view is off
+  ///
+  /// In en, this message translates to:
+  /// **'Compact view, off'**
+  String get compactViewOff;
+
+  /// Display preference label
+  ///
+  /// In en, this message translates to:
+  /// **'Font size'**
+  String get fontSizeLabel;
+
+  /// Display preference label
+  ///
+  /// In en, this message translates to:
+  /// **'Icon size'**
+  String get iconSizeLabel;
+
+  /// Language selector label in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageLabel;
+
+  /// Size option label
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get sizeSmall;
+
+  /// Size option label
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get sizeMedium;
+
+  /// Size option label
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get sizeLarge;
+
+  /// French language option
+  ///
+  /// In en, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// English language option
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// Section heading in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Category Tags'**
+  String get categoryTagsSectionTitle;
+
+  /// List tile label in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Category Tags'**
+  String get manageCategoryTagsLabel;
+
+  /// Subtitle for manage category tags tile
+  ///
+  /// In en, this message translates to:
+  /// **'Edit names and priority weights'**
+  String get editNamesWeightsSubtitle;
+
+  /// Section heading in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Event Types'**
+  String get eventTypesSectionTitle;
+
+  /// List tile label in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Event Types'**
+  String get manageEventTypesLabel;
+
+  /// Section heading in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Sync & Backup'**
+  String get syncSectionTitle;
+
+  /// Subtitle for the sync placeholder tile
+  ///
+  /// In en, this message translates to:
+  /// **'Coming in Phase 2'**
+  String get syncComingSoon;
+
+  /// Semantics label for sync tile
+  ///
+  /// In en, this message translates to:
+  /// **'Sync & Backup — Coming in Phase 2, not yet available'**
+  String get syncSemantics;
+
+  /// TextField label for passphrase
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get passphraseLabel;
+
+  /// TextField label for passphrase confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm passphrase'**
+  String get confirmPassphraseLabel;
+
+  /// Tooltip to show passphrase
+  ///
+  /// In en, this message translates to:
+  /// **'Show passphrase'**
+  String get showPassphrase;
+
+  /// Tooltip to hide passphrase
+  ///
+  /// In en, this message translates to:
+  /// **'Hide passphrase'**
+  String get hidePassphrase;
+
+  /// Hint in export passphrase dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a passphrase to protect your backup. Write it down somewhere safe — it cannot be recovered.'**
+  String get exportPassphraseHint;
+
+  /// Hint in import passphrase dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the passphrase you used when creating this backup.'**
+  String get importPassphraseHint;
+
+  /// AppBar title for daily view
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get dailyTitle;
+
+  /// Semantics label for density toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to expanded view'**
+  String get switchToExpandedView;
+
+  /// Semantics label for density toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to compact view'**
+  String get switchToCompactView;
+
+  /// Tooltip for density toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Expanded view'**
+  String get expandedViewTooltip;
+
+  /// Tooltip for density toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Compact view'**
+  String get compactViewTooltip;
+
+  /// Empty state message on daily view
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to do today 🎉\nAll caught up!'**
+  String get nothingToday;
+
+  /// Snackbar after successful import
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored successfully.'**
+  String get backupRestoredSuccess;
+
+  /// Snackbar after successful export
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to:\n{path}'**
+  String backupSavedTo(String path);
+
+  /// Snackbar after reset
+  ///
+  /// In en, this message translates to:
+  /// **'Backup settings have been reset.'**
+  String get backupSettingsResetSuccess;
+
+  /// Snackbar when export fails
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed. Please try again.'**
+  String get resetExportFailed;
+
+  /// Snackbar when import fails
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed. Please check your passphrase and file.'**
+  String get importFailed;
+
+  /// Snackbar when reset fails
+  ///
+  /// In en, this message translates to:
+  /// **'Reset failed. Please try again.'**
+  String get resetFailed;
+
+  /// Label for demo friend entries
+  ///
+  /// In en, this message translates to:
+  /// **'Demo'**
+  String get demoLabel;
+
+  /// Priority level label
+  ///
+  /// In en, this message translates to:
+  /// **'Important'**
+  String get importantLabel;
+
+  /// Priority level label
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get urgentLabel;
+
+  /// Section heading for tags on friend card
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tagsSection;
+
+  /// Empty state when friend has no tags
+  ///
+  /// In en, this message translates to:
+  /// **'No tags'**
+  String get noTags;
+
+  /// Section heading for mobile on friend card
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get mobileSection;
+
+  /// Message when concern flag is active
+  ///
+  /// In en, this message translates to:
+  /// **'Concern flag is active'**
+  String get concernFlagActive;
+
+  /// Empty state for events list on friend card
+  ///
+  /// In en, this message translates to:
+  /// **'No events yet. Tap + to add one.'**
+  String get noEventsYet;
+
+  /// Error when events fail to load
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load events.'**
+  String get couldNotLoadEvents;
+
+  /// Error when contact history fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load history.'**
+  String get couldNotLoadHistory;
+
+  /// Popup menu item to acknowledge and advance recurring event
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done (advance)'**
+  String get markDoneAdvance;
+
+  /// Popup menu item to acknowledge a one-time event
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get markAsDone;
+
+  /// Label for the type selector in acquittement sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// Label for the optional note field in acquittement sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get noteOptionalLabel;
+
+  /// Info banner on the demo friend card
+  ///
+  /// In en, this message translates to:
+  /// **'This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.'**
+  String get demoFriendDescription;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'fr'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
+  }
+
+  throw FlutterError(
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
+}

@@ -12,6 +12,7 @@ import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/presentation/friend_card_screen.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -107,7 +108,11 @@ Widget _harnessWithRouter({required Friend? friend}) {
         (_) => Stream.value([]),
       ),
     ],
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
   );
 }
 
@@ -139,7 +144,11 @@ Widget _harnessWithFailingActions({required Friend? friend}) {
       contactActionServiceProvider
           .overrideWithValue(_FailingContactActionService()),
     ],
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
   );
 }
 
@@ -427,7 +436,11 @@ void main() {
             (_) => Stream.value([entry]),
           ),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
       );
 
       await tester.pumpWidget(widget);
@@ -476,7 +489,11 @@ void main() {
             ]),
           ),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
       );
       await tester.pumpWidget(widget);
       await tester.pump();

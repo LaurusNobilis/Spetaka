@@ -20,6 +20,7 @@ import 'package:spetaka/shared/theme/app_tokens.dart';
 import 'package:spetaka/shared/theme/app_theme.dart';
 import 'package:spetaka/shared/widgets/app_error_widget.dart';
 import 'package:spetaka/shared/widgets/loading_widget.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -168,6 +169,9 @@ void main() {
             ),
           ],
           child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale("en"),
             theme: AppTheme.light(),
             routerConfig: router,
           ),
@@ -253,6 +257,9 @@ void main() {
             ),
           ],
           child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale("en"),
             theme: AppTheme.light(),
             routerConfig: router,
           ),

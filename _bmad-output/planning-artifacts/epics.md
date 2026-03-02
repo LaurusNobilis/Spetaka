@@ -911,11 +911,56 @@ So that the distribution pipeline is in place and Spetaka reaches his close circ
 
 ---
 
+## UX Backlog — Filtering & Discovery
+
+> Ces stories sont hors périmètre Phase 1. Elles pourront être priorisées après la
+> validation Play Store (Story 7.4) ou intégrées en Phase 2 selon les retours utilisateurs.
+
+### UX-2.10 — Filtrer la liste des amis par tag
+
+En tant que Laurus,
+je veux filtrer la liste des amis par un ou plusieurs tags (Family, Work, etc.),
+afin de me concentrer sur un sous-groupe de mon cercle.
+
+**Critères d'acceptation :**
+
+- Une barre de filtres (chips horizontaux) s'affiche en haut de `FriendsListScreen` avec tous les tags disponibles (depuis `categoryTagsProvider`).
+- Sélectionner un ou plusieurs chips filtre la liste en temps réel (intersection ou union, à décider).
+- Aucun chip sélectionné = liste complète.
+- La sélection active est persistée le temps de la session (pas en base).
+- La logique de filtrage est purement Dart via un `Provider` dérivé (`filteredFriendsProvider`) — aucune requête SQL supplémentaire.
+
+**Impact technique :**
+- Nouveau `StateProvider<Set<String>> activeTagFiltersProvider`.
+- Nouveau `Provider<List<Friend>> filteredFriendsProvider` dérivé de `allFriendsProvider` + `activeTagFiltersProvider`.
+- `FriendsListScreen` affiche les chips et consomme `filteredFriendsProvider` à la place de `allFriendsProvider`.
+- **Risque tag orphelin :** si un ami a le tag `"Friends"` et que l'utilisateur l'a renommé en `"Potes"`, le chip `"Potes"` ne matchera pas — à documenter / mitiger.
+
+---
+
+### UX-3.6 — Vue transversale : amis par type d'événement
+
+En tant que Laurus,
+je veux voir tous les amis qui ont un événement d'un type donné (ex : tous les anniversaires),
+afin d'avoir une vue calendaire ou thématique de mon cercle.
+
+**Critères d'acceptation :**
+
+- Un écran (ou un filtre sur la liste des amis) permet de sélectionner un type d'événement.
+- La liste affiche tous les amis ayant au moins un événement de ce type, avec la prochaine date associée.
+- Les types disponibles viennent de `eventTypeProvider` (types personnalisés inclus).
+- Si aucun ami n'a ce type d'événement, un état vide explicite est affiché.
+
+**Impact technique :**
+- Requiert une requête JOIN `friends ⨝ events` filtrée par `event_type_id` — soit une nouvelle méthode DAO, soit un `Provider` Dart avec filtrage en mémoire sur le stream existant.
+- À évaluer : filtre intégré à `FriendsListScreen` vs nouvel écran dédié.
+
+---
+
 ## Phase 2 Backlog — WebDAV Sync
 
-> These stories are deferred from Phase 1. They will be estimated and prioritized
-> before Phase 2 kick-off. Implementation artifacts `6-1` through `6-4` contain
-> the preserved acceptance criteria.
+> Ces stories sont déportées de la Phase 1. Elles seront estimées et priorisées
+> avant le kick-off Phase 2. Les artifacts `6-1` à `6-4` conservent les critères d'acceptation.
 
 ### FR32–FR36 (deferred): WebDAV Sync Stories
 

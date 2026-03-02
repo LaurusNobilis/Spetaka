@@ -16,6 +16,7 @@ import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
 import 'package:spetaka/features/daily/domain/priority_engine.dart';
 import 'package:spetaka/features/daily/presentation/daily_view_screen.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -101,7 +102,11 @@ Widget _harness(List<DailyViewEntry> entries) {
           .overrideWith((_) => AsyncData(entries)),
       contactActionServiceProvider.overrideWithValue(fakeActionService),
     ],
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
   );
 }
 

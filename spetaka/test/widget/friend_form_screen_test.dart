@@ -12,6 +12,7 @@ import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 /// Builds the full router-test scaffold with an in-memory repo.
 /// Friends list data is reactive via repository watchAll() (StreamProvider).
@@ -43,6 +44,9 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
         ),
       ],
       child: MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
         routerConfig: router,
       ),
     ),
@@ -166,7 +170,11 @@ void main() {
             (_) => Stream<List<Event>>.value(const <Event>[]),
           ),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
       ),
     );
 
@@ -210,7 +218,11 @@ void main() {
             (_) => Stream<List<Event>>.value(const <Event>[]),
           ),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
       ),
     );
 

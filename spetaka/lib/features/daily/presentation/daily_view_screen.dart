@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/actions/contact_action_service.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/acquittement/domain/pending_action_state.dart';
@@ -108,12 +109,12 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Daily'),
+          title: Text(context.l10n.dailyTitle),
           actions: [
             Semantics(
               label: densityMode == DensityMode.compact
-                  ? 'Switch to expanded view'
-                  : 'Switch to compact view',
+                  ? context.l10n.switchToExpandedView
+                  : context.l10n.switchToCompactView,
               button: true,
               child: IconButton(
                 key: const Key('density_toggle'),
@@ -123,23 +124,23 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
                       : Icons.view_headline_outlined,
                 ),
                 tooltip: densityMode == DensityMode.compact
-                    ? 'Expanded view'
-                    : 'Compact view',
+                    ? context.l10n.expandedViewTooltip
+                    : context.l10n.compactViewTooltip,
                 onPressed: () =>
                     ref.read(densityModeProvider.notifier).toggle(),
               ),
             ),
             IconButton(
               icon: const Icon(Icons.people_outline),
-              tooltip: 'Friends',
+              tooltip: context.l10n.navFriends,
               onPressed: () => const FriendsRoute().go(context),
             ),
             Semantics(
-              label: 'Settings',
+              label: context.l10n.navSettings,
               button: true,
               child: IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                tooltip: 'Settings',
+                tooltip: context.l10n.navSettings,
                 onPressed: () => const SettingsRoute().push(context),
               ),
             ),
@@ -191,11 +192,11 @@ class _DailyList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: const EdgeInsets.all(32),
           child: Text(
-            'Nothing to do today 🎉\nAll caught up!',
+            context.l10n.nothingToday,
             textAlign: TextAlign.center,
           ),
         ),
@@ -619,19 +620,19 @@ class _ExpandedContentState extends State<_ExpandedContent> {
               _ActionButton(
                 key: Key('action_call_${friend.id}'),
                 icon: Icons.phone_outlined,
-                label: 'Call',
+                label: context.l10n.callAction,
                 onPressed: _handleCall,
               ),
               _ActionButton(
                 key: Key('action_sms_${friend.id}'),
                 icon: Icons.sms_outlined,
-                label: 'SMS',
+                label: context.l10n.smsAction,
                 onPressed: _handleSms,
               ),
               _ActionButton(
                 key: Key('action_wa_${friend.id}'),
                 icon: Icons.chat_outlined,
-                label: 'WhatsApp',
+                label: context.l10n.whatsappAction,
                 onPressed: _handleWhatsApp,
               ),
             ],
@@ -675,12 +676,12 @@ class _ExpandedContentState extends State<_ExpandedContent> {
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: Semantics(
-            label: 'Full details for ${friend.name}',
+            label: context.l10n.fullDetailsSemantics(friend.name),
             button: true,
             child: TextButton.icon(
               key: Key('full_details_${friend.id}'),
               icon: const Icon(Icons.open_in_new, size: 16),
-              label: const Text('Full details'),
+              label: Text(context.l10n.fullDetails),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
               onPressed: () => FriendDetailRoute(friend.id).push(context),
             ),

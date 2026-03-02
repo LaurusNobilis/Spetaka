@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../features/settings/data/category_tags_provider.dart';
 import '../data/acquittement_repository_provider.dart';
@@ -155,8 +156,8 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
       if (mounted) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not save. Please try again.'),
+          SnackBar(
+            content: Text(context.l10n.couldNotSave),
             backgroundColor: Colors.red,
           ),
         );
@@ -198,7 +199,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── Title ────────────────────────────────────────────────────────
           Text(
-            'Log contact',
+            context.l10n.logContactTitle,
             key: const Key('acquittement_sheet_title'),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
@@ -208,7 +209,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── AC3: Type selector ───────────────────────────────────────────
           Text(
-            'Type',
+            context.l10n.typeLabel,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -248,7 +249,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── Optional note ────────────────────────────────────────────────
           Text(
-            'Note (optional)',
+            context.l10n.noteOptionalLabel,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -263,7 +264,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _handleConfirm(),
             decoration: InputDecoration(
-              hintText: 'Comment ça s\'est passé ?',
+              hintText: context.l10n.howDidItGo,
               border: const OutlineInputBorder(),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -278,8 +279,8 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── AC4: One-tap confirm ─────────────────────────────────────────
           Semantics(
-            label: 'Confirm contact log',
-            hint: 'Saves the contact to history',
+            label: context.l10n.confirmContactLog,
+            hint: context.l10n.savesContactHistory,
             button: true,
             child: FilledButton(
               key: const Key('acquittement_sheet_confirm'),
@@ -294,7 +295,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Confirmer'),
+                  : Text(context.l10n.actionConfirm),
             ),
           ),
         ],

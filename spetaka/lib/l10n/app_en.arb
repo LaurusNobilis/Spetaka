@@ -1,0 +1,683 @@
+{
+  "@@locale": "en",
+  "appTitle": "Spetaka",
+  "@appTitle": {
+    "description": "Application name"
+  },
+  "navDaily": "Daily",
+  "@navDaily": {
+    "description": "Bottom nav / AppBar label for daily view"
+  },
+  "navFriends": "Friends",
+  "@navFriends": {
+    "description": "Bottom nav / AppBar label for friends list"
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "AppBar / tooltip label for settings"
+  },
+  "actionAdd": "Add",
+  "@actionAdd": {
+    "description": "Generic add button label"
+  },
+  "actionSave": "Save",
+  "@actionSave": {
+    "description": "Generic save button label"
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "Generic cancel button label"
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "Generic delete button label"
+  },
+  "actionEdit": "Edit",
+  "@actionEdit": {
+    "description": "Generic edit button label"
+  },
+  "actionReset": "Reset",
+  "@actionReset": {
+    "description": "Generic reset button label"
+  },
+  "actionBack": "Back",
+  "@actionBack": {
+    "description": "Generic back button label"
+  },
+  "actionContinue": "Continue",
+  "@actionContinue": {
+    "description": "Generic continue button label"
+  },
+  "actionRename": "Rename",
+  "@actionRename": {
+    "description": "Generic rename button label"
+  },
+  "actionFlag": "Flag",
+  "@actionFlag": {
+    "description": "Generic flag button label"
+  },
+  "actionClear": "Clear",
+  "@actionClear": {
+    "description": "Generic clear button label"
+  },
+  "actionConfirm": "Confirm",
+  "@actionConfirm": {
+    "description": "Generic confirm button label"
+  },
+  "somethingWentWrong": "Something went wrong. Please try again.",
+  "@somethingWentWrong": {
+    "description": "Generic error message"
+  },
+  "couldNotSave": "Could not save. Please try again.",
+  "@couldNotSave": {
+    "description": "Error when save fails"
+  },
+  "friendsTitle": "Friends",
+  "@friendsTitle": {
+    "description": "Friends list screen title"
+  },
+  "addFriendTooltip": "Add friend",
+  "@addFriendTooltip": {
+    "description": "FAB tooltip on friends list"
+  },
+  "addFirstFriend": "Add first friend",
+  "@addFirstFriend": {
+    "description": "Empty state button on friends list"
+  },
+  "addFriendTitle": "Add Friend",
+  "@addFriendTitle": {
+    "description": "AppBar title when creating a friend"
+  },
+  "editFriendTitle": "Edit Friend",
+  "@editFriendTitle": {
+    "description": "AppBar title when editing a friend"
+  },
+  "howToAddFriend": "How would you like to add this friend?",
+  "@howToAddFriend": {
+    "description": "Choice screen headline on friend form"
+  },
+  "importFromContacts": "Import from contacts",
+  "@importFromContacts": {
+    "description": "Button to import from phone contacts"
+  },
+  "enterManually": "Enter manually",
+  "@enterManually": {
+    "description": "Button to enter friend data manually"
+  },
+  "enterDetails": "Enter details",
+  "@enterDetails": {
+    "description": "Section heading on manual form"
+  },
+  "categoryTagsLabel": "Category tags",
+  "@categoryTagsLabel": {
+    "description": "Label for the tags section on friend form"
+  },
+  "nameLabel": "Name",
+  "@nameLabel": {
+    "description": "TextField label for friend name"
+  },
+  "mobileLabel": "Mobile",
+  "@mobileLabel": {
+    "description": "TextField label for mobile number"
+  },
+  "mobilePlaceholder": "e.g. 06 12 34 56 78",
+  "@mobilePlaceholder": {
+    "description": "Hint text for mobile field"
+  },
+  "notesLabel": "Notes",
+  "@notesLabel": {
+    "description": "TextField label for notes"
+  },
+  "optionalContextNotes": "Optional context notes…",
+  "@optionalContextNotes": {
+    "description": "Hint text for notes field"
+  },
+  "friendTitle": "Friend",
+  "@friendTitle": {
+    "description": "AppBar title on friend detail screen"
+  },
+  "fullDetails": "Full details",
+  "@fullDetails": {
+    "description": "Link to full friend detail from daily card"
+  },
+  "fullDetailsSemantics": "Full details for {name}",
+  "@fullDetailsSemantics": {
+    "description": "Semantics label for full details link",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFriendTitle": "Delete friend?",
+  "@deleteFriendTitle": {
+    "description": "Dialog title when deleting a friend"
+  },
+  "flagConcernTitle": "Flag concern",
+  "@flagConcernTitle": {
+    "description": "Action label / dialog title to flag a concern"
+  },
+  "clearConcernTitle": "Clear concern?",
+  "@clearConcernTitle": {
+    "description": "Dialog title to clear a concern"
+  },
+  "clearConcernAction": "Clear concern",
+  "@clearConcernAction": {
+    "description": "Button to clear concern"
+  },
+  "concernLabel": "Concern",
+  "@concernLabel": {
+    "description": "Label displayed when concern is active"
+  },
+  "eventsLabel": "Events",
+  "@eventsLabel": {
+    "description": "Section heading for events on friend card"
+  },
+  "addEventAction": "Add event",
+  "@addEventAction": {
+    "description": "Button to add an event"
+  },
+  "contactHistorySection": "Contact History",
+  "@contactHistorySection": {
+    "description": "Section heading for contact history"
+  },
+  "noContactHistory": "No contact history yet.",
+  "@noContactHistory": {
+    "description": "Empty state for contact history"
+  },
+  "logContactTitle": "Log contact",
+  "@logContactTitle": {
+    "description": "Tooltip/action to log a contact"
+  },
+  "confirmContactLog": "Confirm contact log",
+  "@confirmContactLog": {
+    "description": "Title of the acquittement sheet"
+  },
+  "howDidItGo": "Comment ça s'est passé ?",
+  "@howDidItGo": {
+    "description": "Hint text in the acquittement note field (kept in French)"
+  },
+  "callAction": "Call",
+  "@callAction": {
+    "description": "Action button label to call"
+  },
+  "smsAction": "SMS",
+  "@smsAction": {
+    "description": "Action button label for SMS"
+  },
+  "whatsappAction": "WhatsApp",
+  "@whatsappAction": {
+    "description": "Action button label for WhatsApp"
+  },
+  "savesContactHistory": "Saves the contact to history",
+  "@savesContactHistory": {
+    "description": "Tooltip text for contact action buttons"
+  },
+  "addEventTitle": "Add Event",
+  "@addEventTitle": {
+    "description": "AppBar title for add event screen"
+  },
+  "editEventTitle": "Edit Event",
+  "@editEventTitle": {
+    "description": "AppBar title for edit event screen"
+  },
+  "deleteEventTitle": "Delete event?",
+  "@deleteEventTitle": {
+    "description": "Dialog title to delete an event"
+  },
+  "eventTypeLabel": "Event Type",
+  "@eventTypeLabel": {
+    "description": "Section heading in add/edit event"
+  },
+  "dateLabel": "Date",
+  "@dateLabel": {
+    "description": "Section heading for date picker"
+  },
+  "recurringLabel": "Recurring",
+  "@recurringLabel": {
+    "description": "Switch label for recurring events"
+  },
+  "checkInCadence": "Set a repeating check-in cadence",
+  "@checkInCadence": {
+    "description": "Subtitle for recurring switch"
+  },
+  "commentOptional": "Comment (optional)",
+  "@commentOptional": {
+    "description": "Section heading for comment field in events"
+  },
+  "addNoteHint": "Add a note…",
+  "@addNoteHint": {
+    "description": "Hint text for comment field in events"
+  },
+  "optionalNoteHint": "Optional note…",
+  "@optionalNoteHint": {
+    "description": "Hint text for note field in acquittement"
+  },
+  "everyWeek": "Every week",
+  "@everyWeek": {
+    "description": "Cadence label"
+  },
+  "every2Weeks": "Every 2 weeks",
+  "@every2Weeks": {
+    "description": "Cadence label"
+  },
+  "every3Weeks": "Every 3 weeks",
+  "@every3Weeks": {
+    "description": "Cadence label"
+  },
+  "monthly": "Monthly",
+  "@monthly": {
+    "description": "Cadence label"
+  },
+  "every2Months": "Every 2 months",
+  "@every2Months": {
+    "description": "Cadence label"
+  },
+  "every3Months": "Every 3 months",
+  "@every3Months": {
+    "description": "Cadence label"
+  },
+  "couldNotLoadEventTypes": "Could not load event types.",
+  "@couldNotLoadEventTypes": {
+    "description": "Error message in event type selector"
+  },
+  "eventTypesTitle": "Event Types",
+  "@eventTypesTitle": {
+    "description": "AppBar title for manage event types screen"
+  },
+  "newEventTypePlaceholder": "New event type…",
+  "@newEventTypePlaceholder": {
+    "description": "Hint text in add event type field"
+  },
+  "addTypeTooltip": "Add type",
+  "@addTypeTooltip": {
+    "description": "Tooltip for add event type button"
+  },
+  "renameEventTypeTitle": "Rename Event Type",
+  "@renameEventTypeTitle": {
+    "description": "Dialog title to rename an event type"
+  },
+  "deleteEventTypeTitle": "Delete Event Type?",
+  "@deleteEventTypeTitle": {
+    "description": "Dialog title to delete an event type"
+  },
+  "noEventTypes": "No event types. Add one above.",
+  "@noEventTypes": {
+    "description": "Empty state for event types list"
+  },
+  "deleteEntryConfirm": "Delete \"{name}\"?",
+  "@deleteEntryConfirm": {
+    "description": "Dialog content when deleting a single entry",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryTagsTitle": "Category Tags",
+  "@categoryTagsTitle": {
+    "description": "AppBar title for manage category tags screen"
+  },
+  "resetToDefaultTagsTooltip": "Reset to defaults",
+  "@resetToDefaultTagsTooltip": {
+    "description": "Tooltip for reset tags button"
+  },
+  "addTagTooltip": "Add tag",
+  "@addTagTooltip": {
+    "description": "FAB tooltip on manage category tags"
+  },
+  "noTagsYet": "No tags yet. Tap + to add one.",
+  "@noTagsYet": {
+    "description": "Empty state on manage category tags"
+  },
+  "tagsWeightHelp": "Tags control the priority score. Higher weight = higher priority in the daily view. Drag to reorder.",
+  "@tagsWeightHelp": {
+    "description": "Explanatory text on manage category tags"
+  },
+  "resetToDefaultsTitle": "Reset to defaults?",
+  "@resetToDefaultsTitle": {
+    "description": "Dialog title to reset tags"
+  },
+  "resetToDefaultsContent": "This will restore the original 5 tags and weights. Any custom tags you added will be lost.",
+  "@resetToDefaultsContent": {
+    "description": "Dialog content to reset tags"
+  },
+  "deleteTagTitle": "Delete tag?",
+  "@deleteTagTitle": {
+    "description": "Dialog title to delete a tag"
+  },
+  "deleteTagContent": "Remove \"{name}\"? Friends already tagged with it keep the tag label, but it will score as the default weight.",
+  "@deleteTagContent": {
+    "description": "Dialog content when deleting a tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addTagTitle": "Add tag",
+  "@addTagTitle": {
+    "description": "Dialog title for adding a new tag"
+  },
+  "editTagTitle": "Edit tag",
+  "@editTagTitle": {
+    "description": "Dialog title for editing a tag"
+  },
+  "tagNameLabel": "Tag name",
+  "@tagNameLabel": {
+    "description": "TextField label for tag name"
+  },
+  "tagNamePlaceholder": "e.g. Family",
+  "@tagNamePlaceholder": {
+    "description": "Hint text for tag name field"
+  },
+  "weightLabel": "Weight",
+  "@weightLabel": {
+    "description": "TextField label for tag weight"
+  },
+  "weightPlaceholder": "e.g. 2.5",
+  "@weightPlaceholder": {
+    "description": "Hint text for weight field"
+  },
+  "weightHelperText": "Positive number — higher = more priority",
+  "@weightHelperText": {
+    "description": "Helper text for weight field"
+  },
+  "weightValueLabel": "Weight: {value}",
+  "@weightValueLabel": {
+    "description": "Weight display in tag tile subtitle",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "dragToReorder": "Drag to reorder {name}",
+  "@dragToReorder": {
+    "description": "Semantics label for drag handle",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "editItemSemantics": "Edit {name}",
+  "@editItemSemantics": {
+    "description": "Semantics label for edit button",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteItemSemantics": "Delete {name}",
+  "@deleteItemSemantics": {
+    "description": "Semantics label for delete button",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "AppBar title for settings screen"
+  },
+  "backupSectionTitle": "Backup & Restore",
+  "@backupSectionTitle": {
+    "description": "Section heading in settings"
+  },
+  "backupPassphraseNote": "Your passphrase encrypts your backup. It is never stored. If you lose it, your backup cannot be recovered.",
+  "@backupPassphraseNote": {
+    "description": "Important note about backup passphrase"
+  },
+  "exportBackupLabel": "Export backup",
+  "@exportBackupLabel": {
+    "description": "Action label for export backup"
+  },
+  "importBackupLabel": "Import backup",
+  "@importBackupLabel": {
+    "description": "Action label for import backup"
+  },
+  "resetBackupSettingsLabel": "Reset backup settings",
+  "@resetBackupSettingsLabel": {
+    "description": "Action label for reset backup settings"
+  },
+  "exportBackupSemantics": "Export encrypted backup",
+  "@exportBackupSemantics": {
+    "description": "Semantics label for export"
+  },
+  "importBackupSemantics": "Import encrypted backup from file",
+  "@importBackupSemantics": {
+    "description": "Semantics label for import"
+  },
+  "resetEncryptionKeyTitle": "Reset encryption key",
+  "@resetEncryptionKeyTitle": {
+    "description": "Dialog title for reset encryption"
+  },
+  "resetEncryptionKeyContent": "This will generate a new encryption key for this device and re-encrypt all your data. Your existing backup files are NOT affected — they carry their own backup passphrase.",
+  "@resetEncryptionKeyContent": {
+    "description": "Dialog content for reset encryption"
+  },
+  "displaySectionTitle": "Display",
+  "@displaySectionTitle": {
+    "description": "Section heading in settings"
+  },
+  "compactViewLabel": "Compact view",
+  "@compactViewLabel": {
+    "description": "Switch label for compact view"
+  },
+  "compactViewSubtitle": "Show more friends on screen at once",
+  "@compactViewSubtitle": {
+    "description": "Subtitle for compact view switch"
+  },
+  "compactViewOn": "Compact view, on",
+  "@compactViewOn": {
+    "description": "Semantics label when compact view is on"
+  },
+  "compactViewOff": "Compact view, off",
+  "@compactViewOff": {
+    "description": "Semantics label when compact view is off"
+  },
+  "fontSizeLabel": "Font size",
+  "@fontSizeLabel": {
+    "description": "Display preference label"
+  },
+  "iconSizeLabel": "Icon size",
+  "@iconSizeLabel": {
+    "description": "Display preference label"
+  },
+  "languageLabel": "Language",
+  "@languageLabel": {
+    "description": "Language selector label in settings"
+  },
+  "sizeSmall": "Small",
+  "@sizeSmall": {
+    "description": "Size option label"
+  },
+  "sizeMedium": "Normal",
+  "@sizeMedium": {
+    "description": "Size option label"
+  },
+  "sizeLarge": "Large",
+  "@sizeLarge": {
+    "description": "Size option label"
+  },
+  "languageFrench": "Français",
+  "@languageFrench": {
+    "description": "French language option"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "English language option"
+  },
+  "categoryTagsSectionTitle": "Category Tags",
+  "@categoryTagsSectionTitle": {
+    "description": "Section heading in settings"
+  },
+  "manageCategoryTagsLabel": "Manage Category Tags",
+  "@manageCategoryTagsLabel": {
+    "description": "List tile label in settings"
+  },
+  "editNamesWeightsSubtitle": "Edit names and priority weights",
+  "@editNamesWeightsSubtitle": {
+    "description": "Subtitle for manage category tags tile"
+  },
+  "eventTypesSectionTitle": "Event Types",
+  "@eventTypesSectionTitle": {
+    "description": "Section heading in settings"
+  },
+  "manageEventTypesLabel": "Manage Event Types",
+  "@manageEventTypesLabel": {
+    "description": "List tile label in settings"
+  },
+  "syncSectionTitle": "Sync & Backup",
+  "@syncSectionTitle": {
+    "description": "Section heading in settings"
+  },
+  "syncComingSoon": "Coming in Phase 2",
+  "@syncComingSoon": {
+    "description": "Subtitle for the sync placeholder tile"
+  },
+  "syncSemantics": "Sync & Backup — Coming in Phase 2, not yet available",
+  "@syncSemantics": {
+    "description": "Semantics label for sync tile"
+  },
+  "passphraseLabel": "Passphrase",
+  "@passphraseLabel": {
+    "description": "TextField label for passphrase"
+  },
+  "confirmPassphraseLabel": "Confirm passphrase",
+  "@confirmPassphraseLabel": {
+    "description": "TextField label for passphrase confirmation"
+  },
+  "showPassphrase": "Show passphrase",
+  "@showPassphrase": {
+    "description": "Tooltip to show passphrase"
+  },
+  "hidePassphrase": "Hide passphrase",
+  "@hidePassphrase": {
+    "description": "Tooltip to hide passphrase"
+  },
+  "exportPassphraseHint": "Choose a passphrase to protect your backup. Write it down somewhere safe — it cannot be recovered.",
+  "@exportPassphraseHint": {
+    "description": "Hint in export passphrase dialog"
+  },
+  "importPassphraseHint": "Enter the passphrase you used when creating this backup.",
+  "@importPassphraseHint": {
+    "description": "Hint in import passphrase dialog"
+  },
+  "dailyTitle": "Daily",
+  "@dailyTitle": {
+    "description": "AppBar title for daily view"
+  },
+  "switchToExpandedView": "Switch to expanded view",
+  "@switchToExpandedView": {
+    "description": "Semantics label for density toggle"
+  },
+  "switchToCompactView": "Switch to compact view",
+  "@switchToCompactView": {
+    "description": "Semantics label for density toggle"
+  },
+  "expandedViewTooltip": "Expanded view",
+  "@expandedViewTooltip": {
+    "description": "Tooltip for density toggle"
+  },
+  "compactViewTooltip": "Compact view",
+  "@compactViewTooltip": {
+    "description": "Tooltip for density toggle"
+  },
+  "nothingToday": "Nothing to do today 🎉\nAll caught up!",
+  "@nothingToday": {
+    "description": "Empty state message on daily view"
+  },
+  "backupRestoredSuccess": "Backup restored successfully.",
+  "@backupRestoredSuccess": {
+    "description": "Snackbar after successful import"
+  },
+  "backupSavedTo": "Backup saved to:\n{path}",
+  "@backupSavedTo": {
+    "description": "Snackbar after successful export",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSettingsResetSuccess": "Backup settings have been reset.",
+  "@backupSettingsResetSuccess": {
+    "description": "Snackbar after reset"
+  },
+  "resetExportFailed": "Export failed. Please try again.",
+  "@resetExportFailed": {
+    "description": "Snackbar when export fails"
+  },
+  "importFailed": "Import failed. Please check your passphrase and file.",
+  "@importFailed": {
+    "description": "Snackbar when import fails"
+  },
+  "resetFailed": "Reset failed. Please try again.",
+  "@resetFailed": {
+    "description": "Snackbar when reset fails"
+  },
+  "demoLabel": "Demo",
+  "@demoLabel": {
+    "description": "Label for demo friend entries"
+  },
+  "importantLabel": "Important",
+  "@importantLabel": {
+    "description": "Priority level label"
+  },
+  "urgentLabel": "Urgent",
+  "@urgentLabel": {
+    "description": "Priority level label"
+  },
+  "tagsSection": "Tags",
+  "@tagsSection": {
+    "description": "Section heading for tags on friend card"
+  },
+  "noTags": "No tags",
+  "@noTags": {
+    "description": "Empty state when friend has no tags"
+  },
+  "mobileSection": "Mobile",
+  "@mobileSection": {
+    "description": "Section heading for mobile on friend card"
+  },
+  "concernFlagActive": "Concern flag is active",
+  "@concernFlagActive": {
+    "description": "Message when concern flag is active"
+  },
+  "noEventsYet": "No events yet. Tap + to add one.",
+  "@noEventsYet": {
+    "description": "Empty state for events list on friend card"
+  },
+  "couldNotLoadEvents": "Could not load events.",
+  "@couldNotLoadEvents": {
+    "description": "Error when events fail to load"
+  },
+  "couldNotLoadHistory": "Could not load history.",
+  "@couldNotLoadHistory": {
+    "description": "Error when contact history fails to load"
+  },
+  "markDoneAdvance": "Mark done (advance)",
+  "@markDoneAdvance": {
+    "description": "Popup menu item to acknowledge and advance recurring event"
+  },
+  "markAsDone": "Mark as done",
+  "@markAsDone": {
+    "description": "Popup menu item to acknowledge a one-time event"
+  },
+  "typeLabel": "Type",
+  "@typeLabel": {
+    "description": "Label for the type selector in acquittement sheet"
+  },
+  "noteOptionalLabel": "Note (optional)",
+  "@noteOptionalLabel": {
+    "description": "Label for the optional note field in acquittement sheet"
+  },
+  "demoFriendDescription": "This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.",
+  "@demoFriendDescription": {
+    "description": "Info banner on the demo friend card"
+  }
+}

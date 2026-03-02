@@ -12,6 +12,7 @@ import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
 import 'package:spetaka/features/daily/domain/priority_engine.dart';
 import 'package:spetaka/features/daily/presentation/heart_briefing_widget.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,7 +80,11 @@ Widget _harness(List<DailyViewEntry> entries) {
   );
 
   return ProviderScope(
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: router),
   );
 }
 

@@ -17,6 +17,7 @@ import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/shared/theme/app_theme.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 /// Minimal router scaffold with stubbed stream providers so the
 /// DailyViewScreen (root route) renders immediately without Drift timers.
@@ -30,6 +31,9 @@ Widget _appScaffold() => ProviderScope(
         ),
       ],
       child: MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
         title: 'Spetaka',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),

@@ -12,6 +12,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localisation
+  flutter_localizations:
+    sdk: flutter
+
   # State management — code-generated providers only (@riverpod annotation)
   flutter_riverpod: ^3.2.1
   riverpod_annotation: ^4.0.0
@@ -66,4 +70,5 @@ dev_dependencies:
   url_launcher_platform_interface: ^2.3.2
 
 flutter:
+  generate: true
   uses-material-design: true

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
 import 'package:spetaka/features/friends/presentation/friends_list_screen.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -60,7 +61,11 @@ Widget _harness({
     overrides: [
       allFriendsProvider.overrideWith((_) => Stream.value(friends)),
     ],
-    child: MaterialApp.router(routerConfig: r),
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      routerConfig: r),
   );
 }
 

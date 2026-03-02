@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -27,14 +28,14 @@ class FriendsListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Friends'),
+        title: Text(context.l10n.friendsTitle),
       ),
       body: asyncFriends.when(
         loading: () => const Center(child: LoadingWidget()),
         error: (err, _) {
           final message = err is AppError
               ? errorMessageFor(err)
-              : 'Something went wrong. Please try again.';
+              : context.l10n.somethingWentWrong;
           return Center(child: AppErrorWidget(message: message));
         },
         data: (friends) {
@@ -57,7 +58,7 @@ class FriendsListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => const NewFriendRoute().push(context),
-        tooltip: 'Add friend',
+        tooltip: context.l10n.addFriendTooltip,
         child: const Icon(Icons.person_add),
       ),
     );
@@ -184,7 +185,7 @@ class _EmptyFriendsState extends StatelessWidget {
           FilledButton.icon(
             onPressed: onAddFriend,
             icon: const Icon(Icons.person_add),
-            label: const Text('Add first friend'),
+            label: Text(context.l10n.addFirstFriend),
           ),
         ],
       ),

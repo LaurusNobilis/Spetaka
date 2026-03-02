@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/l10n_extension.dart';
 import '../data/category_tags_provider.dart';
 import '../domain/category_tag.dart';
 
@@ -17,14 +18,14 @@ class ManageCategoryTagsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Category Tags'),
+        title: Text(context.l10n.categoryTagsTitle),
         actions: [
           Semantics(
-            label: 'Reset to default tags',
+            label: context.l10n.resetToDefaultTagsTooltip,
             button: true,
             child: IconButton(
               icon: const Icon(Icons.restore_outlined),
-              tooltip: 'Reset to defaults',
+              tooltip: context.l10n.resetToDefaultTagsTooltip,
               onPressed: () => _confirmReset(context, ref),
             ),
           ),
@@ -32,18 +33,17 @@ class ManageCategoryTagsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEditDialog(context, ref, index: null, tag: null),
-        tooltip: 'Add tag',
+        tooltip: context.l10n.addTagTooltip,
         child: const Icon(Icons.add),
       ),
       body: tags.isEmpty
-          ? const Center(child: Text('No tags yet. Tap + to add one.'))
+          ? Center(child: Text(context.l10n.noTagsYet))
           : Column(
               children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Text(
-                      'Tags control the priority score. Higher weight = higher '
-                      'priority in the daily view. Drag to reorder.',
+                      context.l10n.tagsWeightHelp,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -128,22 +128,19 @@ class ManageCategoryTagsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete tag?'),
-        content: Text(
-          'Remove "$name"? Friends already tagged with it keep the tag '
-          'label, but it will score as the default weight.',
-        ),
+        title: Text(context.l10n.deleteTagTitle),
+        content: Text(context.l10n.deleteTagContent(name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.actionCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.actionDelete),
           ),
         ],
       ),
@@ -157,19 +154,16 @@ class ManageCategoryTagsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Reset to defaults?'),
-        content: const Text(
-          'This will restore the original 5 tags and weights. '
-          'Any custom tags you added will be lost.',
-        ),
+        title: Text(context.l10n.resetToDefaultsTitle),
+        content: Text(context.l10n.resetToDefaultsContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
+            child: Text(context.l10n.actionReset),
           ),
         ],
       ),
@@ -206,32 +200,32 @@ class _TagTile extends StatelessWidget {
       key: key,
       minVerticalPadding: 12,
       leading: Semantics(
-        label: 'Drag to reorder ${tag.name}',
+        label: context.l10n.dragToReorder(tag.name),
         child: const Icon(Icons.drag_handle_outlined),
       ),
       title: Text(tag.name),
-      subtitle: Text('Weight: $weightLabel'),
+      subtitle: Text(context.l10n.weightValueLabel(weightLabel)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Semantics(
-            label: 'Edit ${tag.name}',
+            label: context.l10n.editItemSemantics(tag.name),
             button: true,
             child: IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Edit',
+              tooltip: context.l10n.actionEdit,
               onPressed: onEdit,
             ),
           ),
           Semantics(
-            label: 'Delete ${tag.name}',
+            label: context.l10n.deleteItemSemantics(tag.name),
             button: true,
             child: IconButton(
               icon: Icon(
                 Icons.delete_outline,
                 color: Theme.of(context).colorScheme.error,
               ),
-              tooltip: 'Delete',
+              tooltip: context.l10n.actionDelete,
               onPressed: onDelete,
             ),
           ),
@@ -292,7 +286,7 @@ class _TagEditDialogState extends State<_TagEditDialog> {
     final isNew = widget.initialTag == null;
 
     return AlertDialog(
-      title: Text(isNew ? 'Add tag' : 'Edit tag'),
+      title: Text(isNew ? context.l10n.addTagTitle : context.l10n.editTagTitle),
       content: Form(
         key: _formKey,
         child: Column(
@@ -305,9 +299,9 @@ class _TagEditDialogState extends State<_TagEditDialog> {
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Tag name',
-                hintText: 'e.g. Family',
+              decoration: InputDecoration(
+                labelText: context.l10n.tagNameLabel,
+                hintText: context.l10n.tagNamePlaceholder,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
@@ -326,10 +320,10 @@ class _TagEditDialogState extends State<_TagEditDialog> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
-              decoration: const InputDecoration(
-                labelText: 'Weight',
-                hintText: 'e.g. 2.5',
-                helperText: 'Positive number — higher = more priority',
+              decoration: InputDecoration(
+                labelText: context.l10n.weightLabel,
+                hintText: context.l10n.weightPlaceholder,
+                helperText: context.l10n.weightHelperText,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Enter a weight.';
@@ -345,11 +339,11 @@ class _TagEditDialogState extends State<_TagEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.actionCancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: Text(isNew ? 'Add' : 'Save'),
+          child: Text(isNew ? context.l10n.actionAdd : context.l10n.actionSave),
         ),
       ],
     );

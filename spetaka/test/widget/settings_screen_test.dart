@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:spetaka/features/settings/presentation/settings_screen.dart';
+import 'package:spetaka/core/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Test harness
@@ -25,7 +26,11 @@ import 'package:spetaka/features/settings/presentation/settings_screen.dart';
 /// initialise without disk I/O.
 Widget _buildHarness() {
   return const ProviderScope(
-    child: MaterialApp(home: SettingsScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: SettingsScreen()),
   );
 }
 

@@ -9,6 +9,7 @@ import '../../../core/actions/contact_action_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
+import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/acquittement/data/acquittement_providers.dart';
@@ -83,14 +84,14 @@ class FriendCardScreen extends ConsumerWidget {
             ? errorMessageFor(err)
             : 'Something went wrong. Please try again.';
         return Scaffold(
-          appBar: AppBar(title: const Text('Friend')),
+          appBar: AppBar(title: Text(context.l10n.friendTitle)),
           body: Center(child: AppErrorWidget(message: message)),
         );
       },
       data: (friend) {
         if (friend == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Friend')),
+            appBar: AppBar(title: Text(context.l10n.friendTitle)),
             body: const Center(
               child: AppErrorWidget(message: 'Friend not found.'),
             ),
@@ -158,7 +159,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Delete friend?'),
+            title: Text(context.l10n.deleteFriendTitle),
             content: Text(
               'Delete "${friend.name}"? '  
               'All contact history will be permanently removed and cannot be undone.',
@@ -166,7 +167,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.actionCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -174,7 +175,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
                   foregroundColor: Theme.of(ctx).colorScheme.onError,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Delete'),
+                child: Text(context.l10n.actionDelete),
               ),
             ],
           ),
@@ -196,25 +197,25 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Flag concern'),
+            title: Text(context.l10n.flagConcernTitle),
             content: TextField(
               controller: noteController,
               maxLines: 3,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                hintText: 'Optional note…',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: context.l10n.optionalNoteHint,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.actionCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Flag'),
+                child: Text(context.l10n.actionFlag),
               ),
             ],
           ),
@@ -233,17 +234,17 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Clear concern?'),
+            title: Text(context.l10n.clearConcernTitle),
             content: const Text(
                 'Remove the concern flag and its note for this friend?',),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.actionCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Clear'),
+                child: Text(context.l10n.clearConcernAction),
               ),
             ],
           ),
@@ -269,7 +270,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             if (friend.isDemo) ...[
               const SizedBox(width: 8),
               Chip(
-                label: const Text('Demo'),
+                label: Text(context.l10n.demoLabel),
                 labelStyle: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -286,13 +287,13 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
           // 2.6/AC4: Edit
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit',
+            tooltip: context.l10n.actionEdit,
             onPressed: () => EditFriendRoute(friend.id).push(context),
           ),
           // 2.8/AC1: Delete
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete',
+            tooltip: context.l10n.actionDelete,
             onPressed: () => _handleDelete(context),
           ),
         ],
@@ -318,8 +319,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
                     Icon(Icons.info_outline, color: Colors.amber.shade700, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.',
+                      child: Text(context.l10n.demoFriendDescription,
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.amber.shade800,
                         ),
@@ -344,7 +344,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
 
             // ── Mobile — AC1 ─────────────────────────────────────────────────
             _DetailSection(
-              title: 'Mobile',
+              title: context.l10n.mobileSection,
               child: SelectableText(
                 friend.mobile,
                 style: textTheme.bodyLarge,
@@ -354,10 +354,10 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
 
             // ── Tags — AC1 ───────────────────────────────────────────────────
             _DetailSection(
-              title: 'Tags',
+              title: context.l10n.tagsSection,
               child: tags.isEmpty
                   ? Text(
-                      'No tags',
+                      context.l10n.noTags,
                       style: textTheme.bodyMedium
                           ?.copyWith(color: theme.colorScheme.outline),
                     )
@@ -374,7 +374,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             // ── Notes — AC1 ──────────────────────────────────────────────────
             if (friend.notes != null && friend.notes!.isNotEmpty) ...[
               _DetailSection(
-                title: 'Notes',
+                title: context.l10n.notesLabel,
                 child: Text(friend.notes!, style: textTheme.bodyMedium),
               ),
               const SizedBox(height: 20),
@@ -394,13 +394,13 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
                     Icons.warning_amber_rounded,
                     color: Colors.orange,
                   ),
-                  label: const Text('Flag concern'),
+                  label: Text(context.l10n.flagConcernTitle),
                 ),
               ),
             ] else ...[
               // 2.9/AC2: concern section with clear action (AC3).
               _DetailSection(
-                title: 'Concern',
+                title: context.l10n.concernLabel,
                 titleColor: Colors.orange,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +414,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Concern flag is active',
+                          context.l10n.concernFlagActive,
                           style: textTheme.bodyMedium?.copyWith(
                             color: Colors.orange,
                             fontWeight: FontWeight.w600,
@@ -439,7 +439,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
                       ),
                       onPressed: () => _handleClearConcern(context),
                       icon: const Icon(Icons.cancel_outlined, size: 16),
-                      label: const Text('Clear concern'),
+                      label: Text(context.l10n.clearConcernAction),
                     ),
                   ],
                 ),
@@ -486,23 +486,23 @@ class _ContactHistorySection extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return _DetailSection(
-      title: 'Contact History',
+      title: context.l10n.contactHistorySection,
       child: asyncHistory.when(
         loading: () => const SizedBox(
           height: 48,
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (_, __) => Text(
-          'Could not load history.',
+          context.l10n.couldNotLoadHistory,
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: theme.colorScheme.error),
         ),
         data: (entries) {
           if (entries.isEmpty) {
             return Semantics(
-              label: 'No contact history yet',
+              label: context.l10n.noContactHistory,
               child: Text(
-                'No contact history yet.',
+                context.l10n.noContactHistory,
                 key: const Key('contact_history_empty'),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.outline,
@@ -696,7 +696,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
             Expanded(
               child: _ActionButton(
                 icon: Icons.phone_outlined,
-                label: 'Call',
+                label: context.l10n.callAction,
                 onPressed: _handleCall,
               ),
             ),
@@ -704,7 +704,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
             Expanded(
               child: _ActionButton(
                 icon: Icons.sms_outlined,
-                label: 'SMS',
+                label: context.l10n.smsAction,
                 onPressed: _handleSms,
               ),
             ),
@@ -712,7 +712,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
             Expanded(
               child: _ActionButton(
                 icon: Icons.chat_outlined,
-                label: 'WhatsApp',
+                label: context.l10n.whatsappAction,
                 onPressed: _handleWhatsApp,
               ),
             ),
@@ -843,7 +843,7 @@ class _EventsSection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Delete event?'),
+            title: Text(context.l10n.deleteEventTitle),
             content: Text(
               'Delete "$typeLabel" '
               'on ${_dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.date))}? '
@@ -852,7 +852,7 @@ class _EventsSection extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.actionCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -860,7 +860,7 @@ class _EventsSection extends ConsumerWidget {
                   foregroundColor: Theme.of(ctx).colorScheme.onError,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Delete'),
+                child: Text(context.l10n.actionDelete),
               ),
             ],
           ),
@@ -884,10 +884,10 @@ class _EventsSection extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return _DetailSection(
-      title: 'Events',
+      title: context.l10n.eventsLabel,
       trailing: IconButton(
         icon: const Icon(Icons.add_circle_outline),
-        tooltip: 'Add event',
+        tooltip: context.l10n.addEventAction,
         onPressed: () => AddEventRoute(friendId).push(context),
       ),
       child: asyncEvents.when(
@@ -896,14 +896,14 @@ class _EventsSection extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (_, __) => Text(
-          'Could not load events.',
+          context.l10n.couldNotLoadEvents,
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: colorScheme.error),
         ),
         data: (events) {
           if (events.isEmpty) {
             return Text(
-              'No events yet. Tap + to add one.',
+              context.l10n.noEventsYet,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.outline,
                 fontStyle: FontStyle.italic,
@@ -1064,19 +1064,19 @@ class _EventRow extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         event.isRecurring
-                            ? 'Mark done (advance)'
-                            : 'Mark as done',
+                            ? ctx.l10n.markDoneAdvance
+                            : ctx.l10n.markAsDone,
                       ),
                     ],
                   ),
                 ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _EventAction.edit,
                 child: Row(
                   children: [
-                    Icon(Icons.edit_outlined, size: 18),
-                    SizedBox(width: 8),
-                    Text('Edit'),
+                    const Icon(Icons.edit_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Text(ctx.l10n.actionEdit),
                   ],
                 ),
               ),
@@ -1091,7 +1091,7 @@ class _EventRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Delete',
+                      ctx.l10n.actionDelete,
                       style: TextStyle(
                         color: Theme.of(ctx).colorScheme.error,
                       ),
