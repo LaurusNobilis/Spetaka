@@ -124,7 +124,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
         createdAt: now,
       );
 
-      await ref.read(acquittementRepositoryProvider).insert(entry);
+      await ref.read(acquittementRepositoryProvider).insertAndUpdateCareScore(entry);
 
       if (mounted) {
         Navigator.of(context).pop();

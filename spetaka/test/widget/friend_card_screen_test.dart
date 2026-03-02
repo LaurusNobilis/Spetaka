@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/errors/app_error.dart';
+import 'package:spetaka/features/acquittement/data/acquittement_providers.dart';
 import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
@@ -101,6 +102,10 @@ Widget _harnessWithRouter({required Friend? friend}) {
       watchEventTypesProvider.overrideWith(
         (_) => Stream.value(<EventTypeEntry>[]),
       ),
+      // Stub acquittements stream — empty by default; override in 5-4 tests.
+      watchAcquittementsProvider('f1').overrideWith(
+        (_) => Stream.value([]),
+      ),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -127,6 +132,9 @@ Widget _harnessWithFailingActions({required Friend? friend}) {
       ),
       watchEventTypesProvider.overrideWith(
         (_) => Stream.value(<EventTypeEntry>[]),
+      ),
+      watchAcquittementsProvider('f1').overrideWith(
+        (_) => Stream.value([]),
       ),
       contactActionServiceProvider
           .overrideWithValue(_FailingContactActionService()),
@@ -359,6 +367,123 @@ void main() {
           reason: '$label button must be at least 48dp tall',
         );
       }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tests — Story 5.4 (Contact History Log)
+  // ---------------------------------------------------------------------------
+
+  group('FriendCardScreen — Story 5.4 Contact History', () {
+    testWidgets('Contact History section header is always shown', (tester) async {
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Contact History'), findsOneWidget);
+    });
+
+    testWidgets('empty state shows graceful message when no acquittements',
+        (tester) async {
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('contact_history_empty')), findsOneWidget);
+      expect(find.text('No contact history yet.'), findsOneWidget);
+    });
+
+    testWidgets('shows acquittement row when history stream has entries',
+        (tester) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final entry = Acquittement(
+        id: 'a1',
+        friendId: 'f1',
+        type: 'call',
+        note: 'Lovely chat',
+        createdAt: now,
+      );
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const FriendCardScreen(id: 'f1'),
+          ),
+        ],
+      );
+      final widget = ProviderScope(
+        overrides: [
+          watchFriendByIdProvider('f1').overrideWith(
+            (_) => Stream.value(_makeFriend()),
+          ),
+          watchEventsByFriendProvider('f1').overrideWith(
+            (_) => Stream.value([]),
+          ),
+          watchEventTypesProvider.overrideWith(
+            (_) => Stream.value(<EventTypeEntry>[]),
+          ),
+          watchAcquittementsProvider('f1').overrideWith(
+            (_) => Stream.value([entry]),
+          ),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('contact_history_empty')), findsNothing);
+      // 'Appel' is the French label for 'call' type.
+      expect(find.text('Appel'), findsOneWidget);
+      expect(find.text('Lovely chat'), findsOneWidget);
+    });
+
+    testWidgets('note preview is shown when acquittement has note',
+        (tester) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      // Note shorter than 40 chars — shown verbatim.
+      const shortNote = 'Quick hello!';
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const FriendCardScreen(id: 'f1'),
+          ),
+        ],
+      );
+      final widget = ProviderScope(
+        overrides: [
+          watchFriendByIdProvider('f1').overrideWith(
+            (_) => Stream.value(_makeFriend()),
+          ),
+          watchEventsByFriendProvider('f1').overrideWith(
+            (_) => Stream.value([]),
+          ),
+          watchEventTypesProvider.overrideWith(
+            (_) => Stream.value(<EventTypeEntry>[]),
+          ),
+          watchAcquittementsProvider('f1').overrideWith(
+            (_) => Stream.value([
+              Acquittement(
+                id: 'a3',
+                friendId: 'f1',
+                type: 'in_person',
+                note: shortNote,
+                createdAt: now,
+              ),
+            ]),
+          ),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      );
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('En personne'), findsOneWidget);
+      expect(find.text(shortNote), findsOneWidget);
     });
   });
 }

@@ -11,6 +11,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/acquittement/data/acquittement_providers.dart';
 import '../../../features/acquittement/domain/pending_action_state.dart';
 import '../../../features/acquittement/presentation/acquittement_sheet.dart';
 import '../../../features/acquittement/presentation/manual_acquittement_button.dart';
@@ -23,6 +24,26 @@ import '../../../shared/widgets/loading_widget.dart';
 import '../data/friend_repository_provider.dart';
 import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
+
+// ---------------------------------------------------------------------------
+// Contact-history display constants (Story 5-4)
+// ---------------------------------------------------------------------------
+
+const _kHistoryTypeIcons = <String, IconData>{
+  'call': Icons.phone_outlined,
+  'sms': Icons.sms_outlined,
+  'whatsapp': Icons.chat_outlined,
+  'vocal': Icons.mic_none_outlined,
+  'in_person': Icons.people_outline,
+};
+
+const _kHistoryTypeLabels = <String, String>{
+  'call': 'Appel',
+  'sms': 'SMS',
+  'whatsapp': 'WhatsApp',
+  'vocal': 'Vocal',
+  'in_person': 'En personne',
+};
 
 /// Friend card detail screen — Stories 2.6, 2.8 & 2.9.
 ///
@@ -430,15 +451,158 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             _EventsSection(friendId: friend.id),
             const SizedBox(height: 20),
 
-            // ── Contact history — AC1 placeholder (Epic 5)───────────────────
-            _DetailSection(
-              title: 'Contact History',
+            // ── Contact history — Story 5.4 ───────────────────────────────
+            _ContactHistorySection(friendId: friend.id),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Contact history section — Story 5.4
+// ---------------------------------------------------------------------------
+
+/// Reactive section that displays all acquittements for [friendId] in reverse
+/// chronological order.
+///
+/// AC coverage (Story 5-4):
+///   AC1: reverse chronological order via [watchAcquittementsProvider].
+///   AC2: each row shows action icon, readable date, and note preview.
+///   AC3: reactive — Drift watch query re-emits on every insert.
+///   AC4: TalkBack Semantics label per row.
+///   AC5: empty state handled gracefully.
+class _ContactHistorySection extends ConsumerWidget {
+  const _ContactHistorySection({required this.friendId});
+
+  final String friendId;
+
+  static final _dateFormat = DateFormat('d MMM yyyy\u202f•\u202fHH:mm');
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncHistory = ref.watch(watchAcquittementsProvider(friendId));
+    final theme = Theme.of(context);
+
+    return _DetailSection(
+      title: 'Contact History',
+      child: asyncHistory.when(
+        loading: () => const SizedBox(
+          height: 48,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, __) => Text(
+          'Could not load history.',
+          style: theme.textTheme.bodyMedium
+              ?.copyWith(color: theme.colorScheme.error),
+        ),
+        data: (entries) {
+          if (entries.isEmpty) {
+            return Semantics(
+              label: 'No contact history yet',
               child: Text(
-                'No contact history yet. (Story 5.x)',
-                style: textTheme.bodyMedium?.copyWith(
+                'No contact history yet.',
+                key: const Key('contact_history_empty'),
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.outline,
                   fontStyle: FontStyle.italic,
                 ),
+              ),
+            );
+          }
+          return Column(
+            children: [
+              for (final entry in entries)
+                _HistoryRow(entry: entry, dateFormat: _dateFormat),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// One row in the contact history section.
+///
+/// Renders action icon + readable date + optional note preview.
+/// Wrapped in [Semantics] with a composed label for TalkBack (AC4).
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({
+    required this.entry,
+    required this.dateFormat,
+  });
+
+  final Acquittement entry;
+  final DateFormat dateFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final icon =
+        _kHistoryTypeIcons[entry.type] ?? Icons.contact_phone_outlined;
+    final typeLabel = _kHistoryTypeLabels[entry.type] ?? entry.type;
+    final dateStr = dateFormat.format(
+      DateTime.fromMillisecondsSinceEpoch(entry.createdAt),
+    );
+    final rawNote = entry.note;
+    final notePreview = rawNote != null && rawNote.isNotEmpty
+        ? (rawNote.length > 40
+            ? '${rawNote.substring(0, 40)}\u2026'
+            : rawNote)
+        : null;
+
+    return Semantics(
+      label: '$typeLabel — $dateStr'
+          '${notePreview != null ? ' — $notePreview' : ''}',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: theme.colorScheme.secondary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        typeLabel,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          dateStr,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (notePreview != null) ...
+                  [
+                    const SizedBox(height: 2),
+                    Text(
+                      notePreview,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

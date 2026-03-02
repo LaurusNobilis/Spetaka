@@ -138,6 +138,57 @@ const double kCareScoreMultiplier = 5.0;
 const double kOverdueBonusRate = 0.3;
 const double kMaxOverdueBonus = 5.0;
 
+/// Default expected contact interval in days when no recurring event defines one.
+///
+/// Story 5.5: used by [computeCareScore] when a friend has no check-in cadence.
+const int kDefaultExpectedIntervalDays = 30;
+
+/// Maximum category weight value — equals the 'Family' entry in [kCategoryWeights].
+///
+/// Story 5.5: used to normalise the care weight to [0..1] so that [computeCareScore]
+/// always returns a value within the persisted REAL column range [0.0, 1.0].
+const double kMaxCareWeight = 3.0;
+
+// ---------------------------------------------------------------------------
+// Care-score formula (Story 5.5)
+// ---------------------------------------------------------------------------
+
+/// Computes a care score in the range [0.0, 1.0] for a friend card.
+///
+/// Formula (Story 5.5):
+///   rawCare    = (expectedIntervalDays − daysSinceLastContact) / expectedIntervalDays
+///   careWeight = maxTagWeight / [kMaxCareWeight]
+///   careScore  = clamp(rawCare × careWeight, 0.0, 1.0)
+///
+/// Properties:
+/// - Immediately after an acquittement (daysSince = 0) the score equals careWeight.
+/// - Score decreases as [daysSinceLastContact] grows toward [expectedIntervalDays].
+/// - Score is clamped to 0.0 once days ≥ expectedIntervalDays.
+/// - A 'Family' friend scores higher than an 'Acquaintance' when all else equal.
+///
+/// [expectedIntervalDays] defaults to [kDefaultExpectedIntervalDays] when null or ≤ 0.
+double computeCareScore({
+  required int daysSinceLastContact,
+  int? expectedIntervalDays,
+  List<String> tags = const [],
+}) {
+  final interval = (expectedIntervalDays == null || expectedIntervalDays <= 0)
+      ? kDefaultExpectedIntervalDays
+      : expectedIntervalDays;
+
+  final rawCare = (interval - daysSinceLastContact) / interval;
+
+  // Determine the maximum tag weight for this friend (same map as scoring engine).
+  var maxTagWeight = kDefaultCategoryWeight;
+  for (final tag in tags) {
+    final w = kCategoryWeights[tag] ?? kDefaultCategoryWeight;
+    if (w > maxTagWeight) maxTagWeight = w;
+  }
+  final careWeight = maxTagWeight / kMaxCareWeight;
+
+  return (rawCare * careWeight).clamp(0.0, 1.0);
+}
+
 // ---------------------------------------------------------------------------
 // PriorityEngine
 // ---------------------------------------------------------------------------

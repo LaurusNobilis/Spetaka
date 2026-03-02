@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/encryption/encryption_service.dart';
+import '../../../features/daily/domain/priority_engine.dart';
+import '../../../features/friends/domain/friend_tags_codec.dart';
 
 /// Repository for Acquittement (contact-log) operations.
 ///
@@ -61,6 +63,69 @@ class AcquittementRepository {
       db.acquittementDao
           .watchByFriendId(friendId)
           .map((rows) => rows.map(_decryptRow).toList());
+
+  // ---------------------------------------------------------------------------
+  // Story 5-5 — atomic acquittement + care-score update
+  // ---------------------------------------------------------------------------
+
+  /// Inserts a new acquittement and atomically updates the owning friend's
+  /// [careScore] in a single Drift transaction (Story 5-5 AC1).
+  ///
+  /// The care score is computed using [computeCareScore] from
+  /// [priority_engine.dart] — **no magic numbers in this repository**.
+  ///
+  /// Algorithm:
+  ///   1. Encrypt note and insert acquittement row.
+  ///   2. Fetch owning friend row (raw; tags are plaintext).
+  ///   3. Find minimum recurring-event cadence for the friend.
+  ///   4. Call [computeCareScore] with daysSince = 0 (just logged).
+  ///   5. Persist updated careScore on the friend row.
+  ///
+  /// If the friend no longer exists the transaction still inserts the
+  /// acquittement but skips the care-score update.
+  ///
+  /// [now] is injectable for deterministic tests.
+  Future<void> insertAndUpdateCareScore(
+    Acquittement entry, {
+    DateTime? now,
+  }) async {
+    final ts = now ?? DateTime.now();
+
+    await db.transaction(() async {
+      // Step 1: insert acquittement (note encrypted).
+      await db.acquittementDao.insertAcquittement(_toEncryptedCompanion(entry));
+
+      // Step 2: fetch the owning friend (raw row — tags are plaintext).
+      final friend = await db.friendDao.findById(entry.friendId);
+      if (friend == null) return; // guard: friend deleted concurrently.
+
+      // Step 3: find the minimum recurring-event cadence for this friend.
+      final events = await db.eventDao.findByFriendId(entry.friendId);
+      int? minCadence;
+      for (final e in events) {
+        if (e.isRecurring && e.cadenceDays != null) {
+          final d = e.cadenceDays!;
+          if (minCadence == null || d < minCadence) minCadence = d;
+        }
+      }
+
+      // Step 4: compute care score (tags plaintext — no decryption needed).
+      final tags = decodeFriendTags(friend.tags);
+      final newCareScore = computeCareScore(
+        daysSinceLastContact: 0, // just logged → fully reset
+        expectedIntervalDays: minCadence,
+        tags: tags,
+      );
+
+      // Step 5: persist updated careScore (non-sensitive — no encryption).
+      await db.friendDao.updateFriend(
+        friend.copyWith(
+          careScore: newCareScore,
+          updatedAt: ts.millisecondsSinceEpoch,
+        ),
+      );
+    });
+  }
 
   // ---------------------------------------------------------------------------
   // Private helpers — encryption boundary
