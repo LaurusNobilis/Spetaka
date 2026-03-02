@@ -340,8 +340,11 @@ void main() {
       for (final label in ['Call', 'SMS', 'WhatsApp']) {
         final buttonFinder = find.widgetWithText(OutlinedButton, label);
         final rect = tester.getRect(buttonFinder);
-        expect(rect.height, greaterThanOrEqualTo(48),
-            reason: '$label button must be at least 48dp tall');
+        expect(
+          rect.height,
+          greaterThanOrEqualTo(48),
+          reason: '$label button must be at least 48dp tall',
+        );
       }
     });
   });

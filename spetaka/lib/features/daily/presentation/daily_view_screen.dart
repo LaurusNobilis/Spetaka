@@ -458,7 +458,9 @@ class _ExpandedContentState extends State<_ExpandedContent> {
     setState(() => _actionError = null);
     try {
       await widget.actionService.whatsapp(
-          widget.entry.friend.mobile, friendId: widget.entry.friend.id);
+        widget.entry.friend.mobile,
+        friendId: widget.entry.friend.id,
+      );
     } on AppError catch (e) {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {

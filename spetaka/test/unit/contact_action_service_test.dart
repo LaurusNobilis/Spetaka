@@ -2,11 +2,11 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/actions/phone_normalizer.dart';
 import 'package:spetaka/core/errors/app_error.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
+import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 // ---------------------------------------------------------------------------
@@ -29,9 +29,7 @@ class _FakeBinding extends Fake implements WidgetsBinding {
 // Controllable fake URL launcher
 // ---------------------------------------------------------------------------
 
-class _FakeUrlLauncher extends Fake
-    with MockPlatformInterfaceMixin
-    implements UrlLauncherPlatform {
+class _FakeUrlLauncher extends UrlLauncherPlatform {
   /// Set to false to simulate a failed launch.
   bool returnValue = true;
 
@@ -42,7 +40,28 @@ class _FakeUrlLauncher extends Fake
   String? lastUrl;
 
   @override
-  Future<bool> canLaunchUrl(String url) async => returnValue;
+  LinkDelegate? get linkDelegate => null;
+
+  @override
+  Future<bool> canLaunch(String url) async => returnValue;
+
+  @override
+  Future<bool> launch(
+    String url, {
+    required bool useSafariVC,
+    required bool useWebView,
+    required bool enableJavaScript,
+    required bool enableDomStorage,
+    required bool universalLinksOnly,
+    required Map<String, String> headers,
+    String? webOnlyWindowName,
+  }) async {
+    if (throwOnLaunch != null) {
+      throw throwOnLaunch!;
+    }
+    lastUrl = url;
+    return returnValue;
+  }
 
   @override
   Future<bool> launchUrl(String url, LaunchOptions options) async {
@@ -52,18 +71,6 @@ class _FakeUrlLauncher extends Fake
     lastUrl = url;
     return returnValue;
   }
-
-  // coverage:ignore-start
-  @override
-  Future<bool> supportsLaunchMode(PreferredLaunchMode mode) async => true;
-
-  @override
-  Future<bool> supportsCloseForLaunchMode(PreferredLaunchMode mode) async =>
-      false;
-
-  @override
-  Future<void> closeWebView() async {}
-  // coverage:ignore-end
 }
 
 // ---------------------------------------------------------------------------
