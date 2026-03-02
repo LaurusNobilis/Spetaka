@@ -37,6 +37,12 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
   Future<int> deleteByFriendId(String friendId) =>
       (delete(acquittements)..where((a) => a.friendId.equals(friendId))).go();
 
+  /// Returns all acquittement rows — used by [BackupRepository] for export.
+  Future<List<Acquittement>> selectAllRaw() => select(acquittements).get();
+
+  /// Deletes all acquittement rows (used by [BackupRepository] restore — replace-all).
+  Future<int> deleteAll() => delete(acquittements).go();
+
   /// Watches all acquittements; emits on every database change.
   Stream<List<Acquittement>> watchAll() => select(acquittements).watch();
 

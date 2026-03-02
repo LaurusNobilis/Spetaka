@@ -53,6 +53,9 @@ class FriendDao extends DatabaseAccessor<AppDatabase> with _$FriendDaoMixin {
   Future<int> deleteDemoFriends() =>
       (delete(friends)..where((f) => f.isDemo.equals(true))).go();
 
+  /// Deletes all friend rows (used by [BackupRepository] restore — replace-all).
+  Future<int> deleteAll() => delete(friends).go();
+
   /// Watches only non-demo friends (Story 4.5).
   Stream<List<Friend>> watchAllReal() =>
       (select(friends)..where((f) => f.isDemo.equals(false))).watch();

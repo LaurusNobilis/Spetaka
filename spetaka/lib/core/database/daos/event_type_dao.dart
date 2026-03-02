@@ -38,6 +38,9 @@ class EventTypeDao extends DatabaseAccessor<AppDatabase>
   Future<int> deleteById(String id) =>
       (delete(eventTypes)..where((t) => t.id.equals(id))).go();
 
+  /// Deletes all event type rows (used by [BackupRepository] restore — replace-all).
+  Future<int> deleteAll() => delete(eventTypes).go();
+
   /// Batch-updates sort orders for an ordered list of event type IDs.
   ///
   /// [orderedIds] — list of event type IDs in the desired display order.

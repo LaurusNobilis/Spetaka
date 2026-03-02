@@ -11,6 +11,7 @@ import '../../features/events/presentation/manage_event_types_screen.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/friends/presentation/friends_list_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 
 sealed class AppRoute {
   const AppRoute();
@@ -210,15 +211,6 @@ class _EditEventRouteLoader extends ConsumerWidget {
         return EditEventScreen(event: event);
       },
     );
-  }
-}
-
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'Settings');
   }
 }
 

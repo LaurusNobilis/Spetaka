@@ -90,7 +90,7 @@ development_status:
 
   epic-6: in-progress
   # Phase 1: Local encrypted backup only (WebDAV → Phase 2)
-  6-5-encrypted-local-file-export-import: ready-for-dev
+  6-5-encrypted-local-file-export-import: review
   epic-6-retrospective: optional
 
   epic-7: in-progress

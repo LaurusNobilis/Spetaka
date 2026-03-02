@@ -47,6 +47,14 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
   Future<int> deleteByFriendId(String friendId) =>
       (delete(events)..where((e) => e.friendId.equals(friendId))).go();
 
+  /// Returns all events across all friends.
+  ///
+  /// Used by [BackupRepository] to build the export payload.
+  Future<List<Event>> selectAll() => select(events).get();
+
+  /// Deletes all event rows (used by [BackupRepository] restore — replace-all).
+  Future<int> deleteAll() => delete(events).go();
+
   /// Returns all recurring events (is_recurring=true) across all friends.
   ///
   /// Exposed for the priority engine stream (Story 3.2 AC5).

@@ -17,5 +17,6 @@ String errorMessageFor(AppError error) {
     'This contact has no phone number. Please enter it manually.',
   FriendNameMissingAppError() => 'Please enter a name.',
   FriendMobileMissingAppError() => 'Please enter a mobile number.',
+  BackupFileFormatAppError() => 'The selected file is not a valid Spetaka backup.',
   };
 }

@@ -95,3 +95,12 @@ class FriendMobileMissingAppError extends AppError {
   @override
   String get code => 'friend_mobile_missing';
 }
+
+/// Thrown when a backup file has an unrecognised magic number or unsupported
+/// version byte — i.e. the file is not a valid Spetaka backup.
+class BackupFileFormatAppError extends AppError {
+  const BackupFileFormatAppError();
+
+  @override
+  String get code => 'backup_file_format_invalid';
+}
