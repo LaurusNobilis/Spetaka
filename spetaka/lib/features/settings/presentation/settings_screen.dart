@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
@@ -39,6 +40,7 @@ class SettingsScreen extends ConsumerWidget {
             _EventTypesSection(),
             _CategoryTagsSection(),
             _SyncPlaceholderSection(),
+            _FeedbackSection(),
           ],
         ),
       ),
@@ -753,6 +755,53 @@ class _SyncPlaceholderSection extends StatelessWidget {
             leading: const Icon(Icons.cloud_sync_outlined),
             title: Text(context.l10n.syncSectionTitle),
             subtitle: Text(context.l10n.syncComingSoon),
+          ),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Feedback — suggestions & remarks to contact@jdimaconsulting.com
+// ---------------------------------------------------------------------------
+
+class _FeedbackSection extends StatelessWidget {
+  const _FeedbackSection();
+
+  Future<void> _openFeedbackEmail(BuildContext context) async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'contact@jdimaconsulting.com',
+      queryParameters: {'subject': 'Spetaka — Suggestions & Feedback'},
+    );
+    final launched = await launchUrl(uri);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.feedbackEmailLabel),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeading(context.l10n.feedbackSectionTitle),
+        Semantics(
+          label: context.l10n.feedbackEmailLabel,
+          button: true,
+          child: ListTile(
+            minVerticalPadding: 12,
+            leading: const Icon(Icons.mail_outline),
+            title: Text(context.l10n.feedbackEmailLabel),
+            subtitle: const Text('contact@jdimaconsulting.com'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openFeedbackEmail(context),
           ),
         ),
         const Divider(height: 24),

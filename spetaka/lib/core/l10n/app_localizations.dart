@@ -506,6 +506,18 @@ abstract class AppLocalizations {
   /// **'Every 3 months'**
   String get every3Months;
 
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every 6 months'**
+  String get every6Months;
+
+  /// Cadence label
+  ///
+  /// In en, this message translates to:
+  /// **'Every year'**
+  String get everyYear;
+
   /// Error message in event type selector
   ///
   /// In en, this message translates to:
@@ -977,13 +989,13 @@ abstract class AppLocalizations {
   /// Priority level label
   ///
   /// In en, this message translates to:
-  /// **'Important'**
+  /// **'My selection'**
   String get importantLabel;
 
   /// Priority level label
   ///
   /// In en, this message translates to:
-  /// **'Urgent'**
+  /// **'My selection'**
   String get urgentLabel;
 
   /// Section heading for tags on friend card
@@ -1057,6 +1069,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.'**
   String get demoFriendDescription;
+
+  /// Settings section title for feedback / suggestions
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get feedbackSectionTitle;
+
+  /// ListTile label to open feedback email
+  ///
+  /// In en, this message translates to:
+  /// **'Send us your suggestions'**
+  String get feedbackEmailLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -23,11 +23,10 @@ import 'package:spetaka/features/events/data/event_type_repository.dart';
 import 'package:spetaka/features/events/presentation/manage_event_types_screen.dart';
 import 'package:spetaka/core/l10n/app_localizations.dart';
 
-/// Helper: builds a fake [EventTypeEntry] list matching the 5 seed defaults.
+/// Helper: builds a fake [EventTypeEntry] list matching the 4 seed defaults.
 List<EventTypeEntry> _defaultTypes() {
   final now = DateTime.now().millisecondsSinceEpoch;
   const names = [
-    'Birthday',
     'Wedding Anniversary',
     'Important Life Event',
     'Regular Check-in',
@@ -62,12 +61,11 @@ Widget _buildHarness({List<EventTypeEntry>? types}) {
 
 void main() {
   group('ManageEventTypesScreen — Story 3.4', () {
-    testWidgets('AC1 — renders 5 default event types', (tester) async {
+    testWidgets('AC1 — renders 4 default event types', (tester) async {
       await tester.pumpWidget(_buildHarness());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Birthday'), findsOneWidget);
       expect(find.text('Wedding Anniversary'), findsOneWidget);
       expect(find.text('Important Life Event'), findsOneWidget);
       expect(find.text('Regular Check-in'), findsOneWidget);
@@ -94,7 +92,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // One rename icon per type
-      expect(find.byIcon(Icons.edit_outlined), findsNWidgets(5));
+      expect(find.byIcon(Icons.edit_outlined), findsNWidgets(4));
     });
 
     testWidgets('AC4 — delete buttons are present for each type',
@@ -104,7 +102,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // One delete icon per type
-      expect(find.byIcon(Icons.delete_outline), findsNWidgets(5));
+      expect(find.byIcon(Icons.delete_outline), findsNWidgets(4));
     });
 
     testWidgets('AC5 — drag handles render for reorder', (tester) async {
@@ -112,7 +110,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(5));
+      expect(find.byIcon(Icons.drag_handle), findsNWidgets(4));
     });
 
     testWidgets('empty state shows message', (tester) async {
@@ -141,8 +139,8 @@ void main() {
 
       // Wait for seed.
       final initial = await repo.getAll();
-      expect(initial.length, 5);
-      expect(initial.first.name, 'Birthday');
+      expect(initial.length, 4);
+      expect(initial.first.name, 'Wedding Anniversary');
 
       // Build widget wired to real DB.
       await tester.pumpWidget(
@@ -165,13 +163,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       // Verify initial list order rendered.
-      expect(find.text('Birthday'), findsOneWidget);
+      expect(find.text('Wedding Anniversary'), findsOneWidget);
       expect(find.text('Important Appointment'), findsOneWidget);
 
       // Perform programmatic reorder (simulates the _onReorder callback).
-      // Move last item (index 4 → index 0).
+      // Move last item (index 3 → index 0).
       final ids = initial.map((t) => t.id).toList();
-      final moved = ids.removeAt(4);
+      final moved = ids.removeAt(3);
       ids.insert(0, moved);
       await repo.reorder(ids);
 

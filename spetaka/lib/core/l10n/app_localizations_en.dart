@@ -215,6 +215,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get every3Months => 'Every 3 months';
 
   @override
+  String get every6Months => 'Every 6 months';
+
+  @override
+  String get everyYear => 'Every year';
+
+  @override
   String get couldNotLoadEventTypes => 'Could not load event types.';
 
   @override
@@ -471,10 +477,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoLabel => 'Demo';
 
   @override
-  String get importantLabel => 'Important';
+  String get importantLabel => 'My selection';
 
   @override
-  String get urgentLabel => 'Urgent';
+  String get urgentLabel => 'My selection';
 
   @override
   String get tagsSection => 'Tags';
@@ -512,4 +518,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get demoFriendDescription =>
       'This is a demo friend. Add a real contact to get started — Sophie will be removed automatically.';
+
+  @override
+  String get feedbackSectionTitle => 'Feedback';
+
+  @override
+  String get feedbackEmailLabel => 'Send us your suggestions';
 }
