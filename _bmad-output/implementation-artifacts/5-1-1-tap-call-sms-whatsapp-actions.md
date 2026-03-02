@@ -163,3 +163,18 @@ Claude Sonnet 4.6
 
 - No PII is echoed in user-visible error strings.
 - Performance constraint (NFR3 / 500ms) remains a manual validation as specified.
+
+### Handoff (5-1 → 5-2)
+
+This story establishes the “leave app → return → acquittement” contract.
+
+- Single gateway: All call/SMS/WhatsApp launches MUST go through `ContactActionService`.
+- Pending state set on successful launch:
+	- `ContactActionService` records legacy `AppLifecycleService.setPendingFriendId(friendId)`.
+	- It also records rich state via `AppLifecycleService.setActionState(PendingActionState(...))`:
+		- `friendId`: targeted friend
+		- `origin`: `AcquittementOrigin.dailyView` or `AcquittementOrigin.friendCard`
+		- `actionType`: one of `call` / `sms` / `whatsapp`
+		- `timestamp`: `DateTime.now()` (drives 30-min expiry)
+- Rollback on failure: if `url_launcher` fails/throws, `ContactActionService` clears both pending states (`setPendingFriendId(null)` + `setActionState(null)`).
+- Consumer expectations (5-2/5-3): on app resume, `AppLifecycleService.pendingActionStream` emits the non-expired `PendingActionState`; the acquittement sheet should open and call `AppLifecycleService.clearActionState()` immediately on open.
