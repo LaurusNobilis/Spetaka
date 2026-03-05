@@ -4,6 +4,18 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// Load signing config from key.properties when present (local dev & CI).
+// In CI the file is written by the workflow before this step; locally the
+// developer creates it once after generating their upload keystore.
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+def signingConfigured = keystorePropertiesFile.exists()
+if (signingConfigured) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 android {
     namespace = "dev.spetaka.spetaka"
     compileSdk = flutter.compileSdkVersion
@@ -32,9 +44,26 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (signingConfigured) {
+            release {
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+                storeFile = file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            // Use Play upload keystore when available; fall back to debug in
+            // unsigned local builds only.  CI always provides key.properties.
+            signingConfig = signingConfigured
+                ? signingConfigs.release
+                : signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }

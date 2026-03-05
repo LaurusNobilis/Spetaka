@@ -20,6 +20,10 @@ jobs:
     name: Analyze · Test · Build
     runs-on: ubuntu-latest  # x86_64 — required for gen_snapshot / AAPT2
     timeout-minutes: 20
+    env:
+      # Expose signing secret as job-level env so it can be checked in `if:` conditions.
+      # The value will be empty ('') when the secret is not configured (e.g. fork PRs).
+      SIGNING_KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
@@ -74,16 +78,52 @@ jobs:
         working-directory: spetaka
         run: flutter test --no-color
 
-      # ── Build release APK (AC: 1, 2) ─────────────────────────────────────
+      # ── Signing: decode keystore from secret (release builds only) ──────────
+      - name: Decode upload keystore
+        if: env.SIGNING_KEYSTORE_B64 != ''
+        working-directory: spetaka/android
+        run: echo "$SIGNING_KEYSTORE_B64" | base64 --decode > upload-keystore.jks
+
+      - name: Write key.properties
+        if: env.SIGNING_KEYSTORE_B64 != ''
+        working-directory: spetaka/android
+        run: |
+          cat > key.properties <<EOF
+          storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}
+          keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}
+          storeFile=../android/upload-keystore.jks
+          EOF
+
+      # ── Build versioned release APK (AC: 1, 4) ────────────────────────────
       - name: Build release APK
         working-directory: spetaka
-        run: flutter build apk --release --target-platform android-arm64
+        run: |
+          flutter build apk --release \
+            --target-platform android-arm64 \
+            --build-number ${{ github.run_number }}
 
-      # ── Upload APK artifact (AC: 5) ───────────────────────────────────────
+      # ── Build release AAB for Play Store (AC: 1, 4) ───────────────────────
+      - name: Build release AAB (Play Store)
+        working-directory: spetaka
+        run: |
+          flutter build appbundle --release \
+            --build-number ${{ github.run_number }}
+
+      # ── Upload APK artifact ───────────────────────────────────────────────
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: spetaka-release-${{ github.run_number }}
+          name: spetaka-release-apk-${{ github.run_number }}
           path: spetaka/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      # ── Upload AAB artifact ───────────────────────────────────────────────
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: spetaka-release-aab-${{ github.run_number }}
+          path: spetaka/build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
           if-no-files-found: error
