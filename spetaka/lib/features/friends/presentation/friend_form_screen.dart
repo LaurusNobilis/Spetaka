@@ -100,7 +100,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           .findById(widget.editFriendId!);
       if (!mounted) return;
       if (friend == null) {
-        _showSnackBar('Friend not found.');
+        _showSnackBar(context.l10n.friendNotFound);
         if (mounted) Navigator.of(context).pop();
         return;
       }
@@ -114,7 +114,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       });
     } catch (_) {
       if (mounted) {
-        _showSnackBar('Failed to load friend. Please try again.');
+        _showSnackBar(context.l10n.somethingWentWrong);
         Navigator.of(context).pop();
       }
     }
@@ -188,7 +188,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
     } on AppError catch (e) {
       _showSnackBar(errorMessageFor(e));
     } catch (_) {
-      _showSnackBar('Something went wrong. Please try again.');
+      if (mounted) _showSnackBar(context.l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -304,7 +304,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
     } on AppError catch (e) {
       _showSnackBar(errorMessageFor(e));
     } catch (_) {
-      _showSnackBar('Something went wrong. Please try again.');
+      if (mounted) _showSnackBar(context.l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

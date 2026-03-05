@@ -13,6 +13,7 @@ import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/router/app_router.dart';
 import '../data/daily_view_provider.dart';
 import '../domain/priority_engine.dart';
+import 'daily_text_helpers.dart';
 
 /// Widget displayed at the top of [DailyViewScreen] showing at most 2 urgent
 /// and 2 important friends.
@@ -57,7 +58,7 @@ class HeartBriefingWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Text(
-              'Heart Briefing',
+              context.l10n.heartBriefingTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: theme.colorScheme.primary,
@@ -125,7 +126,7 @@ class _BriefingRow extends StatelessWidget {
 
     return Semantics(
       label:
-          '${friend.name}, ${entry.surfacingReason}${hasConcern ? ', concern active' : ''}',
+          '${friend.name}, ${localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent)}${hasConcern ? ', ${context.l10n.concernActiveSemantics}' : ''}',
       button: true,
       child: InkWell(
         onTap: () => FriendDetailRoute(friend.id).go(context),
@@ -142,7 +143,7 @@ class _BriefingRow extends StatelessWidget {
                     Icons.warning_amber_rounded,
                     size: 16,
                     color: theme.colorScheme.error,
-                    semanticLabel: 'Concern active',
+                    semanticLabel: context.l10n.concernActiveSemantics,
                   ),
                 ),
               // Friend name
@@ -158,7 +159,7 @@ class _BriefingRow extends StatelessWidget {
               const SizedBox(width: 8),
               // Surfacing reason
               Text(
-                entry.surfacingReason,
+                localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                 ),

@@ -524,4 +524,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackEmailLabel => 'Send us your suggestions';
+
+  @override
+  String get friendNotFound => 'Friend not found.';
+
+  @override
+  String deleteFriendConfirmContent(String name) {
+    return 'Delete \"$name\"? All contact history will be permanently removed and cannot be undone.';
+  }
+
+  @override
+  String get clearConcernBody =>
+      'Remove the concern flag and its note for this friend?';
+
+  @override
+  String deleteEventConfirmContent(String type, String date) {
+    return 'Delete \"$type\" on $date? This action cannot be undone.';
+  }
+
+  @override
+  String eventDoneLabel(String date) {
+    return 'Done $date';
+  }
+
+  @override
+  String get eventActionsTooltip => 'Event actions';
+
+  @override
+  String get tierNormal => 'Normal';
+
+  @override
+  String get surfacingNoEvent => 'No upcoming event';
+
+  @override
+  String surfacingOverdueByDays(int days) {
+    return 'Overdue by $days days';
+  }
+
+  @override
+  String get surfacingOverdueByOneDay => 'Overdue by 1 day';
+
+  @override
+  String get surfacingDueToday => 'Due today';
+
+  @override
+  String get surfacingDueTomorrow => 'Due tomorrow';
+
+  @override
+  String surfacingDueInDays(int days) {
+    return 'Due in $days days';
+  }
+
+  @override
+  String get couldNotLoadDailyView => 'Could not load daily view.';
+
+  @override
+  String get concernActiveSemantics => 'Concern active';
+
+  @override
+  String get lastNoteLabel => 'Last note';
+
+  @override
+  String get contactLoggedFeedback => 'Contact enregistré — bien joué 💛';
+
+  @override
+  String cadenceEveryNDays(int days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String get heartBriefingTitle => 'Heart Briefing';
 }

@@ -13,12 +13,12 @@ abstract final class AppTokens {
   /// Friend cards and bottom sheets — subtle warm separation.
   static const Color lightSurface = Color(0xFFF5F1EC);
 
-  /// Action buttons, active states — muted terracotta.
-  static const Color lightPrimary = Color(0xFFC47B5A);
+  /// Action buttons, active states — vivid coral-orange.
+  static const Color lightPrimary = Color(0xFFD94216);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
 
-  /// Acquittement completion, success — dusty sage.
-  static const Color lightSecondary = Color(0xFF7D9E8C);
+  /// Acquittement completion, success — vivid teal-green.
+  static const Color lightSecondary = Color(0xFF1A9166);
   static const Color lightOnSecondary = Color(0xFFFFFFFF);
 
   /// Primary text — deep warm charcoal, intimate and soft.
@@ -40,12 +40,12 @@ abstract final class AppTokens {
   /// Dark cards — warm dark surface.
   static const Color darkSurface = Color(0xFF2A2420);
 
-  /// Terracotta brightened for dark-mode legibility.
-  static const Color darkPrimary = Color(0xFFD4956E);
+  /// Coral brightened for dark-mode legibility.
+  static const Color darkPrimary = Color(0xFFFF6B35);
   static const Color darkOnPrimary = Color(0xFF2C1A0F);
 
-  /// Sage brightened for dark-mode legibility.
-  static const Color darkSecondary = Color(0xFF9DB8A7);
+  /// Teal brightened for dark-mode legibility.
+  static const Color darkSecondary = Color(0xFF4DBE8E);
   static const Color darkOnSecondary = Color(0xFF0D2019);
 
   /// Warm cream text on dark surfaces.

@@ -126,6 +126,55 @@ class AcquittementRepository {
           updatedAt: ts.millisecondsSinceEpoch,
         ),
       );
+
+      // Step 6: acknowledge / advance all pending in-window events so the
+      // friend card disappears from the daily summary immediately after logging.
+      //
+      // Surface window: same 4-day lookahead used by watchPriorityInputEvents.
+      // • Recurring events  → advance date by cadence_days (next occurrence).
+      // • One-time events   → mark isAcknowledged = true.
+      final windowEndMs = DateTime(ts.year, ts.month, ts.day)
+          .add(const Duration(days: 4))
+          .millisecondsSinceEpoch;
+
+      for (final e in events) {
+        if (e.date >= windowEndMs) continue; // outside current window — skip
+        if (e.isRecurring && e.cadenceDays != null) {
+          // Advance to next occurrence; reset acknowledged state.
+          final nextDate =
+              e.date + e.cadenceDays! * Duration.millisecondsPerDay;
+          await db.eventDao.updateEvent(
+            EventsCompanion(
+              id: Value(e.id),
+              friendId: Value(e.friendId),
+              type: Value(e.type),
+              date: Value(nextDate),
+              isRecurring: const Value(true),
+              cadenceDays: Value(e.cadenceDays),
+              comment: Value(e.comment),
+              isAcknowledged: const Value(false),
+              acknowledgedAt: const Value(null),
+              createdAt: Value(e.createdAt),
+            ),
+          );
+        } else if (!e.isRecurring && !e.isAcknowledged) {
+          // Mark one-time event as done.
+          await db.eventDao.updateEvent(
+            EventsCompanion(
+              id: Value(e.id),
+              friendId: Value(e.friendId),
+              type: Value(e.type),
+              date: Value(e.date),
+              isRecurring: const Value(false),
+              cadenceDays: const Value(null),
+              comment: Value(e.comment),
+              isAcknowledged: const Value(true),
+              acknowledgedAt: Value(ts.millisecondsSinceEpoch),
+              createdAt: Value(e.createdAt),
+            ),
+          );
+        }
+      }
     });
   }
 

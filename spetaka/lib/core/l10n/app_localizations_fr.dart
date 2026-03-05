@@ -532,4 +532,74 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get feedbackEmailLabel => 'Envoyer vos suggestions';
+
+  @override
+  String get friendNotFound => 'Ami introuvable.';
+
+  @override
+  String deleteFriendConfirmContent(String name) {
+    return 'Supprimer « $name » ? Tout l\'historique des contacts sera définitivement supprimé et ne pourra pas être annulé.';
+  }
+
+  @override
+  String get clearConcernBody =>
+      'Retirer le signal de préoccupation et sa note pour cet ami ?';
+
+  @override
+  String deleteEventConfirmContent(String type, String date) {
+    return 'Supprimer « $type » du $date ? Cette action est irréversible.';
+  }
+
+  @override
+  String eventDoneLabel(String date) {
+    return 'Réalisé le $date';
+  }
+
+  @override
+  String get eventActionsTooltip => 'Actions sur l\'événement';
+
+  @override
+  String get tierNormal => 'Normal';
+
+  @override
+  String get surfacingNoEvent => 'Pas d\'événement prévu';
+
+  @override
+  String surfacingOverdueByDays(int days) {
+    return 'En retard de $days jours';
+  }
+
+  @override
+  String get surfacingOverdueByOneDay => 'En retard de 1 jour';
+
+  @override
+  String get surfacingDueToday => 'Prévu aujourd\'hui';
+
+  @override
+  String get surfacingDueTomorrow => 'Prévu demain';
+
+  @override
+  String surfacingDueInDays(int days) {
+    return 'Dans $days jours';
+  }
+
+  @override
+  String get couldNotLoadDailyView => 'Impossible de charger le résumé.';
+
+  @override
+  String get concernActiveSemantics => 'Préoccupation active';
+
+  @override
+  String get lastNoteLabel => 'Dernière note';
+
+  @override
+  String get contactLoggedFeedback => 'Contact enregistré — bien joué 💛';
+
+  @override
+  String cadenceEveryNDays(int days) {
+    return 'Tous les $days jours';
+  }
+
+  @override
+  String get heartBriefingTitle => 'Aperçu prioritaire';
 }

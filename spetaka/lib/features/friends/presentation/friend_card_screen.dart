@@ -82,7 +82,7 @@ class FriendCardScreen extends ConsumerWidget {
       error: (err, _) {
         final message = err is AppError
             ? errorMessageFor(err)
-            : 'Something went wrong. Please try again.';
+            : context.l10n.somethingWentWrong;
         return Scaffold(
           appBar: AppBar(title: Text(context.l10n.friendTitle)),
           body: Center(child: AppErrorWidget(message: message)),
@@ -92,8 +92,8 @@ class FriendCardScreen extends ConsumerWidget {
         if (friend == null) {
           return Scaffold(
             appBar: AppBar(title: Text(context.l10n.friendTitle)),
-            body: const Center(
-              child: AppErrorWidget(message: 'Friend not found.'),
+            body: Center(
+              child: AppErrorWidget(message: context.l10n.friendNotFound),
             ),
           );
         }
@@ -161,8 +161,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
           builder: (ctx) => AlertDialog(
             title: Text(context.l10n.deleteFriendTitle),
             content: Text(
-              'Delete "${friend.name}"? '  
-              'All contact history will be permanently removed and cannot be undone.',
+              context.l10n.deleteFriendConfirmContent(friend.name),
             ),
             actions: [
               TextButton(
@@ -235,8 +234,7 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(context.l10n.clearConcernTitle),
-            content: const Text(
-                'Remove the concern flag and its note for this friend?',),
+            content: Text(context.l10n.clearConcernBody),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
@@ -646,7 +644,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -663,7 +661,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -680,7 +678,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -845,9 +843,10 @@ class _EventsSection extends ConsumerWidget {
           builder: (ctx) => AlertDialog(
             title: Text(context.l10n.deleteEventTitle),
             content: Text(
-              'Delete "$typeLabel" '
-              'on ${_dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.date))}? '
-              'This action cannot be undone.',
+              context.l10n.deleteEventConfirmContent(
+                typeLabel,
+                _dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.date)),
+              ),
             ),
             actions: [
               TextButton(
@@ -885,10 +884,11 @@ class _EventsSection extends ConsumerWidget {
 
     return _DetailSection(
       title: context.l10n.eventsLabel,
-      trailing: IconButton(
-        icon: const Icon(Icons.add_circle_outline),
-        tooltip: context.l10n.addEventAction,
+      trailing: FilledButton.icon(
+        icon: const Icon(Icons.add, size: 18),
+        label: Text(context.l10n.addEventAction),
         onPressed: () => AddEventRoute(friendId).push(context),
+        style: FilledButton.styleFrom(minimumSize: const Size(0, 36)),
       ),
       child: asyncEvents.when(
         loading: () => const SizedBox(
@@ -949,15 +949,18 @@ class _EventRow extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onAcknowledge;
 
-  static String _cadenceLabel(int days) => switch (days) {
-        7 => 'Every week',
-        14 => 'Every 2 weeks',
-        21 => 'Every 3 weeks',
-        30 => 'Monthly',
-        60 => 'Every 2 months',
-        90 => 'Every 3 months',
-        _ => 'Every $days days',
-      };
+  static String _cadenceLabel(BuildContext context, int days) {
+    final l = context.l10n;
+    return switch (days) {
+      7 => l.everyWeek,
+      14 => l.every2Weeks,
+      21 => l.every3Weeks,
+      30 => l.monthly,
+      60 => l.every2Months,
+      90 => l.every3Months,
+      _ => l.cadenceEveryNDays(days),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1005,7 +1008,7 @@ class _EventRow extends StatelessWidget {
                         Icon(Icons.repeat, size: 13, color: colorScheme.secondary),
                         const SizedBox(width: 4),
                         Text(
-                          _cadenceLabel(event.cadenceDays!),
+                          _cadenceLabel(context, event.cadenceDays!),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.secondary,
                             fontWeight: FontWeight.w500,
@@ -1034,7 +1037,7 @@ class _EventRow extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Done ${dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.acknowledgedAt!))}',
+                          context.l10n.eventDoneLabel(dateFormat.format(DateTime.fromMillisecondsSinceEpoch(event.acknowledgedAt!))),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: Colors.green.shade600,
                           ),
@@ -1048,8 +1051,8 @@ class _EventRow extends StatelessWidget {
           ),
           // 3.3 / 3.5: popup menu — Edit, Mark done (or Recurring: advance), Delete.
           PopupMenuButton<_EventAction>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            tooltip: 'Event actions',
+            icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.primary),
+            tooltip: context.l10n.eventActionsTooltip,
             itemBuilder: (ctx) => [
               if (!isDone)
                 PopupMenuItem(

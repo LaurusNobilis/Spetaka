@@ -1081,6 +1081,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send us your suggestions'**
   String get feedbackEmailLabel;
+
+  /// Error when friend record cannot be found
+  ///
+  /// In en, this message translates to:
+  /// **'Friend not found.'**
+  String get friendNotFound;
+
+  /// Body of the delete-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? All contact history will be permanently removed and cannot be undone.'**
+  String deleteFriendConfirmContent(String name);
+
+  /// Body of the clear-concern confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the concern flag and its note for this friend?'**
+  String get clearConcernBody;
+
+  /// Body of the delete-event confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{type}\" on {date}? This action cannot be undone.'**
+  String deleteEventConfirmContent(String type, String date);
+
+  /// Label shown when an event is acknowledged, with the date
+  ///
+  /// In en, this message translates to:
+  /// **'Done {date}'**
+  String eventDoneLabel(String date);
+
+  /// Tooltip for the event popup menu
+  ///
+  /// In en, this message translates to:
+  /// **'Event actions'**
+  String get eventActionsTooltip;
+
+  /// Urgency tier label: normal
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get tierNormal;
+
+  /// Surfacing reason when friend has no scheduled event
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming event'**
+  String get surfacingNoEvent;
+
+  /// Surfacing reason when event is overdue by multiple days
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue by {days} days'**
+  String surfacingOverdueByDays(int days);
+
+  /// Surfacing reason when event is overdue by exactly 1 day
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue by 1 day'**
+  String get surfacingOverdueByOneDay;
+
+  /// Surfacing reason when event is due today
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get surfacingDueToday;
+
+  /// Surfacing reason when event is due tomorrow
+  ///
+  /// In en, this message translates to:
+  /// **'Due tomorrow'**
+  String get surfacingDueTomorrow;
+
+  /// Surfacing reason when event is due in multiple days
+  ///
+  /// In en, this message translates to:
+  /// **'Due in {days} days'**
+  String surfacingDueInDays(int days);
+
+  /// Error message when daily view fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load daily view.'**
+  String get couldNotLoadDailyView;
+
+  /// Accessibility label when a concern flag is active
+  ///
+  /// In en, this message translates to:
+  /// **'Concern active'**
+  String get concernActiveSemantics;
+
+  /// Label above the last note preview in expanded card
+  ///
+  /// In en, this message translates to:
+  /// **'Last note'**
+  String get lastNoteLabel;
+
+  /// Snackbar shown after a contact is successfully logged
+  ///
+  /// In en, this message translates to:
+  /// **'Contact enregistré — bien joué 💛'**
+  String get contactLoggedFeedback;
+
+  /// Cadence label fallback when the exact interval has no named label
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String cadenceEveryNDays(int days);
+
+  /// Title of the heart briefing section in the daily view
+  ///
+  /// In en, this message translates to:
+  /// **'Heart Briefing'**
+  String get heartBriefingTitle;
 }
 
 class _AppLocalizationsDelegate

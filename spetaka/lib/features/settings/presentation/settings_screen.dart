@@ -9,7 +9,6 @@ import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../backup/providers/backup_providers.dart';
-import '../../daily/data/density_provider.dart';
 import '../data/display_prefs_provider.dart';
 
 // ---------------------------------------------------------------------------
@@ -448,31 +447,15 @@ class _DisplaySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(densityModeProvider);
     final fontScale = ref.watch(fontScaleModeProvider);
     final iconSize = ref.watch(iconSizeModeProvider);
     final locale = ref.watch(localeProvider);
-    final isCompact = mode == DensityMode.compact;
     final l = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionHeading(l.displaySectionTitle),
-        // ── Compact view toggle ───────────────────────────────────────────
-        Semantics(
-          label: isCompact ? l.compactViewOn : l.compactViewOff,
-          toggled: isCompact,
-          excludeSemantics: true,
-          child: SwitchListTile(
-            key: const Key('density_switch'),
-            secondary: const Icon(Icons.density_medium_outlined),
-            title: Text(l.compactViewLabel),
-            subtitle: Text(l.compactViewSubtitle),
-            value: isCompact,
-            onChanged: (_) => ref.read(densityModeProvider.notifier).toggle(),
-          ),
-        ),
         // ── Font size ─────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),

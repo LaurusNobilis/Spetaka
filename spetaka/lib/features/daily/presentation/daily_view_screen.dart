@@ -24,6 +24,7 @@ import '../data/daily_view_provider.dart';
 import '../data/density_provider.dart';
 import '../domain/greeting_service.dart';
 import '../domain/priority_engine.dart';
+import 'daily_text_helpers.dart';
 import 'heart_briefing_widget.dart';
 
 const _kExpandDuration = Duration(milliseconds: 300);
@@ -111,25 +112,6 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
         appBar: AppBar(
           title: Text(context.l10n.dailyTitle),
           actions: [
-            Semantics(
-              label: densityMode == DensityMode.compact
-                  ? context.l10n.switchToExpandedView
-                  : context.l10n.switchToCompactView,
-              button: true,
-              child: IconButton(
-                key: const Key('density_toggle'),
-                icon: Icon(
-                  densityMode == DensityMode.compact
-                      ? Icons.view_stream_outlined
-                      : Icons.view_headline_outlined,
-                ),
-                tooltip: densityMode == DensityMode.compact
-                    ? context.l10n.expandedViewTooltip
-                    : context.l10n.compactViewTooltip,
-                onPressed: () =>
-                    ref.read(densityModeProvider.notifier).toggle(),
-              ),
-            ),
             IconButton(
               icon: const Icon(Icons.people_outline),
               tooltip: context.l10n.navFriends,
@@ -152,7 +134,7 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'Could not load daily view.\n$e',
+                context.l10n.couldNotLoadDailyView,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -297,14 +279,14 @@ class _ExpandableFriendCard extends ConsumerWidget {
     final tierLabel = switch (tier) {
       UrgencyTier.urgent => context.l10n.urgentLabel,
       UrgencyTier.important => context.l10n.importantLabel,
-      UrgencyTier.normal => 'Normal',
+      UrgencyTier.normal => context.l10n.tierNormal,
     };
 
     final verticalPadding = densityMode == DensityMode.compact ? 8.0 : 14.0;
 
     return Semantics(
-      label: '${friend.name}, $tierLabel, ${entry.surfacingReason}'
-          '${hasConcern ? ', concern active' : ''}',
+      label: '${friend.name}, $tierLabel, ${localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent)}'
+          '${hasConcern ? ', ${context.l10n.concernActiveSemantics}' : ''}',
       button: true,
       child: Card(
         elevation: 0,
@@ -411,14 +393,14 @@ class _CollapsedContent extends StatelessWidget {
                         Icons.warning_amber_rounded,
                         size: 16,
                         color: theme.colorScheme.error,
-                        semanticLabel: 'Concern active',
+                        semanticLabel: context.l10n.concernActiveSemantics,
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  entry.surfacingReason,
+                  localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                   ),
@@ -489,10 +471,12 @@ class _ExpandedContentState extends State<_ExpandedContent> {
         origin: AcquittementOrigin.dailyView,
       );
     } on AppError catch (e) {
-      if (mounted) setState(() => _actionError = errorMessageFor(e));
+      if (mounted) {
+        setState(() => _actionError = errorMessageFor(e));
+      }
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -509,7 +493,7 @@ class _ExpandedContentState extends State<_ExpandedContent> {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -526,7 +510,7 @@ class _ExpandedContentState extends State<_ExpandedContent> {
       if (mounted) setState(() => _actionError = errorMessageFor(e));
     } catch (_) {
       if (mounted) {
-        setState(() => _actionError = 'Something went wrong. Please try again.');
+        setState(() => _actionError = context.l10n.somethingWentWrong);
       }
     }
   }
@@ -574,14 +558,14 @@ class _ExpandedContentState extends State<_ExpandedContent> {
                             Icons.warning_amber_rounded,
                             size: 16,
                             color: theme.colorScheme.error,
-                            semanticLabel: 'Concern active',
+                            semanticLabel: context.l10n.concernActiveSemantics,
                           ),
                         ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.entry.surfacingReason,
+                      localizedSurfacingReason(context, widget.entry.prioritized.daysUntilNextEvent),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                       ),
@@ -655,7 +639,7 @@ class _ExpandedContentState extends State<_ExpandedContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Last note',
+                  context.l10n.lastNoteLabel,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                     fontWeight: FontWeight.w600,
