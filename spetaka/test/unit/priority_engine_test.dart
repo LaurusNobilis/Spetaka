@@ -117,8 +117,8 @@ void main() {
       expect(s1 - s0, closeTo(kCareScoreMultiplier, 0.001));
     });
 
-    test('Family tag yields highest category weight', () {
-      final fFamily = friend(tags: ['Family']);
+    test('Famille tag yields highest category weight', () {
+      final fFamily = friend(tags: ['Famille']);
       final fAcq = friend(tags: ['Acquaintance']);
 
       final sFamily = engine.scoreOne(fFamily, now: today).score;
@@ -232,7 +232,7 @@ void main() {
         id: 'bench_$i',
         careScore: (i % 10) * 0.1,
         hasConcern: i.isOdd,
-        tags: i % 3 == 0 ? ['Family'] : (i % 3 == 1 ? ['Work'] : []),
+        tags: i % 3 == 0 ? ['Famille'] : (i % 3 == 1 ? ['Travail'] : []),
         events: List.generate(
           (i % 5) + 1,
           (j) => EventScoringInput(

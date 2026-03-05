@@ -10,11 +10,11 @@ import 'package:flutter/foundation.dart';
 /// NOTE: these names must stay in sync with
 /// `settings/domain/category_tag.dart` → `kDefaultCategoryTags`.
 const predefinedFriendTags = <String>[
-  'Family',
-  'Close friends',
-  'Friends',
-  'Work',
-  'Other',
+  'Famille',
+  'Amis proches',
+  'Amis',
+  'Travail',
+  'Autre',
 ];
 
 final Map<String, int> _tagOrder = <String, int>{

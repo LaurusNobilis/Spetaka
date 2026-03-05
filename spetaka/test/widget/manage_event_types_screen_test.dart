@@ -27,10 +27,10 @@ import 'package:spetaka/features/events/presentation/manage_event_types_screen.d
 List<EventTypeEntry> _defaultTypes() {
   final now = DateTime.now().millisecondsSinceEpoch;
   const names = [
-    'Wedding Anniversary',
-    'Important Life Event',
-    'Regular Check-in',
-    'Important Appointment',
+    'Anniversaire de mariage',
+    'Événement important',
+    'Appel de suivi',
+    'Rendez-vous important',
   ];
   return [
     for (var i = 0; i < names.length; i++)
@@ -67,10 +67,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Wedding Anniversary'), findsOneWidget);
-      expect(find.text('Important Life Event'), findsOneWidget);
-      expect(find.text('Regular Check-in'), findsOneWidget);
-      expect(find.text('Important Appointment'), findsOneWidget);
+      expect(find.text('Anniversaire de mariage'), findsOneWidget);
+      expect(find.text('Événement important'), findsOneWidget);
+      expect(find.text('Appel de suivi'), findsOneWidget);
+      expect(find.text('Rendez-vous important'), findsOneWidget);
     });
 
     testWidgets('AC2 — add text field and button are present', (tester) async {

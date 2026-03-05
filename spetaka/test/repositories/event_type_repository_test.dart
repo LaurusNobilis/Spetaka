@@ -80,10 +80,10 @@ void main() {
 
       final names = types.map((t) => t.name).toList();
       expect(names, [
-        'Wedding Anniversary',
-        'Important Life Event',
-        'Regular Check-in',
-        'Important Appointment',
+        'Anniversaire de mariage',
+        'Événement important',
+        'Appel de suivi',
+        'Rendez-vous important',
       ]);
     });
 
@@ -96,15 +96,15 @@ void main() {
 
     test('default types have deterministic IDs', () async {
       final types = await repo.getAll();
-      expect(types[0].id, 'default-wedding-anniversary');
-      expect(types[1].id, 'default-important-life-event');
-      expect(types[3].id, 'default-important-appointment');
+      expect(types[0].id, 'default-anniversaire-de-mariage');
+      expect(types[1].id, 'default-événement-important');
+      expect(types[3].id, 'default-rendez-vous-important');
     });
 
     test('watchAll emits the seeded list', () async {
       final types = await repo.watchAll().first;
       expect(types.length, 4);
-      expect(types.first.name, 'Wedding Anniversary');
+      expect(types.first.name, 'Anniversaire de mariage');
     });
   });
 

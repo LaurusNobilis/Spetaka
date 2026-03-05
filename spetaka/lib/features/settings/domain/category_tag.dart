@@ -39,11 +39,11 @@ class CategoryTag {
 // ---------------------------------------------------------------------------
 
 const List<CategoryTag> kDefaultCategoryTags = [
-  CategoryTag(name: 'Family', weight: 3.0),
-  CategoryTag(name: 'Close friends', weight: 2.5),
-  CategoryTag(name: 'Friends', weight: 2.0),
-  CategoryTag(name: 'Work', weight: 1.5),
-  CategoryTag(name: 'Other', weight: 1.0),
+  CategoryTag(name: 'Famille', weight: 3.0),
+  CategoryTag(name: 'Amis proches', weight: 2.5),
+  CategoryTag(name: 'Amis', weight: 2.0),
+  CategoryTag(name: 'Travail', weight: 1.5),
+  CategoryTag(name: 'Autre', weight: 1.0),
 ];
 
 // ---------------------------------------------------------------------------

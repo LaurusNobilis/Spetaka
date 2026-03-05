@@ -123,12 +123,12 @@ void main() {
       expect(score, lessThanOrEqualTo(1.0));
     });
 
-    test('Family tag produces higher score than Acquaintance (weighted)', () {
+    test('Famille tag produces higher score than Acquaintance (weighted)', () {
       const days = 5;
       final familyScore = computeCareScore(
         daysSinceLastContact: days,
         expectedIntervalDays: 30,
-        tags: ['Family'], // weight 3.0 / kMaxCareWeight 3.0 = 1.0
+        tags: ['Famille'], // weight 3.0 / kMaxCareWeight 3.0 = 1.0
       );
       final acquaintanceScore = computeCareScore(
         daysSinceLastContact: days,
@@ -136,7 +136,7 @@ void main() {
         tags: ['Acquaintance'], // weight 1.0 / 3.0 ≈ 0.33
       );
       expect(familyScore, greaterThan(acquaintanceScore),
-          reason: 'Family should score higher than Acquaintance',);
+          reason: 'Famille should score higher than Acquaintance',);
     });
 
     test('uses kDefaultExpectedIntervalDays when expectedIntervalDays is null',

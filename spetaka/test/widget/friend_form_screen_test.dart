@@ -240,9 +240,9 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '06 12 34 56 78');
 
     // Select two tags.
-    await tester.tap(find.text('Family'));
+    await tester.tap(find.text('Famille'));
     await tester.pump();
-    await tester.tap(find.text('Work'));
+    await tester.tap(find.text('Travail'));
     await tester.pump();
 
     await tester.tap(find.text('Save'));
@@ -261,13 +261,13 @@ void main() {
     expect(find.text('Charlie'), findsAtLeastNWidgets(1));
 
     // Chips must be rendered (AC4).
-    expect(find.widgetWithText(Chip, 'Family'), findsAtLeastNWidgets(1));
-    expect(find.widgetWithText(Chip, 'Work'), findsAtLeastNWidgets(1));
+    expect(find.widgetWithText(Chip, 'Famille'), findsAtLeastNWidgets(1));
+    expect(find.widgetWithText(Chip, 'Travail'), findsAtLeastNWidgets(1));
 
     // Also sanity-check persistence format is stable JSON.
     final all = await repo.findAll();
     expect(all, hasLength(1));
-    expect(decodeFriendTags(all.first.tags), <String>['Family', 'Work']);
+    expect(decodeFriendTags(all.first.tags), <String>['Famille', 'Travail']);
 
     await db.close();
     enc.dispose();

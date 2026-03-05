@@ -122,11 +122,11 @@ const double kBaseScore = 10.0;
 /// Must stay in sync with `settings/domain/category_tag.dart` → `kDefaultCategoryTags`.
 /// Unknown tags resolve to [kDefaultCategoryWeight].
 const Map<String, double> kCategoryWeights = {
-  'Family': 3.0,
-  'Close friends': 2.5,
-  'Friends': 2.0,
-  'Work': 1.5,
-  'Other': 1.0,
+  'Famille': 3.0,
+  'Amis proches': 2.5,
+  'Amis': 2.0,
+  'Travail': 1.5,
+  'Autre': 1.0,
 };
 
 const double kDefaultCategoryWeight = 1.0;

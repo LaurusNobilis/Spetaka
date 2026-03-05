@@ -68,7 +68,7 @@ void main() {
       expect(sophie!.isDemo, isTrue);
     });
 
-    test('Sophie has one event seeded with type Important Life Event', () async {
+    test('Sophie has one event seeded with type Événement important', () async {
       await db.customSelect('SELECT 1').getSingle();
       final allEvents = await db.eventDao.findByFriendId('demo-sophie-001');
       expect(
@@ -76,7 +76,7 @@ void main() {
         equals(1),
         reason: 'Sophie must have exactly 1 seeded event',
       );
-      expect(allEvents.first.type, equals('Important Life Event'));
+      expect(allEvents.first.type, equals('Événement important'));
     });
 
     test('Sophie event date is approximately +7 days from now', () async {

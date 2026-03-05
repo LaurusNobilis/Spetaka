@@ -18,11 +18,11 @@ enum EventType {
 
   /// Human-readable label shown in the UI.
   String get displayLabel => switch (this) {
-        EventType.birthday => 'Birthday',
-        EventType.weddingAnniversary => 'Wedding Anniversary',
-        EventType.importantLifeEvent => 'Important Life Event',
-        EventType.regularCheckin => 'Regular Check-in',
-        EventType.importantAppointment => 'Important Appointment',
+        EventType.birthday => 'Anniversaire',
+        EventType.weddingAnniversary => 'Anniversaire de mariage',
+        EventType.importantLifeEvent => 'Événement important',
+        EventType.regularCheckin => 'Appel de suivi',
+        EventType.importantAppointment => 'Rendez-vous important',
       };
 
   /// Compact name persisted in SQLite.

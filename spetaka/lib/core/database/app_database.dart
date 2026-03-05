@@ -91,10 +91,10 @@ class AppDatabase extends _$AppDatabase {
           if (count == 0) {
             final now = DateTime.now().millisecondsSinceEpoch;
             const defaults = [
-              'Wedding Anniversary',
-              'Important Life Event',
-              'Regular Check-in',
-              'Important Appointment',
+              'Anniversaire de mariage',
+              'Événement important',
+              'Appel de suivi',
+              'Rendez-vous important',
             ];
             for (var i = 0; i < defaults.length; i++) {
               await into(eventTypes).insert(
@@ -132,7 +132,7 @@ class AppDatabase extends _$AppDatabase {
               EventsCompanion.insert(
                 id: sophieEventId,
                 friendId: sophieId,
-                type: 'Important Life Event',
+                type: 'Événement important',
                 date: eventDateMs,
                 createdAt: nowMs,
               ),
