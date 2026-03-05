@@ -1,6 +1,6 @@
 # Story 7.4: Play Store Release Preparation
 
-Status: review
+Status: backlog
 
 ## Story
 As Laurus, I want release pipeline and Play Store setup ready so rollout can proceed safely after validation gate.
@@ -89,6 +89,7 @@ tasks were implemented as configuration, Groovy (Gradle), and Markdown artifacts
 - `docs/release-process.md` — created: end-to-end release guide (keystore → Internal → Production)
 
 ## Change Log
+- 2026-03-05: Story 7.4 deferred to backlog (do later). Release validation/submission remains pending.
 - 2026-03-05: Story 7.4 implemented — CI versioning, signing hygiene, privacy policy,
   data safety form, release process documentation. All ACs satisfied. (Story 7.4, dev: Amelia)
 

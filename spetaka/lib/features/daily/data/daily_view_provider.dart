@@ -28,21 +28,18 @@ class DailyViewEntry {
   const DailyViewEntry({
     required this.friend,
     required this.prioritized,
+    this.nextEventLabel,
   });
 
   final Friend friend;
   final PrioritizedFriend prioritized;
 
-  /// Human-readable surfacing reason derived from [prioritized.daysUntilNextEvent].
-  String get surfacingReason {
-    final days = prioritized.daysUntilNextEvent;
-    if (days == null) return 'No upcoming event';
-    if (days < -1) return 'Overdue by ${-days} days';
-    if (days == -1) return 'Overdue by 1 day';
-    if (days == 0) return 'Due today';
-    if (days == 1) return 'Due tomorrow';
-    return 'Due in $days days';
-  }
+  /// The human-readable label of the nearest triggering event (the event
+  /// whose proximity caused this card to surface in the daily view).
+  ///
+  /// Populated by [buildDailyView] from [Event.type] of the nearest
+  /// unacknowledged in-window event. May be null when no event exists.
+  final String? nextEventLabel;
 }
 
 // ---------------------------------------------------------------------------
@@ -140,13 +137,39 @@ List<DailyViewEntry> buildDailyView(
     categoryWeights: categoryWeights,
   );
 
+  // Pre-compute the triggering event label for each friend:
+  // the nearest unacknowledged in-window event (mirrors the engine's
+  // _nearestUnacknowledged ordering — closest absolute day distance).
+  final today = DateTime(now.year, now.month, now.day);
+  final nextEventLabelByFriend = <String, String?>{};
+  for (final entry in eventsByFriend.entries) {
+    final unack = entry.value.where((e) => !e.isAcknowledged).toList();
+    if (unack.isEmpty) continue;
+    unack.sort((a, b) {
+      final dA = DateTime.fromMillisecondsSinceEpoch(a.date)
+          .difference(today)
+          .inDays
+          .abs();
+      final dB = DateTime.fromMillisecondsSinceEpoch(b.date)
+          .difference(today)
+          .inDays
+          .abs();
+      return dA.compareTo(dB);
+    });
+    nextEventLabelByFriend[entry.key] = unack.first.type;
+  }
+
   // Map back to DailyViewEntry, joining with the Friend record.
   final friendById = {for (final f in friends) f.id: f};
   return sorted
       .map((p) {
         final f = friendById[p.friendId];
         if (f == null) return null;
-        return DailyViewEntry(friend: f, prioritized: p);
+        return DailyViewEntry(
+          friend: f,
+          prioritized: p,
+          nextEventLabel: nextEventLabelByFriend[p.friendId],
+        );
       })
       .whereType<DailyViewEntry>()
       .toList();

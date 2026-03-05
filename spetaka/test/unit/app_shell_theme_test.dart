@@ -105,6 +105,10 @@ void main() {
   group('appRouter routes', () {
     RouteBase? findRoute(List<RouteBase> routes, String path) {
       for (final r in routes) {
+        if (r is ShellRoute) {
+          final found = findRoute(r.routes, path);
+          if (found != null) return found;
+        }
         if (r is GoRoute && r.path == path) return r;
         if (r is GoRoute && r.routes.isNotEmpty) {
           final found = findRoute(r.routes, path);
@@ -115,27 +119,27 @@ void main() {
     }
 
     test('root route "/" exists', () {
-      final root = appRouter.configuration.routes.first as GoRoute;
-      expect(root.path, '/');
+      final found = findRoute(appRouter.configuration.routes, '/');
+      expect(found, isNotNull);
     });
 
     test('friends route exists', () {
-      final found = findRoute(appRouter.configuration.routes, 'friends');
+      final found = findRoute(appRouter.configuration.routes, '/friends');
       expect(found, isNotNull);
     });
 
     test('friends/new route exists', () {
-      final found = findRoute(appRouter.configuration.routes, 'new');
+      final found = findRoute(appRouter.configuration.routes, '/friends/new');
       expect(found, isNotNull);
     });
 
     test('friends/:id route exists', () {
-      final found = findRoute(appRouter.configuration.routes, ':id');
+      final found = findRoute(appRouter.configuration.routes, '/friends/:id');
       expect(found, isNotNull);
     });
 
     test('settings route exists', () {
-      final found = findRoute(appRouter.configuration.routes, 'settings');
+      final found = findRoute(appRouter.configuration.routes, '/settings');
       expect(found, isNotNull);
     });
 

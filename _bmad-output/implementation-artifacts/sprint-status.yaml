@@ -71,13 +71,14 @@ development_status:
   3-5-manual-event-acknowledgement: done
   epic-3-retrospective: optional
 
-  epic-4: done
+  epic-4: in-progress
   4-1-priority-engine-score-computation: done
   4-2-daily-view-surface-window: done
   4-3-heart-briefing-2-2-widget: done
   4-4-coach-tone-greeting-line-density-control: done
   4-5-virtual-friend-sophie-first-launch-onboarding: done
   4-6-daily-view-inline-card-expansion-detail-access: done
+  4-7-swipe-navigation-daily-friends: review
   epic-4-retrospective: optional
 
   epic-5: done
@@ -97,7 +98,7 @@ development_status:
   7-1-complete-settings-screen: done
   7-2-offline-first-verification-graceful-degradation: done
   7-3-full-accessibility-audit-compliance: done
-  7-4-play-store-release-preparation: review
+  7-4-play-store-release-preparation: backlog
   epic-7-retrospective: optional
 
 # =============================================================

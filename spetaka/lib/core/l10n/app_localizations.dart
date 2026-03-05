@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navSettings;
 
+  /// Semantics label for the 2-dot page indicator in the Daily/Friends swipe shell
+  ///
+  /// In en, this message translates to:
+  /// **'Current page: {page}. Swipe left or right to switch pages.'**
+  String shellPageIndicatorSemantics(String page);
+
   /// Generic add button label
   ///
   /// In en, this message translates to:
@@ -989,13 +995,13 @@ abstract class AppLocalizations {
   /// Priority level label
   ///
   /// In en, this message translates to:
-  /// **'My selection'**
+  /// **'Important'**
   String get importantLabel;
 
   /// Priority level label
   ///
   /// In en, this message translates to:
-  /// **'My selection'**
+  /// **'Urgent'**
   String get urgentLabel;
 
   /// Section heading for tags on friend card

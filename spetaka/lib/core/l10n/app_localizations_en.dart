@@ -21,6 +21,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'Settings';
 
   @override
+  String shellPageIndicatorSemantics(String page) {
+    return 'Current page: $page. Swipe left or right to switch pages.';
+  }
+
+  @override
   String get actionAdd => 'Add';
 
   @override
@@ -477,10 +482,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoLabel => 'Demo';
 
   @override
-  String get importantLabel => 'My selection';
+  String get importantLabel => 'Important';
 
   @override
-  String get urgentLabel => 'My selection';
+  String get urgentLabel => 'Urgent';
 
   @override
   String get tagsSection => 'Tags';

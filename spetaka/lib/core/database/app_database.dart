@@ -42,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -81,6 +81,42 @@ class AppDatabase extends _$AppDatabase {
           if (from == 6) {
             await m.addColumn(friends, friends.isDemo);
           }
+          // i18n — v7→v8: rename English event-type entries to French in both
+          // the event_types table and the events.type column.
+          // Also inserts 'Anniversaire' (Birthday) which was accidentally omitted
+          // from the v7 French-only seed.
+          if (from == 7) {
+            const renames = {
+              'Birthday': 'Anniversaire',
+              'Wedding Anniversary': 'Anniversaire de mariage',
+              'Important Life Event': 'Événement important',
+              'Regular Check-in': 'Appel de suivi',
+              'Important Appointment': 'Rendez-vous important',
+            };
+            for (final entry in renames.entries) {
+              await customStatement(
+                'UPDATE event_types SET name = ? WHERE name = ?',
+                [entry.value, entry.key],
+              );
+              await customStatement(
+                'UPDATE events SET type = ? WHERE type = ?',
+                [entry.value, entry.key],
+              );
+            }
+            // Add 'Anniversaire' if not already present (covers both the
+            // fresh-v7 install that had a 4-item French seed and upgrades
+            // from English that had 'Birthday' just renamed above).
+            final rows = await customSelect(
+              "SELECT 1 FROM event_types WHERE name = 'Anniversaire' LIMIT 1",
+            ).get();
+            if (rows.isEmpty) {
+              final nowMs = DateTime.now().millisecondsSinceEpoch;
+              await customStatement(
+                'INSERT OR IGNORE INTO event_types (id, name, sort_order, created_at) VALUES (?, ?, ?, ?)',
+                ['default-anniversaire', 'Anniversaire', -1, nowMs],
+              );
+            }
+          }
         },
         beforeOpen: (details) async {
           // Enable foreign-key enforcement on every connection open.
@@ -91,6 +127,7 @@ class AppDatabase extends _$AppDatabase {
           if (count == 0) {
             final now = DateTime.now().millisecondsSinceEpoch;
             const defaults = [
+              'Anniversaire',
               'Anniversaire de mariage',
               'Événement important',
               'Appel de suivi',

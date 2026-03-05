@@ -74,12 +74,13 @@ void main() {
       await db.close();
     });
 
-    test('4 default event types are seeded on first open', () async {
+    test('5 default event types are seeded on first open', () async {
       final types = await repo.getAll();
-      expect(types.length, 4);
+      expect(types.length, 5);
 
       final names = types.map((t) => t.name).toList();
       expect(names, [
+        'Anniversaire',
         'Anniversaire de mariage',
         'Événement important',
         'Appel de suivi',
@@ -87,7 +88,7 @@ void main() {
       ]);
     });
 
-    test('default types have sort_order 0-3', () async {
+    test('default types have sort_order 0-4', () async {
       final types = await repo.getAll();
       for (var i = 0; i < types.length; i++) {
         expect(types[i].sortOrder, i);
@@ -96,15 +97,16 @@ void main() {
 
     test('default types have deterministic IDs', () async {
       final types = await repo.getAll();
-      expect(types[0].id, 'default-anniversaire-de-mariage');
-      expect(types[1].id, 'default-événement-important');
-      expect(types[3].id, 'default-rendez-vous-important');
+      expect(types[0].id, 'default-anniversaire');
+      expect(types[1].id, 'default-anniversaire-de-mariage');
+      expect(types[2].id, 'default-événement-important');
+      expect(types[4].id, 'default-rendez-vous-important');
     });
 
     test('watchAll emits the seeded list', () async {
       final types = await repo.watchAll().first;
-      expect(types.length, 4);
-      expect(types.first.name, 'Anniversaire de mariage');
+      expect(types.length, 5);
+      expect(types.first.name, 'Anniversaire');
     });
   });
 
@@ -129,9 +131,9 @@ void main() {
       expect(id, isNotEmpty);
 
       final types = await repo.getAll();
-      expect(types.length, 5); // 4 defaults + 1
+      expect(types.length, 6); // 5 defaults + 1
       expect(types.last.name, 'Graduation');
-      expect(types.last.sortOrder, 4); // 0-3 defaults, then 4
+      expect(types.last.sortOrder, 5); // 0-4 defaults, then 5
     });
 
     test('name is trimmed on add', () async {
@@ -142,12 +144,12 @@ void main() {
 
     test('watchAll stream updates reactively after add', () async {
       final stream = repo.watchAll();
-      // Initial: 4 defaults
-      expect((await stream.first).length, 4);
+      // Initial: 5 defaults
+      expect((await stream.first).length, 5);
 
       await repo.addEventType('Custom Type');
       final updated = await stream.first;
-      expect(updated.length, 5);
+      expect(updated.length, 6);
       expect(updated.last.name, 'Custom Type');
     });
   });
@@ -171,13 +173,13 @@ void main() {
     test('rename updates the name column', () async {
       final types = await repo.getAll();
       final firstType = types.first;
-      expect(firstType.name, 'Wedding Anniversary');
+      expect(firstType.name, 'Anniversaire');
 
-      final result = await repo.rename(firstType.id, 'Anniversaire de mariage');
+      final result = await repo.rename(firstType.id, 'Anniversaire révisé');
       expect(result, isTrue);
 
       final updated = await repo.getAll();
-      expect(updated.first.name, 'Anniversaire de mariage');
+      expect(updated.first.name, 'Anniversaire révisé');
     });
 
     test('rename trims whitespace', () async {
@@ -218,12 +220,12 @@ void main() {
       // Legacy type stored in lowercase.
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'wedding anniversary',
+        type: 'anniversaire de mariage',
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
 
       final types = await typeRepo.getAll();
-      final wedding = types.firstWhere((t) => t.name == 'Wedding Anniversary');
+      final wedding = types.firstWhere((t) => t.name == 'Anniversaire de mariage');
 
       final renamed = await typeRepo.rename(wedding.id, 'Bday');
       expect(renamed, isTrue);
@@ -263,12 +265,12 @@ void main() {
 
     test('deleteById removes the event type', () async {
       final types = await typeRepo.getAll();
-      expect(types.length, 4);
+      expect(types.length, 5);
 
       await typeRepo.deleteById(types.last.id);
 
       final updated = await typeRepo.getAll();
-      expect(updated.length, 3);
+      expect(updated.length, 4);
     });
 
     test('countEventsByType returns 0 when no events reference it', () async {
@@ -280,28 +282,28 @@ void main() {
         () async {
       final friendId = await seedFriend(db, enc);
 
-      // Insert 2 events with type "Birthday"
+      // Insert 2 events with type 'Anniversaire'
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Birthday',
+        type: 'Anniversaire',
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Birthday',
+        type: 'Anniversaire',
         date: DateTime(2027, 6, 1).millisecondsSinceEpoch,
       );
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Wedding Anniversary',
+        type: 'Anniversaire de mariage',
         date: DateTime(2026, 9, 1).millisecondsSinceEpoch,
       );
 
-      final birthdayCount = await typeRepo.countEventsByType('Birthday');
+      final birthdayCount = await typeRepo.countEventsByType('Anniversaire');
       expect(birthdayCount, 2);
 
       final weddingCount =
-          await typeRepo.countEventsByType('Wedding Anniversary');
+          await typeRepo.countEventsByType('Anniversaire de mariage');
       expect(weddingCount, 1);
     });
 
@@ -309,18 +311,18 @@ void main() {
       final friendId = await seedFriend(db, enc);
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Birthday',
+        type: 'Anniversaire de mariage',
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
 
       final types = await typeRepo.getAll();
-      final wedding = types.firstWhere((t) => t.name == 'Wedding Anniversary');
+      final wedding = types.firstWhere((t) => t.name == 'Anniversaire de mariage');
       await typeRepo.deleteById(wedding.id);
 
       // Event still exists with its type string intact (orphan)
       final events = await eventRepo.findByFriendId(friendId);
       expect(events.length, 1);
-      expect(events.first.type, 'Birthday');
+      expect(events.first.type, 'Anniversaire de mariage');
     });
   });
 
@@ -347,23 +349,23 @@ void main() {
       await repo.reorder(reversed);
 
       final updated = await repo.getAll();
-      // First should now be the former last
-      expect(updated.first.name, 'Important Appointment');
-      expect(updated.last.name, 'Wedding Anniversary');
+      // First should now be the former last (Rendez-vous important)
+      expect(updated.first.name, 'Rendez-vous important');
+      expect(updated.last.name, 'Anniversaire');
     });
 
     test('reorder maintains sort_order after getAll', () async {
       final types = await repo.getAll();
-      // Move "Regular Check-in" (index 2) to first position
+      // Move 'Événement important' (index 2) to first position
       final ids = types.map((t) => t.id).toList();
       final moved = ids.removeAt(2);
       ids.insert(0, moved);
       await repo.reorder(ids);
 
       final updated = await repo.getAll();
-      expect(updated[0].name, 'Regular Check-in');
+      expect(updated[0].name, 'Événement important');
       expect(updated[0].sortOrder, 0);
-      expect(updated[1].name, 'Wedding Anniversary');
+      expect(updated[1].name, 'Anniversaire');
       expect(updated[1].sortOrder, 1);
     });
   });
@@ -396,13 +398,13 @@ void main() {
     });
 
     test('addEventType rejects case-insensitive duplicate', () async {
-      // "Wedding Anniversary" already seeded
+      // 'Anniversaire de mariage' already seeded
       expect(
-        () => repo.addEventType('wedding anniversary'),
+        () => repo.addEventType('anniversaire de mariage'),
         throwsA(isA<ArgumentError>()),
       );
       expect(
-        () => repo.addEventType('WEDDING ANNIVERSARY'),
+        () => repo.addEventType('ANNIVERSAIRE DE MARIAGE'),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -419,18 +421,18 @@ void main() {
       final types = await repo.getAll();
       // Try renaming first type to match second type
       expect(
-        () => repo.rename(types.first.id, 'important life event'),
+        () => repo.rename(types.first.id, 'anniversaire de mariage'),
         throwsA(isA<ArgumentError>()),
       );
     });
 
     test('rename allows same name with different case (self)', () async {
       final types = await repo.getAll();
-      // Renaming "Wedding Anniversary" to "WEDDING ANNIVERSARY" for the same entry should succeed
-      final result = await repo.rename(types.first.id, 'WEDDING ANNIVERSARY');
+      // Renaming 'Anniversaire' to 'ANNIVERSAIRE' for the same entry should succeed
+      final result = await repo.rename(types.first.id, 'ANNIVERSAIRE');
       expect(result, isTrue);
       final updated = await repo.getAll();
-      expect(updated.first.name, 'WEDDING ANNIVERSARY');
+      expect(updated.first.name, 'ANNIVERSAIRE');
     });
   });
 

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Palette Preview — Spetaka</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #F0EDE8; margin: 0; padding: 24px; color: #2C2620; }
+  h1 { font-size: 1.2rem; margin-bottom: 24px; color: #5A4F47; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .card { background: #FAF7F2; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 1rem; margin: 0 0 4px 0; }
+  .card p { font-size: 0.78rem; color: #8C7B70; margin: 0 0 16px 0; }
+  .swatch-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .swatch { flex: 1; height: 60px; border-radius: 8px; display: flex; align-items: flex-end; padding: 4px 6px; font-size: 0.65rem; font-weight: 600; }
+  .swatch.light-text { color: rgba(255,255,255,0.9); }
+  .swatch.dark-text  { color: rgba(44,38,32,0.7); }
+
+  /* mockup mini card */
+  .mockup { border-radius: 10px; padding: 14px; margin-top: 8px; }
+  .mockup-name { font-size: 0.9rem; font-weight: 700; margin: 0 0 4px 0; }
+  .mockup-sub  { font-size: 0.72rem; margin: 0 0 10px 0; opacity: .65; }
+  .mockup-btn  { display: inline-block; border-radius: 6px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; color: #fff; }
+  .mockup-badge{ display: inline-block; border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-weight: 600; color: #fff; margin-left: 6px; }
+
+  /* dark mockup */
+  .dark-bg { background:#1E1A17; }
+  .dark-surface { background:#2A2420; border-radius:10px; padding:14px; margin-top:8px; }
+  .dark-text-main { color:#F5F1EC; }
+  .dark-text-sub { color:#B0A09A; font-size:0.72rem; }
+</style>
+</head>
+<body>
+
+<h1>Aperçu des 3 palettes — Spetaka</h1>
+
+<div class="grid">
+
+  <!-- OPTION A -->
+  <div class="card">
+    <h2>Option A — Retour aux sources</h2>
+    <p>Terracotta doux + Sauge poussiéreux</p>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin-bottom:4px;">MODE CLAIR</div>
+    <div class="swatch-row">
+      <div class="swatch light-text" style="background:#C47B5A;">Primaire<br>#C47B5A</div>
+      <div class="swatch light-text" style="background:#7D9E8C;">Secondaire<br>#7D9E8C</div>
+      <div class="swatch dark-text"  style="background:#FAF7F2;border:1px solid #C4B8B0;">Fond<br>#FAF7F2</div>
+    </div>
+
+    <div class="mockup" style="background:#FAF7F2;border:1px solid #E8E0D8;">
+      <div class="mockup-name">Sophie Lefèvre</div>
+      <div class="mockup-sub" style="color:#8C7B70;">Dernier contact · il y a 3 semaines</div>
+      <span class="mockup-btn" style="background:#C47B5A;">Ajouter un événement</span>
+      <span class="mockup-badge" style="background:#7D9E8C;">✓ Acquitté</span>
+    </div>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin:12px 0 4px 0;">MODE SOMBRE</div>
+    <div class="swatch-row">
+      <div class="swatch light-text" style="background:#D4956E;">Primaire<br>#D4956E</div>
+      <div class="swatch light-text" style="background:#9DB8A7;">Secondaire<br>#9DB8A7</div>
+      <div class="swatch dark-text"  style="background:#2A2420;border:1px solid #6A5E58;color:#F5F1EC;">Fond<br>#1E1A17</div>
+    </div>
+    <div class="dark-bg">
+      <div class="dark-surface">
+        <div class="mockup-name dark-text-main">Sophie Lefèvre</div>
+        <div class="dark-text-sub">Dernier contact · il y a 3 semaines</div>
+        <div style="margin-top:8px;">
+          <span class="mockup-btn" style="background:#D4956E;">Ajouter un événement</span>
+          <span class="mockup-badge" style="background:#9DB8A7;">✓ Acquitté</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="card">
+    <h2>Option B — Prairie douce</h2>
+    <p>Terracotta atténué + Vert prairie</p>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin-bottom:4px;">MODE CLAIR</div>
+    <div class="swatch-row">
+      <div class="swatch light-text" style="background:#B8795A;">Primaire<br>#B8795A</div>
+      <div class="swatch light-text" style="background:#5E8A70;">Secondaire<br>#5E8A70</div>
+      <div class="swatch dark-text"  style="background:#FAF7F2;border:1px solid #C4B8B0;">Fond<br>#FAF7F2</div>
+    </div>
+
+    <div class="mockup" style="background:#FAF7F2;border:1px solid #E8E0D8;">
+      <div class="mockup-name">Sophie Lefèvre</div>
+      <div class="mockup-sub" style="color:#8C7B70;">Dernier contact · il y a 3 semaines</div>
+      <span class="mockup-btn" style="background:#B8795A;">Ajouter un événement</span>
+      <span class="mockup-badge" style="background:#5E8A70;">✓ Acquitté</span>
+    </div>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin:12px 0 4px 0;">MODE SOMBRE</div>
+    <div class="swatch-row">
+      <div class="swatch light-text" style="background:#D09070;">Primaire<br>#D09070</div>
+      <div class="swatch light-text" style="background:#80B095;">Secondaire<br>#80B095</div>
+      <div class="swatch dark-text"  style="background:#2A2420;border:1px solid #6A5E58;color:#F5F1EC;">Fond<br>#1E1A17</div>
+    </div>
+    <div class="dark-bg">
+      <div class="dark-surface">
+        <div class="mockup-name dark-text-main">Sophie Lefèvre</div>
+        <div class="dark-text-sub">Dernier contact · il y a 3 semaines</div>
+        <div style="margin-top:8px;">
+          <span class="mockup-btn" style="background:#D09070;">Ajouter un événement</span>
+          <span class="mockup-badge" style="background:#80B095;">✓ Acquitté</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="card">
+    <h2>Option C — Forêt &amp; Argile</h2>
+    <p>Vert forêt dominant + Argile chaude</p>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin-bottom:4px;">MODE CLAIR</div>
+    <div class="swatch-row">
+      <div class="swatch light-text" style="background:#5F7A5C;">Primaire<br>#5F7A5C</div>
+      <div class="swatch light-text" style="background:#C4856A;">Secondaire<br>#C4856A</div>
+      <div class="swatch dark-text"  style="background:#FAF7F2;border:1px solid #C4B8B0;">Fond<br>#FAF7F2</div>
+    </div>
+
+    <div class="mockup" style="background:#FAF7F2;border:1px solid #E8E0D8;">
+      <div class="mockup-name">Sophie Lefèvre</div>
+      <div class="mockup-sub" style="color:#8C7B70;">Dernier contact · il y a 3 semaines</div>
+      <span class="mockup-btn" style="background:#5F7A5C;">Ajouter un événement</span>
+      <span class="mockup-badge" style="background:#C4856A;">✓ Acquitté</span>
+    </div>
+
+    <div style="font-size:.7rem;color:#8C7B70;margin:12px 0 4px 0;">MODE SOMBRE</div>
+    <div class="swatch-row">
+      <div class="swatch dark-text"  style="background:#7D9E7A;">Primaire<br>#7D9E7A</div>
+      <div class="swatch light-text" style="background:#D4A080;">Secondaire<br>#D4A080</div>
+      <div class="swatch dark-text"  style="background:#2A2420;border:1px solid #6A5E58;color:#F5F1EC;">Fond<br>#1E1A17</div>
+    </div>
+    <div class="dark-bg">
+      <div class="dark-surface">
+        <div class="mockup-name dark-text-main">Sophie Lefèvre</div>
+        <div class="dark-text-sub">Dernier contact · il y a 3 semaines</div>
+        <div style="margin-top:8px;">
+          <span class="mockup-btn" style="background:#7D9E7A;color:#1E1A17;">Ajouter un événement</span>
+          <span class="mockup-badge" style="background:#D4A080;">✓ Acquitté</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:24px;font-size:0.75rem;color:#B0A09A;">
+  Dites-moi "A", "B" ou "C" pour appliquer la palette dans app_tokens.dart.
+</p>
+
+</body>
+</html>

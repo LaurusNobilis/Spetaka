@@ -182,52 +182,85 @@ void main() {
       expect(result.first.prioritized.tier, UrgencyTier.normal);
     });
 
-    test('surfacingReason — overdue by 2 days', () {
+    test('nextEventLabel — populated from nearest unacknowledged event type', () {
       final alice = _friend(id: 'a', name: 'Alice');
       final events = [
-        _event(
+        Event(
           id: 'e1',
           friendId: 'a',
-          date: today.subtract(const Duration(days: 2)),
+          type: 'Anniversaire',
+          date: today.millisecondsSinceEpoch,
+          isRecurring: false,
+          comment: null,
+          isAcknowledged: false,
+          acknowledgedAt: null,
+          createdAt: today.millisecondsSinceEpoch,
+          cadenceDays: null,
         ),
       ];
       final result = buildDailyView([alice], events);
-      expect(result.first.surfacingReason, 'Overdue by 2 days');
+      expect(result.first.nextEventLabel, 'Anniversaire');
     });
 
-    test('surfacingReason — due today', () {
+    test('nextEventLabel — null when all events are acknowledged', () {
       final alice = _friend(id: 'a', name: 'Alice');
       final events = [
-        _event(id: 'e1', friendId: 'a', date: today),
-      ];
-      final result = buildDailyView([alice], events);
-      expect(result.first.surfacingReason, 'Due today');
-    });
-
-    test('surfacingReason — due tomorrow', () {
-      final alice = _friend(id: 'a', name: 'Alice');
-      final events = [
-        _event(
+        Event(
           id: 'e1',
           friendId: 'a',
-          date: today.add(const Duration(days: 1)),
+          type: 'Anniversaire',
+          date: today.millisecondsSinceEpoch,
+          isRecurring: false,
+          comment: null,
+          isAcknowledged: true,
+          acknowledgedAt: today.millisecondsSinceEpoch,
+          createdAt: today.millisecondsSinceEpoch,
+          cadenceDays: null,
+        ),
+      ];
+      // All acknowledged events → friend does not surface at all (filtered out
+      // by the provider before reaching buildDailyView normally, but even if
+      // passed explicitly the friend appears with tier=normal and null label).
+      final result = buildDailyView([alice], events);
+      // If the friend appears, its label should be null.
+      if (result.isNotEmpty) {
+        expect(result.first.nextEventLabel, isNull);
+      }
+    });
+
+    test('nextEventLabel — nearest of multiple events selected', () {
+      final alice = _friend(id: 'a', name: 'Alice');
+      final farDate = today.add(const Duration(days: 3));
+      final nearDate = today.add(const Duration(days: 1));
+      final events = [
+        Event(
+          id: 'e1',
+          friendId: 'a',
+          type: 'Rendez-vous',
+          date: farDate.millisecondsSinceEpoch,
+          isRecurring: false,
+          comment: null,
+          isAcknowledged: false,
+          acknowledgedAt: null,
+          createdAt: today.millisecondsSinceEpoch,
+          cadenceDays: null,
+        ),
+        Event(
+          id: 'e2',
+          friendId: 'a',
+          type: 'Anniversaire',
+          date: nearDate.millisecondsSinceEpoch,
+          isRecurring: false,
+          comment: null,
+          isAcknowledged: false,
+          acknowledgedAt: null,
+          createdAt: today.millisecondsSinceEpoch,
+          cadenceDays: null,
         ),
       ];
       final result = buildDailyView([alice], events);
-      expect(result.first.surfacingReason, 'Due tomorrow');
-    });
-
-    test('surfacingReason — due in N days', () {
-      final alice = _friend(id: 'a', name: 'Alice');
-      final events = [
-        _event(
-          id: 'e1',
-          friendId: 'a',
-          date: today.add(const Duration(days: 3)),
-        ),
-      ];
-      final result = buildDailyView([alice], events);
-      expect(result.first.surfacingReason, 'Due in 3 days');
+      // e2 is nearer → 'Anniversaire'
+      expect(result.first.nextEventLabel, 'Anniversaire');
     });
 
     test('multiple friends — mixed window', () {

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Spetaka – Propositions d'icône</title>
+  <style>
+    body { background: #1C1C1E; font-family: system-ui, sans-serif; color: #FFF; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 48px; }
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: .5px; margin: 0; }
+    .row { display: flex; gap: 48px; flex-wrap: wrap; justify-content: center; }
+    .card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .label { font-size: 14px; color: #AAA; }
+    .name { font-size: 16px; font-weight: 600; }
+    .sizes { display: flex; gap: 12px; align-items: flex-end; }
+    /* Simulate rounded app icon shape */
+    .icon-wrap { border-radius: 22.5%; overflow: hidden; display: flex; }
+    .icon-wrap svg { display: block; }
+    .badge { background: #2C2C2E; border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #8E8E93; margin-top: 4px; }
+    hr { border: none; border-top: 1px solid #333; width: 100%; max-width: 900px; }
+    .legend { font-size: 13px; color: #888; text-align: center; max-width: 700px; line-height: 1.6; }
+    .legend span { color: #D94216; font-weight: 600; } .legend span.sec { color: #1A9166; }
+  </style>
+</head>
+<body>
+  <h1>Spetaka — Propositions d'icône</h1>
+  <p class="legend">
+    Couleur primaire <span>#D94216</span> · Couleur secondaire <span class="sec">#1A9166</span>
+  </p>
+
+  <div class="row">
+
+    <!-- ══ OPTION A — Cœur plein + silhouette blanche ══ -->
+    <div class="card">
+      <div class="name">A — Cœur &amp; ami</div>
+      <p class="label">Fond teal · cœur coral · personne blanche</p>
+      <div class="sizes">
+        <!-- 192 px -->
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <!-- Fond teal -->
+            <rect width="192" height="192" fill="#1A9166"/>
+            <!-- Cœur coral-red centré -->
+            <path d="M96,138
+                     C96,138 42,100 42,66
+                     C42,50 54,38 68,38
+                     C79,38 89,45 96,55
+                     C103,45 113,38 124,38
+                     C138,38 150,50 150,66
+                     C150,100 96,138 96,138 Z"
+                  fill="#D94216"/>
+            <!-- Silhouette personne blanche centrée dans le cœur -->
+            <!-- Tête -->
+            <circle cx="96" cy="80" r="12" fill="#FFFFFF"/>
+            <!-- Corps arrondi (capsule) -->
+            <path d="M81,116 Q81,98 96,98 Q111,98 111,116 L111,128 Q111,132 107,132 L85,132 Q81,132 81,128 Z"
+                  fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <!-- 64 px -->
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <rect width="192" height="192" fill="#1A9166"/>
+            <path d="M96,138 C96,138 42,100 42,66 C42,50 54,38 68,38 C79,38 89,45 96,55 C103,45 113,38 124,38 C138,38 150,50 150,66 C150,100 96,138 96,138 Z" fill="#D94216"/>
+            <circle cx="96" cy="80" r="12" fill="#FFFFFF"/>
+            <path d="M81,116 Q81,98 96,98 Q111,98 111,116 L111,128 Q111,132 107,132 L85,132 Q81,132 81,128 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">teal bg · coral heart · white person</div>
+    </div>
+
+    <!-- ══ OPTION B — Fond coral + cœur teal + personne blanche ══ -->
+    <div class="card">
+      <div class="name">B — Inversé</div>
+      <p class="label">Fond coral · cœur teal · personne blanche</p>
+      <div class="sizes">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <!-- Fond coral -->
+            <rect width="192" height="192" fill="#D94216"/>
+            <!-- Cœur teal -->
+            <path d="M96,138 C96,138 42,100 42,66 C42,50 54,38 68,38 C79,38 89,45 96,55 C103,45 113,38 124,38 C138,38 150,50 150,66 C150,100 96,138 96,138 Z"
+                  fill="#1A9166"/>
+            <!-- Personne blanche -->
+            <circle cx="96" cy="80" r="12" fill="#FFFFFF"/>
+            <path d="M81,116 Q81,98 96,98 Q111,98 111,116 L111,128 Q111,132 107,132 L85,132 Q81,132 81,128 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <rect width="192" height="192" fill="#D94216"/>
+            <path d="M96,138 C96,138 42,100 42,66 C42,50 54,38 68,38 C79,38 89,45 96,55 C103,45 113,38 124,38 C138,38 150,50 150,66 C150,100 96,138 96,138 Z" fill="#1A9166"/>
+            <circle cx="96" cy="80" r="12" fill="#FFFFFF"/>
+            <path d="M81,116 Q81,98 96,98 Q111,98 111,116 L111,128 Q111,132 107,132 L85,132 Q81,132 81,128 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">coral bg · teal heart · white person</div>
+    </div>
+
+    <!-- ══ OPTION C — Blanc + cœur coral + trio teal ══ -->
+    <div class="card">
+      <div class="name">C — Blanc lumineux</div>
+      <p class="label">Fond blanc · cœur coral · 3 amis teal</p>
+      <div class="sizes">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <!-- Fond blanc avec légère teinte -->
+            <rect width="192" height="192" fill="#FAFAFA"/>
+            <!-- Cœur coral plein -->
+            <path d="M96,142 C96,142 36,101 36,63 C36,44 50,30 68,30 C81,30 92,39 96,51 C100,39 111,30 124,30 C142,30 156,44 156,63 C156,101 96,142 96,142 Z"
+                  fill="#D94216"/>
+            <!-- 3 silhouettes teal dans le cœur -->
+            <!-- Gauche -->
+            <circle cx="72" cy="82" r="10" fill="#1A9166"/>
+            <path d="M60,108 Q60,94 72,94 Q84,94 84,108 L84,122 Q84,126 80,126 L64,126 Q60,126 60,122 Z" fill="#1A9166"/>
+            <!-- Centre (légèrement plus haute) -->
+            <circle cx="96" cy="76" r="11" fill="#FFFFFF"/>
+            <path d="M83,104 Q83,89 96,89 Q109,89 109,104 L109,120 Q109,124 105,124 L87,124 Q83,124 83,120 Z" fill="#FFFFFF"/>
+            <!-- Droite -->
+            <circle cx="120" cy="82" r="10" fill="#1A9166"/>
+            <path d="M108,108 Q108,94 120,94 Q132,94 132,108 L132,122 Q132,126 128,126 L112,126 Q108,126 108,122 Z" fill="#1A9166"/>
+          </svg>
+        </div>
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <rect width="192" height="192" fill="#FAFAFA"/>
+            <path d="M96,142 C96,142 36,101 36,63 C36,44 50,30 68,30 C81,30 92,39 96,51 C100,39 111,30 124,30 C142,30 156,44 156,63 C156,101 96,142 96,142 Z" fill="#D94216"/>
+            <circle cx="72" cy="82" r="10" fill="#1A9166"/>
+            <path d="M60,108 Q60,94 72,94 Q84,94 84,108 L84,122 Q84,126 80,126 L64,126 Q60,126 60,122 Z" fill="#1A9166"/>
+            <circle cx="96" cy="76" r="11" fill="#FFFFFF"/>
+            <path d="M83,104 Q83,89 96,89 Q109,89 109,104 L109,120 Q109,124 105,124 L87,124 Q83,124 83,120 Z" fill="#FFFFFF"/>
+            <circle cx="120" cy="82" r="10" fill="#1A9166"/>
+            <path d="M108,108 Q108,94 120,94 Q132,94 132,108 L132,122 Q132,126 128,126 L112,126 Q108,126 108,122 Z" fill="#1A9166"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">white bg · coral heart · teal + white trio</div>
+    </div>
+
+  </div>
+
+  <hr>
+
+  <!-- ══ ROW 2 — variantes supplémentaires ══ -->
+  <div class="row">
+
+    <!-- OPTION D — cœur coral contour + personne teal -->
+    <div class="card">
+      <div class="name">D — Outline</div>
+      <p class="label">Fond blanc · contour coral · personne teal</p>
+      <div class="sizes">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <rect width="192" height="192" fill="#FAFAFA"/>
+            <!-- Cœur outline coral -->
+            <path d="M96,138 C96,138 40,98 40,64 C40,46 54,34 70,34 C82,34 92,42 96,53 C100,42 110,34 122,34 C138,34 152,46 152,64 C152,98 96,138 96,138 Z"
+                  fill="none" stroke="#D94216" stroke-width="10" stroke-linejoin="round"/>
+            <!-- Personne teal -->
+            <circle cx="96" cy="82" r="14" fill="#1A9166"/>
+            <path d="M78,118 Q78,98 96,98 Q114,98 114,118 L114,132 Q114,136 110,136 L82,136 Q78,136 78,132 Z" fill="#1A9166"/>
+          </svg>
+        </div>
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <rect width="192" height="192" fill="#FAFAFA"/>
+            <path d="M96,138 C96,138 40,98 40,64 C40,46 54,34 70,34 C82,34 92,42 96,53 C100,42 110,34 122,34 C138,34 152,46 152,64 C152,98 96,138 96,138 Z" fill="none" stroke="#D94216" stroke-width="10" stroke-linejoin="round"/>
+            <circle cx="96" cy="82" r="14" fill="#1A9166"/>
+            <path d="M78,118 Q78,98 96,98 Q114,98 114,118 L114,132 Q114,136 110,136 L82,136 Q78,136 78,132 Z" fill="#1A9166"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">white bg · coral outline · teal person</div>
+    </div>
+
+    <!-- OPTION E — Cœur bicolore diagonal -->
+    <div class="card">
+      <div class="name">E — Bicolore</div>
+      <p class="label">Fond sombre · cœur bicolore coral/teal</p>
+      <div class="sizes">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <defs>
+              <clipPath id="heartE">
+                <path d="M96,138 C96,138 38,98 38,64 C38,46 52,32 70,32 C83,32 93,42 96,53 C99,42 109,32 122,32 C140,32 154,46 154,64 C154,98 96,138 96,138 Z"/>
+              </clipPath>
+            </defs>
+            <!-- Fond sombre -->
+            <rect width="192" height="192" fill="#1C1C1E"/>
+            <!-- Cœur gauche coral -->
+            <rect x="0" y="0" width="96" height="192" fill="#D94216" clip-path="url(#heartE)"/>
+            <!-- Cœur droite teal -->
+            <rect x="96" y="0" width="96" height="192" fill="#1A9166" clip-path="url(#heartE)"/>
+            <!-- Personne blanche centrée -->
+            <circle cx="96" cy="80" r="13" fill="#FFFFFF"/>
+            <path d="M80,116 Q80,96 96,96 Q112,96 112,116 L112,130 Q112,134 108,134 L84,134 Q80,134 80,130 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <defs>
+              <clipPath id="heartE2">
+                <path d="M96,138 C96,138 38,98 38,64 C38,46 52,32 70,32 C83,32 93,42 96,53 C99,42 109,32 122,32 C140,32 154,46 154,64 C154,98 96,138 96,138 Z"/>
+              </clipPath>
+            </defs>
+            <rect width="192" height="192" fill="#1C1C1E"/>
+            <rect x="0" y="0" width="96" height="192" fill="#D94216" clip-path="url(#heartE2)"/>
+            <rect x="96" y="0" width="96" height="192" fill="#1A9166" clip-path="url(#heartE2)"/>
+            <circle cx="96" cy="80" r="13" fill="#FFFFFF"/>
+            <path d="M80,116 Q80,96 96,96 Q112,96 112,116 L112,130 Q112,134 108,134 L84,134 Q80,134 80,130 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">dark bg · split coral/teal heart · white person</div>
+    </div>
+
+    <!-- OPTION F — Minimaliste lettre S -->
+    <div class="card">
+      <div class="name">F — Lettre S</div>
+      <p class="label">Fond coral · lettre S teal + cœur blanc</p>
+      <div class="sizes">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+            <!-- Fond coral -->
+            <rect width="192" height="192" fill="#D94216"/>
+            <!-- Lettre S teal bold -->
+            <text x="96" y="118" font-family="Georgia,serif" font-size="110" font-weight="bold"
+                  fill="#1A9166" text-anchor="middle">S</text>
+            <!-- Petit cœur blanc en haut à droite -->
+            <path d="M148,36 C148,36 130,24 120,36 C114,44 120,54 130,62 C140,54 150,44 148,36 Z"
+                  fill="#FFFFFF" opacity="0.90"/>
+          </svg>
+        </div>
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="64" height="64">
+            <rect width="192" height="192" fill="#D94216"/>
+            <text x="96" y="118" font-family="Georgia,serif" font-size="110" font-weight="bold" fill="#1A9166" text-anchor="middle">S</text>
+            <path d="M148,36 C148,36 130,24 120,36 C114,44 120,54 130,62 C140,54 150,44 148,36 Z" fill="#FFFFFF" opacity="0.90"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge">coral bg · teal S · white heart accent</div>
+    </div>
+
+  </div>
+
+  <hr>
+  <p class="legend" style="color:#555; font-size:12px;">
+    Rendu 192×192 (aperçu) + 64×64 (miniature) · Arrondis simulant un launcher iOS/Android
+  </p>
+</body>
+</html>

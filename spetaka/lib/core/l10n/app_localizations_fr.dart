@@ -21,6 +21,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navSettings => 'Paramètres';
 
   @override
+  String shellPageIndicatorSemantics(String page) {
+    return 'Page active : $page. Balayez à gauche ou à droite pour changer de page.';
+  }
+
+  @override
   String get actionAdd => 'Ajouter';
 
   @override
@@ -484,10 +489,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get demoLabel => 'Démo';
 
   @override
-  String get importantLabel => 'Ma sélection';
+  String get importantLabel => 'Important';
 
   @override
-  String get urgentLabel => 'Ma sélection';
+  String get urgentLabel => 'Urgent';
 
   @override
   String get tagsSection => 'Tags';

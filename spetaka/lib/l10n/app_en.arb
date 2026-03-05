@@ -16,6 +16,15 @@
   "@navSettings": {
     "description": "AppBar / tooltip label for settings"
   },
+  "shellPageIndicatorSemantics": "Current page: {page}. Swipe left or right to switch pages.",
+  "@shellPageIndicatorSemantics": {
+    "description": "Semantics label for the 2-dot page indicator in the Daily/Friends swipe shell",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
   "actionAdd": "Add",
   "@actionAdd": {
     "description": "Generic add button label"
@@ -632,11 +641,11 @@
   "@demoLabel": {
     "description": "Label for demo friend entries"
   },
-  "importantLabel": "My selection",
+  "importantLabel": "Important",
   "@importantLabel": {
     "description": "Priority level label"
   },
-  "urgentLabel": "My selection",
+  "urgentLabel": "Urgent",
   "@urgentLabel": {
     "description": "Priority level label"
   },

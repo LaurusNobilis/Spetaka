@@ -187,7 +187,12 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
     final confirmed = await _confirmDelete(context);
     if (!confirmed) return;
     await ref.read(friendRepositoryProvider).delete(friend.id);
-    if (context.mounted) const FriendsRoute().go(context);
+    if (!context.mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      const FriendsRoute().go(context);
+    }
   }
 
   // 2.9/AC1: set concern flag with optional note.

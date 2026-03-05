@@ -3,14 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../features/daily/presentation/daily_view_screen.dart';
 import '../../features/events/data/event_repository_provider.dart';
 import '../../features/events/presentation/add_event_screen.dart';
 import '../../features/events/presentation/edit_event_screen.dart';
 import '../../features/events/presentation/manage_event_types_screen.dart';
+import '../../features/shell/presentation/app_shell_screen.dart';
 import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
-import '../../features/friends/presentation/friends_list_screen.dart';
 import '../../features/settings/presentation/manage_category_tags_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 
@@ -110,55 +109,70 @@ class ManageCategoryTagsRoute extends AppRoute {
   String get location => '/settings/category-tags';
 }
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
 GoRouter createAppRouter() => GoRouter(
+      navigatorKey: _rootNavigatorKey,
       routes: <RouteBase>[
-        GoRoute(
-          path: const HomeRoute().location,
-          builder: (context, state) => const DailyViewScreen(),
+        ShellRoute(
+          navigatorKey: _shellNavigatorKey,
+          builder: (context, state, child) => AppShellScreen(child: child),
           routes: <RouteBase>[
+            // Base index routes — AppShellScreen decides which page to show.
             GoRoute(
-              path: 'friends',
-              builder: (context, state) => const FriendsListScreen(),
+              path: const HomeRoute().location,
+              pageBuilder: (context, state) => const NoTransitionPage<void>(
+                child: SizedBox.shrink(),
+              ),
+            ),
+            GoRoute(
+              path: const FriendsRoute().location,
+              pageBuilder: (context, state) => const NoTransitionPage<void>(
+                child: SizedBox.shrink(),
+              ),
+            ),
+
+            // Friends overlay routes (pushed on top of the shell).
+            GoRoute(
+              path: const NewFriendRoute().location,
+              builder: (context, state) => const FriendFormScreen(),
+            ),
+            GoRoute(
+              path: '/friends/:id',
+              builder: (context, state) => FriendCardScreen(
+                id: state.pathParameters['id'] ?? '',
+              ),
               routes: <RouteBase>[
                 GoRoute(
-                  path: 'new',
-                  builder: (context, state) => const FriendFormScreen(),
+                  path: 'edit',
+                  builder: (context, state) => FriendFormScreen(
+                    editFriendId: state.pathParameters['id'],
+                  ),
                 ),
                 GoRoute(
-                  path: ':id',
-                  builder: (context, state) => FriendCardScreen(
-                    id: state.pathParameters['id'] ?? '',
+                  path: 'events/new',
+                  builder: (context, state) => AddEventScreen(
+                    friendId: state.pathParameters['id'] ?? '',
                   ),
-                  routes: <RouteBase>[
-                    GoRoute(
-                      path: 'edit',
-                      builder: (context, state) => FriendFormScreen(
-                        editFriendId: state.pathParameters['id'],
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'events/new',
-                      builder: (context, state) => AddEventScreen(
-                        friendId: state.pathParameters['id'] ?? '',
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'events/:eventId/edit',
-                      builder: (context, state) {
-                        final extra = state.extra;
-                        if (extra is Event) {
-                          return EditEventScreen(event: extra);
-                        }
-                        final eventId = state.pathParameters['eventId'] ?? '';
-                        return _EditEventRouteLoader(eventId: eventId);
-                      },
-                    ),
-                  ],
+                ),
+                GoRoute(
+                  path: 'events/:eventId/edit',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    if (extra is Event) {
+                      return EditEventScreen(event: extra);
+                    }
+                    final eventId = state.pathParameters['eventId'] ?? '';
+                    return _EditEventRouteLoader(eventId: eventId);
+                  },
                 ),
               ],
             ),
+
+            // Settings overlay routes.
             GoRoute(
-              path: 'settings',
+              path: const SettingsRoute().location,
               builder: (context, state) => const SettingsScreen(),
               routes: <RouteBase>[
                 GoRoute(

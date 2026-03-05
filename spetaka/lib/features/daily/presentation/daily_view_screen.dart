@@ -112,11 +112,6 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
         appBar: AppBar(
           title: Text(context.l10n.dailyTitle),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.people_outline),
-              tooltip: context.l10n.navFriends,
-              onPressed: () => const FriendsRoute().go(context),
-            ),
             Semantics(
               label: context.l10n.navSettings,
               button: true,
@@ -415,7 +410,7 @@ class _CollapsedContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              tierLabel,
+              entry.nextEventLabel ?? tierLabel,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: tierColor,
                 fontWeight: FontWeight.w700,
@@ -580,7 +575,7 @@ class _ExpandedContentState extends State<_ExpandedContent> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  widget.tierLabel,
+                  widget.entry.nextEventLabel ?? widget.tierLabel,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: widget.tierColor,
                     fontWeight: FontWeight.w700,
