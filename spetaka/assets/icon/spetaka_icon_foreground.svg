@@ -2,16 +2,16 @@
   <!-- NO background rect — transparent canvas for adaptive icon foreground -->
   <defs>
     <linearGradient id="heartGrad" x1="0" y1="0" x2="0.3" y2="1">
-      <stop offset="0%" stop-color="#FF4A1C"/>
-      <stop offset="100%" stop-color="#A01500"/>
+      <stop offset="0%" stop-color="#D4956E"/>
+      <stop offset="100%" stop-color="#A85C33"/>
     </linearGradient>
     <radialGradient id="heartHighlight" cx="50%" cy="42%" r="48%">
-      <stop offset="0%" stop-color="#FF7040" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#A01500" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#E8A880" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#A85C33" stop-opacity="0"/>
     </radialGradient>
     <filter id="heartShadow" x="-20%" y="-8%" width="140%" height="148%">
       <feDropShadow dx="0" dy="12" stdDeviation="24"
-                    flood-color="#6B0000" flood-opacity="0.35"/>
+                    flood-color="#5C2E0E" flood-opacity="0.35"/>
     </filter>
     <clipPath id="heartClip">
       <path d="M512,352
@@ -46,20 +46,20 @@
 
   <!-- CROWD -->
   <g clip-path="url(#heartClip)">
-    <circle cx="370" cy="434" r="38" fill="#0D7A55"/>
-    <path d="M336,510 Q336,472 370,472 Q404,472 404,510 L404,590 Q404,606 388,606 L352,606 Q336,606 336,590 Z" fill="#0D7A55"/>
-    <circle cx="512" cy="420" r="38" fill="#0D7A55"/>
-    <path d="M478,496 Q478,458 512,458 Q546,458 546,496 L546,576 Q546,592 530,592 L494,592 Q478,592 478,576 Z" fill="#0D7A55"/>
-    <circle cx="654" cy="434" r="38" fill="#0D7A55"/>
-    <path d="M620,510 Q620,472 654,472 Q688,472 688,510 L688,590 Q688,606 672,606 L636,606 Q620,606 620,590 Z" fill="#0D7A55"/>
-    <circle cx="312" cy="548" r="46" fill="#23C182"/>
-    <path d="M270,632 Q270,594 312,594 Q354,594 354,632 L354,720 Q354,740 334,740 L290,740 Q270,740 270,720 Z" fill="#23C182"/>
-    <circle cx="440" cy="558" r="46" fill="#1A9166"/>
-    <path d="M398,642 Q398,604 440,604 Q482,604 482,642 L482,730 Q482,750 462,750 L418,750 Q398,750 398,730 Z" fill="#1A9166"/>
-    <circle cx="584" cy="558" r="46" fill="#1A9166"/>
-    <path d="M542,642 Q542,604 584,604 Q626,604 626,642 L626,730 Q626,750 606,750 L562,750 Q542,750 542,730 Z" fill="#1A9166"/>
-    <circle cx="712" cy="548" r="46" fill="#23C182"/>
-    <path d="M670,632 Q670,594 712,594 Q754,594 754,632 L754,720 Q754,740 734,740 L690,740 Q670,740 670,720 Z" fill="#23C182"/>
-    <path d="M228,680 Q370,760 512,800 Q654,760 796,680 L796,800 L228,800 Z" fill="#D94216" opacity="0.35"/>
+    <circle cx="370" cy="434" r="38" fill="#6A8A79"/>
+    <path d="M336,510 Q336,472 370,472 Q404,472 404,510 L404,590 Q404,606 388,606 L352,606 Q336,606 336,590 Z" fill="#6A8A79"/>
+    <circle cx="512" cy="420" r="38" fill="#6A8A79"/>
+    <path d="M478,496 Q478,458 512,458 Q546,458 546,496 L546,576 Q546,592 530,592 L494,592 Q478,592 478,576 Z" fill="#6A8A79"/>
+    <circle cx="654" cy="434" r="38" fill="#6A8A79"/>
+    <path d="M620,510 Q620,472 654,472 Q688,472 688,510 L688,590 Q688,606 672,606 L636,606 Q620,606 620,590 Z" fill="#6A8A79"/>
+    <circle cx="312" cy="548" r="46" fill="#8DB8A6"/>
+    <path d="M270,632 Q270,594 312,594 Q354,594 354,632 L354,720 Q354,740 334,740 L290,740 Q270,740 270,720 Z" fill="#8DB8A6"/>
+    <circle cx="440" cy="558" r="46" fill="#7D9E8C"/>
+    <path d="M398,642 Q398,604 440,604 Q482,604 482,642 L482,730 Q482,750 462,750 L418,750 Q398,750 398,730 Z" fill="#7D9E8C"/>
+    <circle cx="584" cy="558" r="46" fill="#7D9E8C"/>
+    <path d="M542,642 Q542,604 584,604 Q626,604 626,642 L626,730 Q626,750 606,750 L562,750 Q542,750 542,730 Z" fill="#7D9E8C"/>
+    <circle cx="712" cy="548" r="46" fill="#8DB8A6"/>
+    <path d="M670,632 Q670,594 712,594 Q754,594 754,632 L754,720 Q754,740 734,740 L690,740 Q670,740 670,720 Z" fill="#8DB8A6"/>
+    <path d="M228,680 Q370,760 512,800 Q654,760 796,680 L796,800 L228,800 Z" fill="#C47B5A" opacity="0.35"/>
   </g>
 </svg>

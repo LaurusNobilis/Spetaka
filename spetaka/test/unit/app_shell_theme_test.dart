@@ -33,12 +33,12 @@ void main() {
   // ── AppTokens ───────────────────────────────────────────────────────────
 
   group('AppTokens', () {
-    test('light palette primary is coral-red', () {
-      expect(AppTokens.lightPrimary, const Color(0xFFD94216));
+    test('light palette primary is terracotta', () {
+      expect(AppTokens.lightPrimary, const Color(0xFFC47B5A));
     });
 
-    test('light palette secondary is teal', () {
-      expect(AppTokens.lightSecondary, const Color(0xFF1A9166));
+    test('light palette secondary is dusty sage', () {
+      expect(AppTokens.lightSecondary, const Color(0xFF7D9E8C));
     });
 
     test('dark background avoids cold grey', () {
