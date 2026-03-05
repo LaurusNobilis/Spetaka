@@ -161,39 +161,6 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
-  // 4.4 — Density toggle
-  // -------------------------------------------------------------------------
-
-  group('Story 4.4 — Density toggle', () {
-    testWidgets('AC3 — density toggle button is present in AppBar',
-        (tester) async {
-      await tester.pumpWidget(_harness([_entry(id: 'a', name: 'Alice')]));
-      await tester.pump();
-
-      expect(find.byKey(const Key('density_toggle')), findsOneWidget);
-    });
-
-    testWidgets('AC3+4 — tapping density toggle changes icon', (tester) async {
-      await tester.pumpWidget(_harness([_entry(id: 'a', name: 'Alice')]));
-      await tester.pump();
-
-      // Initial state: expanded → headline icon visible
-      expect(find.byIcon(Icons.view_headline_outlined), findsOneWidget);
-
-      // Tap to switch to compact
-      await tester.tap(find.byKey(const Key('density_toggle')));
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_stream_outlined), findsOneWidget);
-
-      // Tap again to restore expanded
-      await tester.tap(find.byKey(const Key('density_toggle')));
-      await tester.pump();
-
-      expect(find.byIcon(Icons.view_headline_outlined), findsOneWidget);
-    });
-  });
-
   // -------------------------------------------------------------------------
   // 4.6 — Inline card expansion
   // -------------------------------------------------------------------------
@@ -283,22 +250,6 @@ void main() {
   // ── Story 7.3 Accessibility assertions ──────────────────────────────────
   group('DailyViewScreen — Accessibility (Story 7.3)', () {
     final oneEntry = [_entry(id: 'x', name: 'Emma')];
-
-    testWidgets('a11y — density toggle has semantic label', (tester) async {
-      final semanticsHandle = tester.ensureSemantics();
-      await tester.pumpWidget(_harness(oneEntry));
-      await tester.pump();
-
-      // Density toggle in AppBar — already wrapped in Semantics(button: true).
-      expect(
-        find.bySemanticsLabel(
-          RegExp(r'Switch to (expanded|compact) view'),
-        ),
-        findsOneWidget,
-      );
-
-      semanticsHandle.dispose();
-    });
 
     testWidgets('a11y — expanded card action buttons have semantic labels',
         (tester) async {

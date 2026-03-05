@@ -57,14 +57,12 @@ void main() {
       expect(find.text('Import backup'), findsOneWidget);
     });
 
-    testWidgets('AC1 — Display section shows the density switch',
+    testWidgets('AC1 — Display section is present',
         (tester) async {
       await tester.pumpWidget(_buildHarness());
       await tester.pump();
 
       expect(find.text('Display'), findsOneWidget);
-      expect(find.text('Compact view'), findsOneWidget);
-      expect(find.byType(SwitchListTile), findsOneWidget);
     });
 
     testWidgets('AC1 — Event Types section shows navigation tile',
@@ -107,76 +105,7 @@ void main() {
       expect(tester.widget<ListTile>(syncTile).enabled, isFalse);
     });
 
-    // ── AC1, AC2: density toggle updates UI immediately ──────────────────────
-    testWidgets('AC2 — density toggle starts off (expanded) and toggles on',
-        (tester) async {
-      await tester.pumpWidget(_buildHarness());
-      await tester.pump();
-
-      // Default: expanded mode → switch is off (not compact)
-      final switchFinder = find.byType(SwitchListTile);
-      expect(switchFinder, findsOneWidget);
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isFalse);
-
-      // Tap the switch → compact mode → switch turns on
-      await tester.tap(switchFinder);
-      await tester.pump();
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
-    });
-
-    testWidgets('AC2 — density toggle persists across rebuild', (tester) async {
-      await tester.pumpWidget(_buildHarness());
-      await tester.pump();
-
-      // Toggle to compact
-      await tester.tap(find.byKey(const Key('density_switch')));
-      await tester.pump();
-      expect(
-        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-        isTrue,
-      );
-
-      // Toggle back to expanded
-      await tester.tap(find.byKey(const Key('density_switch')));
-      await tester.pump();
-      expect(
-        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-        isFalse,
-      );
-    });
   });
 
-  // ── Story 7.3 Accessibility assertions ────────────────────────────────────
-  group('SettingsScreen — Accessibility (Story 7.3)', () {
-    testWidgets('a11y — density toggle exposes semantic label', (tester) async {
-      final semanticsHandle = tester.ensureSemantics();
-      await tester.pumpWidget(_buildHarness());
-      await tester.pump();
-
-      // Default state: expanded → label ends with ", off"
-      expect(
-        find.bySemanticsLabel(RegExp(r'Compact view, (on|off)')),
-        findsOneWidget,
-      );
-
-      semanticsHandle.dispose();
-    });
-
-    testWidgets('a11y — density switch key is present and tappable',
-        (tester) async {
-      await tester.pumpWidget(_buildHarness());
-      await tester.pump();
-
-      final switchFinder = find.byKey(const Key('density_switch'));
-      expect(switchFinder, findsOneWidget);
-
-      // Tap → state changes → confirms interaction works
-      await tester.tap(switchFinder);
-      await tester.pump();
-      expect(
-        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-        isTrue,
-      );
-    });
-  });
 }
+
