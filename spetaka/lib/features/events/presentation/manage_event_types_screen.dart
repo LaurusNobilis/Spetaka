@@ -34,11 +34,11 @@ class _ManageEventTypesScreenState
       await repo.addEventType(name);
       _addController.clear();
     } on ArgumentError catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message?.toString() ?? 'Invalid name')),
-        );
-      }
+      if (!mounted) return;
+      // Évite d'afficher un message d'exception potentiellement en anglais.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.invalidNameFallback)),
+      );
     }
   }
 
@@ -75,11 +75,11 @@ class _ManageEventTypesScreenState
       try {
         await ref.read(eventTypeRepositoryProvider).rename(entry.id, newName);
       } on ArgumentError catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message?.toString() ?? 'Invalid name')),
-          );
-        }
+        if (!mounted) return;
+        // Évite d'afficher un message d'exception potentiellement en anglais.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.invalidNameFallback)),
+        );
       }
     }
   }
@@ -96,8 +96,7 @@ class _ManageEventTypesScreenState
         title: Text(context.l10n.deleteEventTypeTitle),
         content: usageCount > 0
             ? Text(
-                '$usageCount event${usageCount == 1 ? '' : 's'} use this type '
-                '— they will keep their current label.',
+                context.l10n.eventTypeInUseNotice(usageCount),
               )
             : Text(context.l10n.deleteEntryConfirm(entry.name)),
         actions: [

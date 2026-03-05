@@ -77,6 +77,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFirstFriend => 'Add first friend';
 
   @override
+  String get emptyFriendsTitle => 'No friends yet.';
+
+  @override
+  String get emptyFriendsSubtitle =>
+      'Tap the button below to add your first friend.';
+
+  @override
   String get addFriendTitle => 'Add Friend';
 
   @override
@@ -139,6 +146,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get concernLabel => 'Concern';
 
   @override
+  String get concernFlaggedTooltip => 'Concern flagged';
+
+  @override
+  String get concernFlaggedSemanticsSuffix => 'concern flagged';
+
+  @override
   String get eventsLabel => 'Events';
 
   @override
@@ -176,6 +189,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editEventTitle => 'Edit Event';
+
+  @override
+  String get invalidEventIdMessage => 'Invalid event id.';
+
+  @override
+  String get couldNotLoadEventMessage => 'Could not load event.';
+
+  @override
+  String get eventNotFoundMessage => 'Event not found.';
 
   @override
   String get deleteEventTitle => 'Delete event?';
@@ -227,6 +249,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotLoadEventTypes => 'Could not load event types.';
+
+  @override
+  String get invalidNameFallback => 'Invalid name.';
+
+  @override
+  String eventTypeInUseNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# events use this type — they will keep their current label.',
+      one: '# event uses this type — it will keep its current label.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get eventTypesTitle => 'Event Types';

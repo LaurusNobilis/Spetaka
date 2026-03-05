@@ -55,10 +55,25 @@ Widget _buildHarness({List<EventTypeEntry>? types}) {
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale('en'),
+      locale: Locale('fr'),
       home: ManageEventTypesScreen(),
     ),
   );
+}
+
+Future<void> _scrollUntilTextVisible(
+  WidgetTester tester,
+  String text,
+) async {
+  final textFinder = find.text(text);
+  if (textFinder.evaluate().isNotEmpty) return;
+
+  await tester.scrollUntilVisible(
+    textFinder,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -82,7 +97,7 @@ void main() {
 
       // Text field for new type exists with correct hint
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('New event type…'), findsOneWidget);
+      expect(find.text("Nouveau type d'événement…"), findsOneWidget);
 
       // Add button exists
       expect(find.byIcon(Icons.add), findsOneWidget);
@@ -94,8 +109,24 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // One rename icon per type
-      expect(find.byIcon(Icons.edit_outlined), findsNWidgets(5));
+      for (final name in const [
+        'Anniversaire',
+        'Anniversaire de mariage',
+        'Événement important',
+        'Appel de suivi',
+        'Rendez-vous important',
+      ]) {
+        await _scrollUntilTextVisible(tester, name);
+        final tile = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(ListTile),
+        );
+        expect(tile, findsOneWidget);
+        expect(
+          find.descendant(of: tile, matching: find.byIcon(Icons.edit_outlined)),
+          findsOneWidget,
+        );
+      }
     });
 
     testWidgets('AC4 — delete buttons are present for each type',
@@ -104,8 +135,24 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // One delete icon per type
-      expect(find.byIcon(Icons.delete_outline), findsNWidgets(5));
+      for (final name in const [
+        'Anniversaire',
+        'Anniversaire de mariage',
+        'Événement important',
+        'Appel de suivi',
+        'Rendez-vous important',
+      ]) {
+        await _scrollUntilTextVisible(tester, name);
+        final tile = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(ListTile),
+        );
+        expect(tile, findsOneWidget);
+        expect(
+          find.descendant(of: tile, matching: find.byIcon(Icons.delete_outline)),
+          findsOneWidget,
+        );
+      }
     });
 
     testWidgets('AC5 — drag handles render for reorder', (tester) async {
@@ -113,7 +160,24 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(5));
+      for (final name in const [
+        'Anniversaire',
+        'Anniversaire de mariage',
+        'Événement important',
+        'Appel de suivi',
+        'Rendez-vous important',
+      ]) {
+        await _scrollUntilTextVisible(tester, name);
+        final tile = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(ListTile),
+        );
+        expect(tile, findsOneWidget);
+        expect(
+          find.descendant(of: tile, matching: find.byIcon(Icons.drag_handle)),
+          findsOneWidget,
+        );
+      }
     });
 
     testWidgets('empty state shows message', (tester) async {
@@ -123,14 +187,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('No event types. Add one above.'), findsOneWidget);
+      expect(find.text('Aucun type. Ajoutez-en un ci-dessus.'), findsOneWidget);
     });
 
     testWidgets('AppBar shows "Event Types" title', (tester) async {
       await tester.pumpWidget(_buildHarness());
       await tester.pump();
 
-      expect(find.text('Event Types'), findsOneWidget);
+      expect(find.text("Types d'événements"), findsOneWidget);
     });
 
     // ── AC5 review fix: reorder gesture updates persisted sort_order ────────
@@ -158,7 +222,7 @@ void main() {
           child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale('en'),
+      locale: Locale('fr'),
       home: ManageEventTypesScreen(),
     ),
         ),

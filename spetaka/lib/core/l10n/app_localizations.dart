@@ -230,6 +230,18 @@ abstract class AppLocalizations {
   /// **'Add first friend'**
   String get addFirstFriend;
 
+  /// Headline shown when friends list is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No friends yet.'**
+  String get emptyFriendsTitle;
+
+  /// Supporting text shown when friends list is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the button below to add your first friend.'**
+  String get emptyFriendsSubtitle;
+
   /// AppBar title when creating a friend
   ///
   /// In en, this message translates to:
@@ -350,6 +362,18 @@ abstract class AppLocalizations {
   /// **'Concern'**
   String get concernLabel;
 
+  /// Tooltip shown on the concern warning icon
+  ///
+  /// In en, this message translates to:
+  /// **'Concern flagged'**
+  String get concernFlaggedTooltip;
+
+  /// Suffix appended to friend tile semantics label when concern is active
+  ///
+  /// In en, this message translates to:
+  /// **'concern flagged'**
+  String get concernFlaggedSemanticsSuffix;
+
   /// Section heading for events on friend card
   ///
   /// In en, this message translates to:
@@ -427,6 +451,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Event'**
   String get editEventTitle;
+
+  /// Message shown when an event id is missing/invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid event id.'**
+  String get invalidEventIdMessage;
+
+  /// Message shown when loading an event fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load event.'**
+  String get couldNotLoadEventMessage;
+
+  /// Message shown when an event does not exist
+  ///
+  /// In en, this message translates to:
+  /// **'Event not found.'**
+  String get eventNotFoundMessage;
 
   /// Dialog title to delete an event
   ///
@@ -529,6 +571,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load event types.'**
   String get couldNotLoadEventTypes;
+
+  /// Fallback message shown when a provided name is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid name.'**
+  String get invalidNameFallback;
+
+  /// Message shown when deleting an event type that is used by existing events
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{# event uses this type — it will keep its current label.} other{# events use this type — they will keep their current label.}}'**
+  String eventTypeInUseNotice(int count);
 
   /// AppBar title for manage event types screen
   ///

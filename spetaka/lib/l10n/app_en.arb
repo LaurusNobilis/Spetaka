@@ -93,6 +93,14 @@
   "@addFirstFriend": {
     "description": "Empty state button on friends list"
   },
+  "emptyFriendsTitle": "No friends yet.",
+  "@emptyFriendsTitle": {
+    "description": "Headline shown when friends list is empty"
+  },
+  "emptyFriendsSubtitle": "Tap the button below to add your first friend.",
+  "@emptyFriendsSubtitle": {
+    "description": "Supporting text shown when friends list is empty"
+  },
   "addFriendTitle": "Add Friend",
   "@addFriendTitle": {
     "description": "AppBar title when creating a friend"
@@ -178,6 +186,14 @@
   "@concernLabel": {
     "description": "Label displayed when concern is active"
   },
+  "concernFlaggedTooltip": "Concern flagged",
+  "@concernFlaggedTooltip": {
+    "description": "Tooltip shown on the concern warning icon"
+  },
+  "concernFlaggedSemanticsSuffix": "concern flagged",
+  "@concernFlaggedSemanticsSuffix": {
+    "description": "Suffix appended to friend tile semantics label when concern is active"
+  },
   "eventsLabel": "Events",
   "@eventsLabel": {
     "description": "Section heading for events on friend card"
@@ -229,6 +245,18 @@
   "editEventTitle": "Edit Event",
   "@editEventTitle": {
     "description": "AppBar title for edit event screen"
+  },
+  "invalidEventIdMessage": "Invalid event id.",
+  "@invalidEventIdMessage": {
+    "description": "Message shown when an event id is missing/invalid"
+  },
+  "couldNotLoadEventMessage": "Could not load event.",
+  "@couldNotLoadEventMessage": {
+    "description": "Message shown when loading an event fails"
+  },
+  "eventNotFoundMessage": "Event not found.",
+  "@eventNotFoundMessage": {
+    "description": "Message shown when an event does not exist"
   },
   "deleteEventTitle": "Delete event?",
   "@deleteEventTitle": {
@@ -297,6 +325,19 @@
   "couldNotLoadEventTypes": "Could not load event types.",
   "@couldNotLoadEventTypes": {
     "description": "Error message in event type selector"
+  },
+  "invalidNameFallback": "Invalid name.",
+  "@invalidNameFallback": {
+    "description": "Fallback message shown when a provided name is invalid"
+  },
+  "eventTypeInUseNotice": "{count, plural, one{# event uses this type — it will keep its current label.} other{# events use this type — they will keep their current label.}}",
+  "@eventTypeInUseNotice": {
+    "description": "Message shown when deleting an event type that is used by existing events",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "eventTypesTitle": "Event Types",
   "@eventTypesTitle": {

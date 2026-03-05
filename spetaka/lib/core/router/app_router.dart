@@ -12,6 +12,7 @@ import '../../features/friends/presentation/friend_card_screen.dart';
 import '../../features/friends/presentation/friend_form_screen.dart';
 import '../../features/settings/presentation/manage_category_tags_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../l10n/l10n_extension.dart';
 
 sealed class AppRoute {
   const AppRoute();
@@ -207,8 +208,8 @@ class _EditEventRouteLoader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (eventId.trim().isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Edit Event')),
-        body: const Center(child: Text('Invalid event id.')),
+        appBar: AppBar(title: Text(context.l10n.editEventTitle)),
+        body: Center(child: Text(context.l10n.invalidEventIdMessage)),
       );
     }
 
@@ -218,21 +219,21 @@ class _EditEventRouteLoader extends ConsumerWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Event')),
+            appBar: AppBar(title: Text(context.l10n.editEventTitle)),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Event')),
-            body: const Center(child: Text('Could not load event.')),
+            appBar: AppBar(title: Text(context.l10n.editEventTitle)),
+            body: Center(child: Text(context.l10n.couldNotLoadEventMessage)),
           );
         }
         final event = snapshot.data;
         if (event == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Event')),
-            body: const Center(child: Text('Event not found.')),
+            appBar: AppBar(title: Text(context.l10n.editEventTitle)),
+            body: Center(child: Text(context.l10n.eventNotFoundMessage)),
           );
         }
         return EditEventScreen(event: event);
@@ -246,7 +247,7 @@ class WebDavSetupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'Sync');
+    return _PlaceholderScreen(title: context.l10n.syncSectionTitle);
   }
 }
 

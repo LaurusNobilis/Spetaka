@@ -91,7 +91,7 @@ class FriendCardTile extends StatelessWidget {
       semanticsBuffer.write(', ${tags.join(', ')}');
     }
     if (hasConcern) {
-      semanticsBuffer.write(', concern flagged');
+      semanticsBuffer.write(', ${context.l10n.concernFlaggedSemanticsSuffix}');
     }
 
     return Semantics(
@@ -118,13 +118,13 @@ class FriendCardTile extends StatelessWidget {
                       ),
                     ),
                     if (hasConcern)
-                      const Tooltip(
-                        message: 'Concern flagged',
+                      Tooltip(
+                        message: context.l10n.concernFlaggedTooltip,
                         child: Icon(
                           Icons.warning_amber_rounded,
                           size: 20,
                           color: Colors.orange,
-                          semanticLabel: 'Concern',
+                          semanticLabel: context.l10n.concernLabel,
                         ),
                       ),
                   ],
@@ -173,12 +173,12 @@ class _EmptyFriendsState extends StatelessWidget {
           const Icon(Icons.people_outline, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
-            'No friends yet.',
+            context.l10n.emptyFriendsTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Tap the button below to add your first friend.',
+          Text(
+            context.l10n.emptyFriendsSubtitle,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),

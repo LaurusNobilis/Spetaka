@@ -295,7 +295,7 @@ void main() {
       await pumpAppWithRouter(tester, router);
       router.go(const SettingsSyncRoute().location);
       await tester.pumpAndSettle();
-      expect(find.text('Sync'), findsAtLeastNWidgets(1));
+      expect(find.text('Sync & Backup'), findsAtLeastNWidgets(1));
     });
   });
 
