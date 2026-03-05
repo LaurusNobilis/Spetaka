@@ -37,21 +37,21 @@ class GreetingService {
     final salutation = _salutation(h);
 
     if (surfacedCount == 0) {
-      return '$salutation $userName — all clear today. Give yourself some grace 🌿';
+      return '$salutation $userName — tout est calme aujourd\'hui. Prenez soin de vous 🌿';
     }
 
     if (hasConcern) {
       if (surfacedCount == 1) {
-        return '$salutation $userName — someone you care about could use a little love today 💙';
+        return '$salutation $userName — quelqu\'un à qui vous tenez mérite un peu d\'attention aujourd\'hui 💙';
       }
-      return '$salutation $userName — a few people are on your heart today. Start slow, one step at a time 💙';
+      return '$salutation $userName — quelques personnes vous sont proches aujourd\'hui. Allez-y doucement, un geste à la fois 💙';
     }
 
     if (surfacedCount == 1) {
-      return '$salutation $userName — a lovely chance to reconnect today ✨';
+      return '$salutation $userName — une belle occasion de renouer le contact aujourd\'hui ✨';
     }
 
-    return '$salutation $userName — $surfacedCount connections waiting for you. Every small gesture matters 🌟';
+    return '$salutation $userName — $surfacedCount connexions vous attendent. Chaque petit geste compte 🌟';
   }
 
   // ---------------------------------------------------------------------------
@@ -59,8 +59,8 @@ class GreetingService {
   // ---------------------------------------------------------------------------
 
   static String _salutation(int hour) {
-    if (hour < 12) return 'Good morning,';
-    if (hour < 18) return 'Good afternoon,';
-    return 'Good evening,';
+    if (hour < 12) return 'Bonjour,';
+    if (hour < 18) return 'Bon après-midi,';
+    return 'Bonsoir,';
   }
 }
