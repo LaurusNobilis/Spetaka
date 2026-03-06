@@ -204,7 +204,7 @@ class _TwoDotIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final activeColor = scheme.primary;
-    final inactiveColor = scheme.onSurfaceVariant.withOpacity(0.5);
+    final inactiveColor = scheme.onSurfaceVariant.withValues(alpha: 0.5);
 
     Widget dot({required bool isActive}) {
       return Container(

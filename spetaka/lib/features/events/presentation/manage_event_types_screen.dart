@@ -33,7 +33,7 @@ class _ManageEventTypesScreenState
     try {
       await repo.addEventType(name);
       _addController.clear();
-    } on ArgumentError catch (e) {
+    } on ArgumentError {
       if (!mounted) return;
       // Évite d'afficher un message d'exception potentiellement en anglais.
       ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +74,7 @@ class _ManageEventTypesScreenState
     if (newName != null && newName.isNotEmpty && newName != entry.name) {
       try {
         await ref.read(eventTypeRepositoryProvider).rename(entry.id, newName);
-      } on ArgumentError catch (e) {
+      } on ArgumentError {
         if (!mounted) return;
         // Évite d'afficher un message d'exception potentiellement en anglais.
         ScaffoldMessenger.of(context).showSnackBar(
