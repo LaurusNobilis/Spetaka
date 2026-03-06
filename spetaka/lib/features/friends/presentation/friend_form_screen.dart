@@ -348,13 +348,75 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
 
     if (_isEditMode && _editLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text(title)),
+        appBar: AppBar(
+          title: Text(title),
+          actions: [
+            Semantics(
+              label: context.l10n.navDaily,
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.view_agenda_outlined),
+                tooltip: context.l10n.navDaily,
+                onPressed: () => const HomeRoute().go(context),
+              ),
+            ),
+            Semantics(
+              label: context.l10n.navFriends,
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.people_outline),
+                tooltip: context.l10n.navFriends,
+                onPressed: () => const FriendsRoute().go(context),
+              ),
+            ),
+            Semantics(
+              label: context.l10n.navSettings,
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: context.l10n.navSettings,
+                onPressed: () => const SettingsRoute().push(context),
+              ),
+            ),
+          ],
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          Semantics(
+            label: context.l10n.navDaily,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.view_agenda_outlined),
+              tooltip: context.l10n.navDaily,
+              onPressed: () => const HomeRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navFriends,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.people_outline),
+              tooltip: context.l10n.navFriends,
+              onPressed: () => const FriendsRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navSettings,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: context.l10n.navSettings,
+              onPressed: () => const SettingsRoute().push(context),
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: _isManualFormVisible

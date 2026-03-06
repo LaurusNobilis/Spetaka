@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n_extension.dart';
+import '../../../core/router/app_router.dart';
 import '../data/category_tags_provider.dart';
 import '../domain/category_tag.dart';
 
@@ -20,6 +21,33 @@ class ManageCategoryTagsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.categoryTagsTitle),
         actions: [
+          Semantics(
+            label: context.l10n.navDaily,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.view_agenda_outlined),
+              tooltip: context.l10n.navDaily,
+              onPressed: () => const HomeRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navFriends,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.people_outline),
+              tooltip: context.l10n.navFriends,
+              onPressed: () => const FriendsRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navSettings,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: context.l10n.navSettings,
+              onPressed: () => const SettingsRoute().push(context),
+            ),
+          ),
           Semantics(
             label: context.l10n.resetToDefaultTagsTooltip,
             button: true,
@@ -324,6 +352,7 @@ class _TagEditDialogState extends State<_TagEditDialog> {
                 labelText: context.l10n.weightLabel,
                 hintText: context.l10n.weightPlaceholder,
                 helperText: context.l10n.weightHelperText,
+                helperMaxLines: 3,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Enter a weight.';

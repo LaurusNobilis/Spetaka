@@ -279,7 +279,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── AC4: One-tap confirm ─────────────────────────────────────────
           Semantics(
-            label: context.l10n.confirmContactLog,
+            label: context.l10n.logContactTitle,
             hint: context.l10n.savesContactHistory,
             button: true,
             child: FilledButton(
@@ -295,7 +295,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(context.l10n.actionConfirm),
+                  : Text(context.l10n.logContactTitle),
             ),
           ),
         ],

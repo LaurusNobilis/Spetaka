@@ -123,7 +123,7 @@ const double kBaseScore = 10.0;
 /// Unknown tags resolve to [kDefaultCategoryWeight].
 const Map<String, double> kCategoryWeights = {
   'Famille': 3.0,
-  'Amis proches': 2.5,
+  'Club': 2.5,
   'Amis': 2.0,
   'Travail': 1.5,
   'Autre': 1.0,

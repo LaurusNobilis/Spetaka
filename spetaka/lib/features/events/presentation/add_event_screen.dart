@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/l10n_extension.dart';
+import '../../../core/router/app_router.dart';
 import '../data/event_repository_provider.dart';
 import '../data/event_type_providers.dart';
 
@@ -104,6 +105,33 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       appBar: AppBar(
         title: Text(context.l10n.addEventTitle),
         actions: [
+          Semantics(
+            label: context.l10n.navDaily,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.view_agenda_outlined),
+              tooltip: context.l10n.navDaily,
+              onPressed: () => const HomeRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navFriends,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.people_outline),
+              tooltip: context.l10n.navFriends,
+              onPressed: () => const FriendsRoute().go(context),
+            ),
+          ),
+          Semantics(
+            label: context.l10n.navSettings,
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: context.l10n.navSettings,
+              onPressed: () => const SettingsRoute().push(context),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilledButton(

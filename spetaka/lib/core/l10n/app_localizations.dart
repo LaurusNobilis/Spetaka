@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// Bottom nav / AppBar label for daily view
   ///
   /// In en, this message translates to:
-  /// **'Daily'**
+  /// **'Suggested actions'**
   String get navDaily;
 
   /// Bottom nav / AppBar label for friends list
@@ -401,13 +401,13 @@ abstract class AppLocalizations {
   /// Tooltip/action to log a contact
   ///
   /// In en, this message translates to:
-  /// **'Log contact'**
+  /// **'Contact completed'**
   String get logContactTitle;
 
   /// Title of the acquittement sheet
   ///
   /// In en, this message translates to:
-  /// **'Confirm contact log'**
+  /// **'Confirm contact'**
   String get confirmContactLog;
 
   /// Hint text in the acquittement note field (kept in French)

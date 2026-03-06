@@ -80,10 +80,10 @@ void main() {
 
       final names = types.map((t) => t.name).toList();
       expect(names, [
-        'Anniversaire',
+        'Autre',
         'Anniversaire de mariage',
         'Événement important',
-        'Appel de suivi',
+        'Prendre des nouvelles',
         'Rendez-vous important',
       ]);
     });
@@ -97,7 +97,7 @@ void main() {
 
     test('default types have deterministic IDs', () async {
       final types = await repo.getAll();
-      expect(types[0].id, 'default-anniversaire');
+      expect(types[0].id, 'default-autre');
       expect(types[1].id, 'default-anniversaire-de-mariage');
       expect(types[2].id, 'default-événement-important');
       expect(types[4].id, 'default-rendez-vous-important');
@@ -106,7 +106,7 @@ void main() {
     test('watchAll emits the seeded list', () async {
       final types = await repo.watchAll().first;
       expect(types.length, 5);
-      expect(types.first.name, 'Anniversaire');
+      expect(types.first.name, 'Autre');
     });
   });
 
@@ -173,13 +173,13 @@ void main() {
     test('rename updates the name column', () async {
       final types = await repo.getAll();
       final firstType = types.first;
-      expect(firstType.name, 'Anniversaire');
+      expect(firstType.name, 'Autre');
 
-      final result = await repo.rename(firstType.id, 'Anniversaire révisé');
+      final result = await repo.rename(firstType.id, 'Autre révisé');
       expect(result, isTrue);
 
       final updated = await repo.getAll();
-      expect(updated.first.name, 'Anniversaire révisé');
+      expect(updated.first.name, 'Autre révisé');
     });
 
     test('rename trims whitespace', () async {
@@ -282,15 +282,15 @@ void main() {
         () async {
       final friendId = await seedFriend(db, enc);
 
-      // Insert 2 events with type 'Anniversaire'
+      // Insert 2 events with type 'Autre'
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Anniversaire',
+        type: 'Autre',
         date: DateTime(2026, 6, 1).millisecondsSinceEpoch,
       );
       await eventRepo.addDatedEvent(
         friendId: friendId,
-        type: 'Anniversaire',
+        type: 'Autre',
         date: DateTime(2027, 6, 1).millisecondsSinceEpoch,
       );
       await eventRepo.addDatedEvent(
@@ -299,7 +299,7 @@ void main() {
         date: DateTime(2026, 9, 1).millisecondsSinceEpoch,
       );
 
-      final birthdayCount = await typeRepo.countEventsByType('Anniversaire');
+      final birthdayCount = await typeRepo.countEventsByType('Autre');
       expect(birthdayCount, 2);
 
       final weddingCount =
@@ -351,7 +351,7 @@ void main() {
       final updated = await repo.getAll();
       // First should now be the former last (Rendez-vous important)
       expect(updated.first.name, 'Rendez-vous important');
-      expect(updated.last.name, 'Anniversaire');
+      expect(updated.last.name, 'Autre');
     });
 
     test('reorder maintains sort_order after getAll', () async {
@@ -365,7 +365,7 @@ void main() {
       final updated = await repo.getAll();
       expect(updated[0].name, 'Événement important');
       expect(updated[0].sortOrder, 0);
-      expect(updated[1].name, 'Anniversaire');
+      expect(updated[1].name, 'Autre');
       expect(updated[1].sortOrder, 1);
     });
   });
@@ -428,11 +428,11 @@ void main() {
 
     test('rename allows same name with different case (self)', () async {
       final types = await repo.getAll();
-      // Renaming 'Anniversaire' to 'ANNIVERSAIRE' for the same entry should succeed
-      final result = await repo.rename(types.first.id, 'ANNIVERSAIRE');
+      // Renaming 'Autre' to 'AUTRE' for the same entry should succeed
+      final result = await repo.rename(types.first.id, 'AUTRE');
       expect(result, isTrue);
       final updated = await repo.getAll();
-      expect(updated.first.name, 'ANNIVERSAIRE');
+      expect(updated.first.name, 'AUTRE');
     });
   });
 

@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Spetaka';
 
   @override
-  String get navDaily => 'Daily';
+  String get navDaily => 'Suggested actions';
 
   @override
   String get navFriends => 'Friends';
@@ -164,10 +164,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noContactHistory => 'No contact history yet.';
 
   @override
-  String get logContactTitle => 'Log contact';
+  String get logContactTitle => 'Contact completed';
 
   @override
-  String get confirmContactLog => 'Confirm contact log';
+  String get confirmContactLog => 'Confirm contact';
 
   @override
   String get howDidItGo => 'Comment ça s\'est passé ?';

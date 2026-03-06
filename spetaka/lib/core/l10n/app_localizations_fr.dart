@@ -12,7 +12,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appTitle => 'Spetaka';
 
   @override
-  String get navDaily => 'Résumé';
+  String get navDaily => 'Actions proposées';
 
   @override
   String get navFriends => 'Amis';
@@ -165,10 +165,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noContactHistory => 'Pas encore d\'historique de contact.';
 
   @override
-  String get logContactTitle => 'Enregistrer un contact';
+  String get logContactTitle => 'Prise de contact réalisé';
 
   @override
-  String get confirmContactLog => 'Confirmer l\'enregistrement';
+  String get confirmContactLog => 'Confirmer la prise de contact';
 
   @override
   String get howDidItGo => 'Comment ça s\'est passé ?';
@@ -305,7 +305,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tagsWeightHelp =>
-      'Les étiquettes contrôlent le score de priorité. Un poids plus élevé = priorité plus haute dans le résumé. Faites glisser pour réorganiser.';
+      'Les étiquettes contrôlent le score de priorité. Un poids plus élevé = priorité plus haute dans les actions proposées. Faites glisser pour réorganiser.';
 
   @override
   String get resetToDefaultsTitle => 'Réinitialiser par défaut ?';
@@ -483,7 +483,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Entrez la phrase secrète utilisée lors de la création de cette sauvegarde.';
 
   @override
-  String get dailyTitle => 'Résumé';
+  String get dailyTitle => 'Actions proposées';
 
   @override
   String get switchToExpandedView => 'Passer à la vue étendue';
@@ -626,7 +626,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get couldNotLoadDailyView => 'Impossible de charger le résumé.';
+  String get couldNotLoadDailyView =>
+      'Impossible de charger les actions proposées.';
 
   @override
   String get concernActiveSemantics => 'Préoccupation active';
@@ -635,7 +636,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get lastNoteLabel => 'Dernière note';
 
   @override
-  String get contactLoggedFeedback => 'Contact enregistré — bien joué 💛';
+  String get contactLoggedFeedback =>
+      'Prise de contact réalisée — bien joué 💛';
 
   @override
   String cadenceEveryNDays(int days) {

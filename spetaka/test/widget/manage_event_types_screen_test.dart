@@ -27,10 +27,10 @@ import 'package:spetaka/features/events/presentation/manage_event_types_screen.d
 List<EventTypeEntry> _defaultTypes() {
   final now = DateTime.now().millisecondsSinceEpoch;
   const names = [
-    'Anniversaire',
+    'Autre',
     'Anniversaire de mariage',
     'Événement important',
-    'Appel de suivi',
+    'Prendre des nouvelles',
     'Rendez-vous important',
   ];
   return [
@@ -83,10 +83,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Anniversaire'), findsOneWidget);
+      expect(find.text('Autre'), findsOneWidget);
       expect(find.text('Anniversaire de mariage'), findsOneWidget);
       expect(find.text('Événement important'), findsOneWidget);
-      expect(find.text('Appel de suivi'), findsOneWidget);
+      expect(find.text('Prendre des nouvelles'), findsOneWidget);
       expect(find.text('Rendez-vous important'), findsOneWidget);
     });
 
@@ -110,10 +110,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       for (final name in const [
-        'Anniversaire',
+        'Autre',
         'Anniversaire de mariage',
         'Événement important',
-        'Appel de suivi',
+        'Prendre des nouvelles',
         'Rendez-vous important',
       ]) {
         await _scrollUntilTextVisible(tester, name);
@@ -136,10 +136,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       for (final name in const [
-        'Anniversaire',
+        'Autre',
         'Anniversaire de mariage',
         'Événement important',
-        'Appel de suivi',
+        'Prendre des nouvelles',
         'Rendez-vous important',
       ]) {
         await _scrollUntilTextVisible(tester, name);
@@ -161,10 +161,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       for (final name in const [
-        'Anniversaire',
+        'Autre',
         'Anniversaire de mariage',
         'Événement important',
-        'Appel de suivi',
+        'Prendre des nouvelles',
         'Rendez-vous important',
       ]) {
         await _scrollUntilTextVisible(tester, name);
@@ -207,7 +207,7 @@ void main() {
       // Wait for seed.
       final initial = await repo.getAll();
       expect(initial.length, 5);
-      expect(initial.first.name, 'Anniversaire');
+      expect(initial.first.name, 'Autre');
 
       // Build widget wired to real DB.
       await tester.pumpWidget(
@@ -231,7 +231,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       // Verify initial list order rendered.
-      expect(find.text('Anniversaire'), findsOneWidget);
+      expect(find.text('Autre'), findsOneWidget);
       expect(find.text('Rendez-vous important'), findsOneWidget);
 
       // Perform programmatic reorder (simulates the _onReorder callback).
@@ -244,7 +244,7 @@ void main() {
       // Verify DB order changed.
       final updated = await repo.getAll();
       expect(updated.first.name, 'Rendez-vous important');
-      expect(updated.last.name, 'Appel de suivi');
+      expect(updated.last.name, 'Prendre des nouvelles');
 
       await db.close();
     });

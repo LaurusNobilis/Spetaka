@@ -18,10 +18,10 @@ enum EventType {
 
   /// Human-readable label shown in the UI.
   String get displayLabel => switch (this) {
-        EventType.birthday => 'Anniversaire',
+        EventType.birthday => 'Autre',
         EventType.weddingAnniversary => 'Anniversaire de mariage',
         EventType.importantLifeEvent => 'Événement important',
-        EventType.regularCheckin => 'Appel de suivi',
+        EventType.regularCheckin => 'Prendre des nouvelles',
         EventType.importantAppointment => 'Rendez-vous important',
       };
 

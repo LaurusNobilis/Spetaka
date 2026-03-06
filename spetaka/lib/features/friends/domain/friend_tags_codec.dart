@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 /// `settings/domain/category_tag.dart` → `kDefaultCategoryTags`.
 const predefinedFriendTags = <String>[
   'Famille',
-  'Amis proches',
+  'Club',
   'Amis',
   'Travail',
   'Autre',

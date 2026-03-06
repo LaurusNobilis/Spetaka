@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/l10n_extension.dart';
 import '../domain/pending_action_state.dart';
 import 'acquittement_sheet.dart';
 
@@ -27,7 +28,7 @@ class ManualAcquittementButton extends ConsumerWidget {
       child: OutlinedButton.icon(
         key: const Key('manual_acquittement_button'),
         icon: const Icon(Icons.check_circle_outline, size: 18),
-        label: const Text('Log contact'),
+        label: Text(context.l10n.logContactTitle),
         onPressed: () => showAcquittementSheet(
           context: context,
           ref: ref,

@@ -268,11 +268,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Confirm button is findable by semantic label (story 7.3 AC1).
-      expect(
-        find.bySemanticsLabel('Confirm contact log'),
-        findsOneWidget,
+      // Label + hint are provided by the explicit Semantics wrapper.
+      final semanticsWrapper = find.byWidgetPredicate(
+        (w) =>
+            w is Semantics &&
+            w.properties.label == 'Contact completed' &&
+            w.properties.hint == 'Saves the contact to history',
       );
+      expect(semanticsWrapper, findsOneWidget);
 
       semanticsHandle.dispose();
     });
@@ -303,7 +306,7 @@ void main() {
       // The drag handle is wrapped in ExcludeSemantics — it must NOT appear
       // as a labelled interactive element. Verify only labelled nodes exist.
       final titleNode =
-          find.bySemanticsLabel(RegExp(r'Log contact|Confirmer|Confirm contact'));
+          find.bySemanticsLabel(RegExp(r'Contact completed|Prise de contact|Confirm contact'));
       expect(titleNode, findsWidgets,
           reason: 'Title and confirm button must be in semantics tree',
       );

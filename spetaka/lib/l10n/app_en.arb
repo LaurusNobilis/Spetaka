@@ -4,7 +4,7 @@
   "@appTitle": {
     "description": "Application name"
   },
-  "navDaily": "Daily",
+  "navDaily": "Suggested actions",
   "@navDaily": {
     "description": "Bottom nav / AppBar label for daily view"
   },
@@ -210,11 +210,11 @@
   "@noContactHistory": {
     "description": "Empty state for contact history"
   },
-  "logContactTitle": "Log contact",
+  "logContactTitle": "Contact completed",
   "@logContactTitle": {
     "description": "Tooltip/action to log a contact"
   },
-  "confirmContactLog": "Confirm contact log",
+  "confirmContactLog": "Confirm contact",
   "@confirmContactLog": {
     "description": "Title of the acquittement sheet"
   },

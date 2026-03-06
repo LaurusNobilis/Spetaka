@@ -20,8 +20,8 @@ void main() {
       expect(result.data['v'], equals(1));
     });
 
-    test('schemaVersion is 8 (bumped by i18n — EN→FR event-type migration)', () {
-      expect(db.schemaVersion, equals(8));
+    test('schemaVersion is 9 (naming update — default event types)', () {
+      expect(db.schemaVersion, equals(9));
     });
 
     test('MigrationStrategy declares an onUpgrade hook', () {
