@@ -36,6 +36,8 @@ class _SpetakaAppState extends ConsumerState<SpetakaApp> {
     final locale = ref.watch(localeProvider);
     final fontScale = ref.watch(fontScaleModeProvider);
     final iconSize = ref.watch(iconSizeModeProvider);
+    final darkModeEnabled = ref.watch(darkModeEnabledProvider);
+    final themeMode = darkModeEnabled ? ThemeMode.dark : ThemeMode.light;
 
     // Build themed variants with the user's preferred icon size.
     final lightTheme = AppTheme.light().copyWith(
@@ -57,6 +59,7 @@ class _SpetakaAppState extends ConsumerState<SpetakaApp> {
         debugShowCheckedModeBanner: false,
         theme: lightTheme,
         darkTheme: darkTheme,
+        themeMode: themeMode,
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -70,6 +73,7 @@ class _SpetakaAppState extends ConsumerState<SpetakaApp> {
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
       darkTheme: darkTheme,
+      themeMode: themeMode,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

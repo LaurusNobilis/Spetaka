@@ -9,6 +9,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
+// Dark mode
+// ---------------------------------------------------------------------------
+
+const _kDarkModeEnabledKey = 'dark_mode_enabled';
+
+/// Notifier that exposes and persists whether the user forces dark mode.
+///
+/// When false, the app uses the light theme.
+class DarkModeEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    Future.microtask(_load);
+    return false;
+  }
+
+  Future<void> set(bool enabled) async {
+    state = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kDarkModeEnabledKey, enabled);
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getBool(_kDarkModeEnabledKey);
+    if (stored == null) return;
+    state = stored;
+  }
+}
+
+/// Provider for whether the app should force dark mode.
+final darkModeEnabledProvider =
+    NotifierProvider<DarkModeEnabledNotifier, bool>(
+  DarkModeEnabledNotifier.new,
+);
+
+// ---------------------------------------------------------------------------
 // Font scale
 // ---------------------------------------------------------------------------
 

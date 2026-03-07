@@ -25,38 +25,73 @@ import '../data/display_prefs_provider.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  Widget _navAction({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required String tooltip,
+    required bool isCurrent,
+    required VoidCallback? onPressed,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+
+    final iconWidget = Icon(
+      icon,
+      color: isCurrent ? scheme.onPrimaryContainer : null,
+    );
+
+    final button = IconButton(
+      icon: iconWidget,
+      tooltip: tooltip,
+      onPressed: isCurrent ? null : onPressed,
+    );
+
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isCurrent,
+      child: isCurrent
+          ? Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: button,
+            )
+          : button,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.settingsTitle),
         actions: [
-          Semantics(
+          _navAction(
+            context: context,
             label: context.l10n.navDaily,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.view_agenda_outlined),
-              tooltip: context.l10n.navDaily,
-              onPressed: () => const HomeRoute().go(context),
-            ),
+            icon: Icons.view_agenda_outlined,
+            tooltip: context.l10n.navDaily,
+            isCurrent: false,
+            onPressed: () => const HomeRoute().go(context),
           ),
-          Semantics(
+          _navAction(
+            context: context,
             label: context.l10n.navFriends,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.people_outline),
-              tooltip: context.l10n.navFriends,
-              onPressed: () => const FriendsRoute().go(context),
-            ),
+            icon: Icons.people_outline,
+            tooltip: context.l10n.navFriends,
+            isCurrent: false,
+            onPressed: () => const FriendsRoute().go(context),
           ),
-          Semantics(
+          _navAction(
+            context: context,
             label: context.l10n.navSettings,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              tooltip: context.l10n.navSettings,
-              onPressed: null,
-            ),
+            icon: Icons.settings_outlined,
+            tooltip: context.l10n.navSettings,
+            isCurrent: true,
+            onPressed: null,
           ),
         ],
       ),
@@ -481,15 +516,35 @@ class _DisplaySection extends ConsumerWidget {
     final fontScale = ref.watch(fontScaleModeProvider);
     final iconSize = ref.watch(iconSizeModeProvider);
     final locale = ref.watch(localeProvider);
+    final darkModeEnabled = ref.watch(darkModeEnabledProvider);
     final l = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionHeading(l.displaySectionTitle),
-        // ── Font size ─────────────────────────────────────────────────────
+        // ── Dark mode ─────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.dark_mode_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: Text(l.darkModeLabel)),
+              Switch(
+                value: darkModeEnabled,
+                onChanged: (v) =>
+                    ref.read(darkModeEnabledProvider.notifier).set(v),
+              ),
+            ],
+          ),
+        ),
+        // ── Font size ─────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: Row(
             children: [
               Icon(

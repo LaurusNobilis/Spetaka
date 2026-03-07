@@ -537,6 +537,10 @@
   "@compactViewOff": {
     "description": "Semantics label when compact view is off"
   },
+  "darkModeLabel": "Dark mode",
+  "@darkModeLabel": {
+    "description": "Display preference label for the dark mode toggle"
+  },
   "fontSizeLabel": "Font size",
   "@fontSizeLabel": {
     "description": "Display preference label"

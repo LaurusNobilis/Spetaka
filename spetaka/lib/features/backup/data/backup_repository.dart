@@ -56,6 +56,7 @@ class BackupRepository {
   static const int _headerSize = 4 + 1 + _saltLengthBytes; // 21 bytes
 
   static const String _prefsDensityModeKey = 'density_mode';
+  static const String _prefsDarkModeEnabledKey = 'dark_mode_enabled';
 
   // Uses the same salt key as EncryptionService (per-install PBKDF2 salt).
   // Story 7.1: Settings → "Reset backup settings".
@@ -124,6 +125,7 @@ class BackupRepository {
     final prefs = await SharedPreferences.getInstance();
     final settings = BackupSettings(
       densityMode: prefs.getString(_prefsDensityModeKey),
+      darkModeEnabled: prefs.getBool(_prefsDarkModeEnabledKey),
     );
 
     // ── 2. Serialize ─────────────────────────────────────────────────────────
@@ -422,6 +424,11 @@ class BackupRepository {
       final density = settings.densityMode;
       if (density != null && density.isNotEmpty) {
         await prefs.setString(_prefsDensityModeKey, density);
+      }
+
+      final darkModeEnabled = settings.darkModeEnabled;
+      if (darkModeEnabled != null) {
+        await prefs.setBool(_prefsDarkModeEnabledKey, darkModeEnabled);
       }
     } catch (_) {
       // Best-effort only; must never compromise DB atomic restore.

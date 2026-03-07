@@ -46,6 +46,44 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
   final ScrollController _scrollController = ScrollController();
   StreamSubscription<PendingActionState>? _pendingSub;
 
+  Widget _navAction({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required String tooltip,
+    required bool isCurrent,
+    required VoidCallback? onPressed,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+
+    final iconWidget = Icon(
+      icon,
+      color: isCurrent ? scheme.onPrimaryContainer : null,
+    );
+
+    final button = IconButton(
+      icon: iconWidget,
+      tooltip: tooltip,
+      onPressed: isCurrent ? null : onPressed,
+    );
+
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isCurrent,
+      child: isCurrent
+          ? Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: button,
+            )
+          : button,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -112,32 +150,29 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
         appBar: AppBar(
           title: Text(context.l10n.dailyTitle),
           actions: [
-            Semantics(
+            _navAction(
+              context: context,
               label: context.l10n.navDaily,
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.view_agenda_outlined),
-                tooltip: context.l10n.navDaily,
-                onPressed: null,
-              ),
+              icon: Icons.view_agenda_outlined,
+              tooltip: context.l10n.navDaily,
+              isCurrent: true,
+              onPressed: null,
             ),
-            Semantics(
+            _navAction(
+              context: context,
               label: context.l10n.navFriends,
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.people_outline),
-                tooltip: context.l10n.navFriends,
-                onPressed: () => const FriendsRoute().go(context),
-              ),
+              icon: Icons.people_outline,
+              tooltip: context.l10n.navFriends,
+              isCurrent: false,
+              onPressed: () => const FriendsRoute().go(context),
             ),
-            Semantics(
+            _navAction(
+              context: context,
               label: context.l10n.navSettings,
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: context.l10n.navSettings,
-                onPressed: () => const SettingsRoute().push(context),
-              ),
+              icon: Icons.settings_outlined,
+              tooltip: context.l10n.navSettings,
+              isCurrent: false,
+              onPressed: () => const SettingsRoute().push(context),
             ),
           ],
         ),

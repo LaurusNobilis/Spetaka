@@ -836,6 +836,12 @@ abstract class AppLocalizations {
   /// **'Compact view, off'**
   String get compactViewOff;
 
+  /// Display preference label for the dark mode toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get darkModeLabel;
+
   /// Display preference label
   ///
   /// In en, this message translates to:

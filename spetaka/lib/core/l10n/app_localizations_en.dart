@@ -407,6 +407,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get compactViewOff => 'Compact view, off';
 
   @override
+  String get darkModeLabel => 'Dark mode';
+
+  @override
   String get fontSizeLabel => 'Font size';
 
   @override

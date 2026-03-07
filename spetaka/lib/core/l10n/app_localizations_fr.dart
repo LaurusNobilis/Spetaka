@@ -414,6 +414,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get compactViewOff => 'Vue compacte, désactivée';
 
   @override
+  String get darkModeLabel => 'Mode sombre';
+
+  @override
   String get fontSizeLabel => 'Taille de police';
 
   @override

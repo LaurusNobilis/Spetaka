@@ -5,21 +5,26 @@ import '../../../core/database/app_database.dart';
 /// This is Phase-1 scoped: only preferences that exist today and are
 /// user-facing are included.
 class BackupSettings {
-  const BackupSettings({this.densityMode});
+  const BackupSettings({this.densityMode, this.darkModeEnabled});
 
   /// Daily view density preference stored in SharedPreferences.
   ///
   /// Expected values: 'compact' | 'expanded' (see DensityMode enum).
   final String? densityMode;
 
+  /// Whether the app forces dark mode (stored in SharedPreferences).
+  final bool? darkModeEnabled;
+
   Map<String, dynamic> toJson() => {
         'densityMode': densityMode,
+      'darkModeEnabled': darkModeEnabled,
       };
 
   factory BackupSettings.fromJson(Map<String, dynamic>? json) {
     final map = json ?? const <String, dynamic>{};
     return BackupSettings(
       densityMode: map['densityMode'] as String?,
+      darkModeEnabled: map['darkModeEnabled'] as bool?,
     );
   }
 }

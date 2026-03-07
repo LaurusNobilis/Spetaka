@@ -67,10 +67,7 @@ class HeartBriefingWidget extends StatelessWidget {
             ),
           ),
           if (urgent.isNotEmpty) ...[
-            _SectionLabel(
-              label: context.l10n.urgentLabel,
-              color: theme.colorScheme.error,
-            ),
+            const SizedBox(height: 6),
             for (final entry in urgent) _BriefingRow(entry: entry),
           ],
           if (important.isNotEmpty) ...[
