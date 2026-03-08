@@ -349,33 +349,6 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
           ],
         ),
         actions: [
-          Semantics(
-            label: context.l10n.navDaily,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.view_agenda_outlined),
-              tooltip: context.l10n.navDaily,
-              onPressed: () => const HomeRoute().go(context),
-            ),
-          ),
-          Semantics(
-            label: context.l10n.navFriends,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.people_outline),
-              tooltip: context.l10n.navFriends,
-              onPressed: () => const FriendsRoute().go(context),
-            ),
-          ),
-          Semantics(
-            label: context.l10n.navSettings,
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              tooltip: context.l10n.navSettings,
-              onPressed: () => const SettingsRoute().push(context),
-            ),
-          ),
           // 2.6/AC4: Edit
           IconButton(
             icon: const Icon(Icons.edit_outlined),
