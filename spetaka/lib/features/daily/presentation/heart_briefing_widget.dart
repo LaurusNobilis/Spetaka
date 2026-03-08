@@ -84,28 +84,6 @@ class HeartBriefingWidget extends StatelessWidget {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-            ),
-      ),
-    );
-  }
-}
-
 class _BriefingRow extends StatelessWidget {
   const _BriefingRow({required this.entry});
 
