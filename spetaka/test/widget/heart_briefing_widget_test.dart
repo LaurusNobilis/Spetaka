@@ -226,7 +226,7 @@ void main() {
       expect(find.text('Friend friend-42'), findsOneWidget);
     });
 
-    // AC5: section labels are now 'URGENT' and 'IMPORTANT' (previously 'MY SELECTION')
+    // AC5: only the important section has a label; urgent entries appear without a section header
     testWidgets('AC5 — section labels are visually distinct', (tester) async {
       final entries = [
         _entry(id: 'u1', name: 'Alice', tier: UrgencyTier.urgent),
@@ -236,9 +236,9 @@ void main() {
       await tester.pumpWidget(_harness(entries));
       await tester.pump();
 
-      // Urgent section shows 'URGENT', important shows 'IMPORTANT'
-      expect(find.text('URGENT'), findsOneWidget);
-      expect(find.text('IMPORTANT'), findsOneWidget);
+      // No section labels shown for either tier
+      expect(find.text('URGENT'), findsNothing);
+      expect(find.text('IMPORTANT'), findsNothing);
       // Header
       expect(find.text('Heart Briefing'), findsOneWidget);
     });
@@ -252,7 +252,7 @@ void main() {
       await tester.pumpWidget(_harness(entries));
       await tester.pump();
 
-      expect(find.text('URGENT'), findsOneWidget);
+      expect(find.text('URGENT'), findsNothing);
       expect(find.text('IMPORTANT'), findsNothing);
     });
 
@@ -265,7 +265,7 @@ void main() {
       await tester.pumpWidget(_harness(entries));
       await tester.pump();
 
-      expect(find.text('IMPORTANT'), findsOneWidget);
+      expect(find.text('IMPORTANT'), findsNothing);
       expect(find.text('URGENT'), findsNothing);
     });
   });
