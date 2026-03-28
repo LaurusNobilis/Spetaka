@@ -11,6 +11,7 @@ import '../../../core/router/app_router.dart';
 import '../../backup/providers/backup_providers.dart';
 import '../data/concern_cadence_provider.dart';
 import '../data/display_prefs_provider.dart';
+import '../data/pseudo_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Public widget
@@ -64,6 +65,38 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  // Ajout : section pseudo
+  Widget _pseudoSection(BuildContext context, WidgetRef ref) {
+    final pseudo = ref.watch(pseudoProvider);
+    final controller = TextEditingController(text: pseudo);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Mon pseudo'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Pseudo',
+              suffixIcon: Icon(Icons.edit),
+            ),
+            onSubmitted: (value) {
+              if (value.trim().isNotEmpty) {
+                ref.read(pseudoProvider.notifier).set(value.trim());
+              }
+            },
+            onChanged: (value) {
+              // Optionnel : mise à jour en live
+              ref.read(pseudoProvider.notifier).set(value.trim());
+            },
+          ),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -96,18 +129,19 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 8),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _BackupSection(),
-            _DisplaySection(),
-            _EventTypesSection(),
-            _CategoryTagsSection(),
-            _ConcernCadenceSection(),
-            _SyncPlaceholderSection(),
-            _FeedbackSection(),
+            _pseudoSection(context, ref),
+            const _BackupSection(),
+            const _DisplaySection(),
+            const _EventTypesSection(),
+            const _CategoryTagsSection(),
+            const _ConcernCadenceSection(),
+            const _SyncPlaceholderSection(),
+            const _FeedbackSection(),
           ],
         ),
       ),

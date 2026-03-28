@@ -347,16 +347,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Verify buttons exist and are enabled (onPressed is not null).
-      final callButton = find.widgetWithText(OutlinedButton, 'Call');
-      final smsButton = find.widgetWithText(OutlinedButton, 'SMS');
-      final waButton = find.widgetWithText(OutlinedButton, 'WhatsApp');
+      // Use key-based finders: OutlinedButton.icon() creates _OutlinedButtonWithIcon
+      // which find.byType(OutlinedButton) does not match (exact-type semantics).
+      final callButton = find.byKey(const Key('friend_card_action_call_button'));
+      final smsButton = find.byKey(const Key('friend_card_action_sms_button'));
+      final waButton = find.byKey(const Key('friend_card_action_whatsapp_button'));
 
       expect(callButton, findsOneWidget);
       expect(smsButton, findsOneWidget);
       expect(waButton, findsOneWidget);
 
       // Buttons must not be disabled (the old placeholder had onPressed: null).
-      final callWidget = tester.widget<OutlinedButton>(callButton);
+      final callWidget = tester.widget<ButtonStyleButton>(callButton);
       expect(callWidget.onPressed, isNotNull);
     });
 
@@ -368,7 +370,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Tap the Call button.
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Call'));
+      await tester.tap(find.byKey(const Key('friend_card_action_call_button')));
       // Allow the async handler to complete.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -384,7 +386,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      await tester.tap(find.widgetWithText(OutlinedButton, 'SMS'));
+      await tester.tap(find.byKey(const Key('friend_card_action_sms_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -398,7 +400,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      await tester.tap(find.widgetWithText(OutlinedButton, 'WhatsApp'));
+      await tester.tap(find.byKey(const Key('friend_card_action_whatsapp_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -410,15 +412,19 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Each OutlinedButton for actions is wrapped in a ConstrainedBox with
-      // minHeight: 48.  Verify the rendered height via getRect.
-      for (final label in ['Call', 'SMS', 'WhatsApp']) {
-        final buttonFinder = find.widgetWithText(OutlinedButton, label);
+      // Each action button is wrapped in a ConstrainedBox with minHeight: 48.
+      // Verify the rendered height via getRect.
+      for (final entry in <String, Key>{
+        'Call': const Key('friend_card_action_call_button'),
+        'SMS': const Key('friend_card_action_sms_button'),
+        'WhatsApp': const Key('friend_card_action_whatsapp_button'),
+      }.entries) {
+        final buttonFinder = find.byKey(entry.value);
         final rect = tester.getRect(buttonFinder);
         expect(
           rect.height,
           greaterThanOrEqualTo(48),
-          reason: '$label button must be at least 48dp tall',
+          reason: '${entry.key} button must be at least 48dp tall',
         );
       }
     });
