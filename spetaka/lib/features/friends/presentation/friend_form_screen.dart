@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -13,7 +15,9 @@ import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/settings/data/category_tags_provider.dart';
 import '../data/friend_repository_provider.dart';
+import '../domain/friend_form_draft.dart';
 import '../domain/friend_tags_codec.dart';
+import '../providers/friend_form_draft_provider.dart';
 
 /// Add / Edit Friend screen — contact import + manual entry (Stories 2.1, 2.2 & 2.7).
 ///
@@ -70,6 +74,15 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
   /// True while the existing record is being loaded in edit mode.
   bool _editLoading = false;
 
+  /// 10.4 — debounce timer for auto-saving draft (AC 2, 11).
+  Timer? _debounceTimer;
+
+  /// 10.4 — whether the draft-resuming banner is visible (AC 1).
+  bool _showDraftBanner = false;
+
+  /// Suppresses auto-save while programmatically mutating form fields.
+  bool _suppressDraftAutoSave = false;
+
   bool get _isEditMode => widget.editFriendId != null;
 
   @override
@@ -79,11 +92,15 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       _editLoading = true;
       _isManualFormVisible = true; // go straight to form in edit mode
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditFriend());
+    } else {
+      // 10.4/AC1 — restore draft in create mode.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDraft());
     }
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel(); // 10.4/AC11
     _nameController.dispose();
     _mobileController.dispose();
     _notesController.dispose();
@@ -113,12 +130,97 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
         _selectedTags = decodeFriendTags(friend.tags).toSet();
         _editLoading = false;
       });
+      // 10.4/AC1 — check for draft after loading persisted values in edit mode.
+      final draft = ref.read(friendFormDraftProvider);
+      if (draft != null) {
+        _suppressDraftAutoSave = true;
+        setState(() {
+          _nameController.text = draft.name ?? '';
+          _mobileController.text = draft.mobile ?? '';
+          _notesController.text = draft.notes ?? '';
+          _selectedTags = draft.categoryTags.toSet();
+          _showDraftBanner = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _suppressDraftAutoSave = false;
+        });
+      }
     } catch (_) {
       if (mounted) {
         _showSnackBar(context.l10n.somethingWentWrong);
         Navigator.of(context).pop();
       }
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // 10.4 — Session-draft auto-save (AC 1, 2, 3, 4, 11)
+  // -------------------------------------------------------------------------
+
+  /// Restore a previously saved draft (AC 1).
+  void _restoreDraft() {
+    final draft = ref.read(friendFormDraftProvider);
+    if (draft == null) return;
+    _suppressDraftAutoSave = true;
+    setState(() {
+      _nameController.text = draft.name ?? '';
+      _mobileController.text = draft.mobile ?? '';
+      _notesController.text = draft.notes ?? '';
+      _selectedTags = draft.categoryTags.toSet();
+      _isManualFormVisible = true;
+      _showDraftBanner = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _suppressDraftAutoSave = false;
+    });
+  }
+
+  /// Schedule a debounced draft save (AC 2). Inline Timer – no shared utility.
+  void _scheduleDraftSave() {
+    if (_suppressDraftAutoSave) return;
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      ref.read(friendFormDraftProvider.notifier).update(_buildDraft());
+    });
+  }
+
+  /// Build a [FriendFormDraft] from the current form state.
+  FriendFormDraft _buildDraft() {
+    return FriendFormDraft(
+      name: _nameController.text,
+      mobile: _mobileController.text,
+      notes: _notesController.text,
+      categoryTags: _selectedTags.toList(),
+      isConcernActive: _editFriend?.isConcernActive ?? false,
+      concernNote: _editFriend?.concernNote,
+    );
+  }
+
+  /// Clear draft and reset form (AC 4).
+  void _discardDraft() {
+    _debounceTimer?.cancel();
+    _suppressDraftAutoSave = true;
+    ref.read(friendFormDraftProvider.notifier).clear();
+    setState(() {
+      _showDraftBanner = false;
+      if (_isEditMode && _editFriend != null) {
+        // Reset to persisted values in edit mode.
+        _nameController.text = _editFriend!.name;
+        _mobileController.text = _editFriend!.mobile;
+        _notesController.text = _editFriend!.notes ?? '';
+        _selectedTags = decodeFriendTags(_editFriend!.tags).toSet();
+      } else {
+        // Reset to empty in create mode.
+        _formKey.currentState?.reset();
+        _nameController.clear();
+        _mobileController.clear();
+        _notesController.clear();
+        _selectedTags.clear();
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _suppressDraftAutoSave = false;
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -254,6 +356,12 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
     // Return early without SnackBar if validation fails.
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    // Capture the latest form state synchronously so a save failure preserves
+    // the user's most recent edits even if the debounce had not fired yet.
+    final pendingDraft = _buildDraft();
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+
     setState(() => _isLoading = true);
     try {
       final rawName = _nameController.text.trim();
@@ -279,9 +387,16 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           updatedAt: now,
         );
         await ref.read(friendRepositoryProvider).update(updated);
+        ref.read(friendFormDraftProvider.notifier).clear(); // 10.4/AC3
         if (mounted) {
-          // 2.7/AC4: return to detail screen; reactive stream refreshes view.
-          FriendDetailRoute(widget.editFriendId!).go(context);
+          // 2.7/AC4 + 4.7/AC6: when edit is stacked above the detail overlay,
+          // pop back to preserve the shell page underneath. Deep links without
+          // history still land on the detail route explicitly.
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.replace(FriendDetailRoute(widget.editFriendId!).location);
+          }
         }
       } else {
         final friend = Friend(
@@ -298,6 +413,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
           updatedAt: now,
         );
         await ref.read(friendRepositoryProvider).insert(friend);
+        ref.read(friendFormDraftProvider.notifier).clear(); // 10.4/AC3
         if (mounted) {
           if (context.canPop()) {
             context.pop();
@@ -307,8 +423,10 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
         }
       }
     } on AppError catch (e) {
+      ref.read(friendFormDraftProvider.notifier).update(pendingDraft);
       _showSnackBar(errorMessageFor(e));
     } catch (_) {
+      ref.read(friendFormDraftProvider.notifier).update(pendingDraft);
       if (mounted) _showSnackBar(context.l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -426,6 +544,36 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
     );
   }
 
+  /// 10.4/AC1 — Draft-resuming banner with discard action (AC 4).
+  Widget _buildDraftBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.draftResumingBanner,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _discardDraft,
+            child: Text(context.l10n.draftDiscard),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Manual-entry form — 2.2/AC1, AC2, AC3, AC4.
   Widget _buildManualForm(BuildContext context, List<String> availableTags) {
     final theme = Theme.of(context);
@@ -436,6 +584,9 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // 10.4/AC1 — draft-resuming banner.
+          if (_showDraftBanner)
+            _buildDraftBanner(context),
           Text(
             context.l10n.enterDetails,
             style: theme.textTheme.titleMedium,
@@ -468,6 +619,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                           _selectedTags.remove(tag);
                         }
                       });
+                      _scheduleDraftSave(); // 10.4/AC2
                     },
                   ),
               ],
@@ -480,6 +632,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
             controller: _nameController,
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(labelText: context.l10n.nameLabel),
+            onChanged: (_) => _scheduleDraftSave(), // 10.4/AC2
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return errorMessageFor(const FriendNameMissingAppError());
@@ -498,6 +651,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
               labelText: context.l10n.mobileLabel,
               hintText: context.l10n.mobilePlaceholder,
             ),
+            onChanged: (_) => _scheduleDraftSave(), // 10.4/AC2
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return errorMessageFor(const FriendMobileMissingAppError());
@@ -522,6 +676,7 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
               hintText: context.l10n.optionalContextNotes,
               alignLabelWithHint: true,
             ),
+            onChanged: (_) => _scheduleDraftSave(), // 10.4/AC2
             onFieldSubmitted: (_) => _saveFriend(),
           ),
           const SizedBox(height: 24),
@@ -559,11 +714,11 @@ class _FriendFormScreenState extends ConsumerState<FriendFormScreen> {
                     } else {
                       setState(() {
                         _isManualFormVisible = false;
+                        _formKey.currentState?.reset();
                         _nameController.clear();
                         _mobileController.clear();
                         _notesController.clear();
                         _selectedTags.clear();
-                        _formKey.currentState?.reset();
                       });
                     }
                   },

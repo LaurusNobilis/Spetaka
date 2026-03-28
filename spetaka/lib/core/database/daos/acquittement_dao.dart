@@ -60,4 +60,49 @@ class AcquittementDao extends DatabaseAccessor<AppDatabase>
             ..where((a) => a.friendId.equals(friendId))
             ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]))
           .watch();
+
+  /// Returns the most recent `createdAt` timestamp per friend as a map.
+  ///
+  /// Result: `{friendId: maxCreatedAtMillis}`. Friends with no acquittements
+  /// are absent from the map (LEFT JOIN handled at provider level).
+  ///
+  /// Story 8.4 — "Last contact" display.
+  Future<Map<String, int>> maxCreatedAtByFriendId() async {
+    final query = selectOnly(acquittements)
+      ..addColumns([acquittements.friendId, acquittements.createdAt.max()])
+      ..groupBy([acquittements.friendId]);
+
+    final rows = await query.get();
+    final result = <String, int>{};
+    for (final row in rows) {
+      final fid = row.read(acquittements.friendId);
+      final maxTs = row.read(acquittements.createdAt.max());
+      if (fid != null && maxTs != null) {
+        result[fid] = maxTs;
+      }
+    }
+    return result;
+  }
+
+  /// Watches the most recent `createdAt` timestamp per friend.
+  ///
+  /// Re-emits whenever any acquittement row changes.
+  /// Story 8.4 — reactive "Last contact" display on list tiles.
+  Stream<Map<String, int>> watchMaxCreatedAtByFriend() {
+    final query = selectOnly(acquittements)
+      ..addColumns([acquittements.friendId, acquittements.createdAt.max()])
+      ..groupBy([acquittements.friendId]);
+
+    return query.watch().map((rows) {
+      final result = <String, int>{};
+      for (final row in rows) {
+        final fid = row.read(acquittements.friendId);
+        final maxTs = row.read(acquittements.createdAt.max());
+        if (fid != null && maxTs != null) {
+          result[fid] = maxTs;
+        }
+      }
+      return result;
+    });
+  }
 }

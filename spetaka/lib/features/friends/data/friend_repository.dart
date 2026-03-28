@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/encryption/encryption_service.dart';
@@ -99,36 +100,84 @@ class FriendRepository {
   /// May also be called explicitly from the UI or onboarding flow.
   Future<void> removeDemoFriends() => db.friendDao.deleteDemoFriends();
 
+  /// The event type name used for auto-created concern cadence events.
+  ///
+  /// Matches the French seed name in the `event_types` table (Story 3.4 / v9 DB).
+  static const _kConcernCadenceType = 'Prendre des nouvelles';
+
+  /// Comment marker used to identify auto-created concern cadence events.
+  ///
+  /// Story 9.1: This value is the sole identifier for locating and deleting
+  /// the auto-cadence on `clearConcern`.
+  static const kConcernCadenceComment = 'Auto-created — concern follow-up';
+
+  static const _uuid = Uuid();
+
   /// Sets the concern flag for [id] with an optional [note] (Story 2.9 AC1).
+  ///
+  /// Story 9.1: Also atomically creates a recurring cadence event with
+  /// [cadenceDays] interval (default 7). The type is 'Prendre des nouvelles'
+  /// and the comment marker is [kConcernCadenceComment].
   ///
   /// Trims the note; stores null if the trimmed value is empty.
   /// No-op if the friend does not exist.
-  Future<void> setConcern(String id, {String? note}) async {
+  Future<void> setConcern(String id, {String? note, int cadenceDays = 7}) async {
     final friend = await findById(id);
     if (friend == null) return;
     final trimmed = note?.trim();
-    await update(
-      friend.copyWith(
-        isConcernActive: true,
-        concernNote: Value(trimmed?.isEmpty == true ? null : trimmed),
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
-      ),
-    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final eventId = _uuid.v4();
+    await db.transaction(() async {
+      await db.friendDao.updateFriend(
+        _toEncryptedCompanion(
+          friend.copyWith(
+            isConcernActive: true,
+            concernNote: Value(trimmed?.isEmpty == true ? null : trimmed),
+            updatedAt: now,
+          ),
+        ),
+      );
+      await db.eventDao.insertEvent(
+        EventsCompanion.insert(
+          id: eventId,
+          friendId: id,
+          type: _kConcernCadenceType,
+          date: now,
+          isRecurring: const Value(true),
+          comment: const Value(kConcernCadenceComment),
+          isAcknowledged: const Value(false),
+          createdAt: now,
+          cadenceDays: Value(cadenceDays),
+        ),
+      );
+    });
   }
 
   /// Clears the concern flag for [id] and removes the concern note (Story 2.9 AC3).
+  ///
+  /// Story 9.1: Also atomically deletes the auto-created concern cadence event
+  /// (identified by [kConcernCadenceComment]). Safe if no such event exists.
   ///
   /// No-op if the friend does not exist.
   Future<void> clearConcern(String id) async {
     final friend = await findById(id);
     if (friend == null) return;
-    await update(
-      friend.copyWith(
-        isConcernActive: false,
-        concernNote: const Value(null),
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
-      ),
-    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final concernEvent = await db.eventDao.findConcernCadenceByFriendId(id);
+    await db.transaction(() async {
+      await db.friendDao.updateFriend(
+        _toEncryptedCompanion(
+          friend.copyWith(
+            isConcernActive: false,
+            concernNote: const Value(null),
+            updatedAt: now,
+          ),
+        ),
+      );
+      if (concernEvent != null) {
+        await db.eventDao.deleteEvent(concernEvent.id);
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------

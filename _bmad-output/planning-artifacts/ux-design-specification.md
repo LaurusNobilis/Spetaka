@@ -439,7 +439,7 @@ they tell the emotional arc of the app: *care → connection → growth*.
 | Friend card editor | M3 base, warm-themed — contact picker integration |
 | Event editor | M3 base, warm-themed |
 | WebDAV setup | M3 base — brief, confident, minimal |
-| Navigation / settings | M3 NavigationBar — standard, unobtrusive |
+| Navigation / settings | PageView shell (swipe) + page indicator — no NavigationBar _(Story 4.7)_ |
 
 ### Design Tokens
 
@@ -852,7 +852,7 @@ Material Design 3 (Flutter) couvre la structure et les éléments standards :
 
 | Composant M3 | Usage dans Spetaka |
 |---|---|
-| `Scaffold` + `NavigationBar` | Structure de l'app, navigation de base |
+| `Scaffold` + `PageView` shell | Structure de l'app, navigation swipe entre Daily View et Friends List _(Story 4.7)_ |
 | `FloatingActionButton` | Bouton d'ajout d'ami (coin inférieur droit) |
 | `ModalBottomSheet` | Prompt acquittement v1 fallback |
 | `SnackBar` | Toast de confirmation (ami hors fenêtre) |
@@ -1036,15 +1036,19 @@ overdue       → "Bonjour Laurus, Marc attend depuis un moment."
 
 ### Navigation Patterns
 
-**Structure v1 :** Pas de `NavigationBar` — une seule vue principale (daily view).
+**Structure v1 :** Pas de `NavigationBar` — navigation par swipe horizontal entre deux vues racines via `PageView` + `AppShellScreen` _(Story 4.7, implémenté 2026-03)_.
 
 | Destination | Accès | Retour |
 |---|---|---|
-| Daily view | Point d'entrée unique | — |
+| Daily view (index 0) | Point d'entrée par défaut | — |
+| Friends list (index 1) | Swipe gauche depuis Daily view | Swipe droit ou Back Android → retour index 0 |
 | Éditeur ami | FAB | Flèche retour Android / geste |
+| Fiche ami / événement | Tap sur carte | Flèche retour (route poussée au-dessus du shell) |
 | Paramètres | Icône en-tête | Flèche retour |
 
-**Back gesture Android :** Supporté partout. L'expansion de `FriendCard` ne crée pas de destination de navigation — le geste replie la carte si étendue, quitte l'app sinon.
+**Shell PageView :** `AppShellScreen` héberge un `PageController` avec 2 pages (Daily View, Friends List). Un indicateur 2 points discret en bas de l'écran reflète la page active (couleur `colorScheme.primary`, label TalkBack localisé). Les sous-routes (fiche ami, événement, paramètres) sont poussées via `parentNavigatorKey` au-dessus du shell — le `PageController` et sa position sont préservés au retour. Le bouton `people_outline` est supprimé — le swipe est le seul affordance de navigation entre les deux vues.
+
+**Back gesture Android :** Supporté partout. Depuis Friends List (index 1), Back anime vers Daily View (index 0) sans quitter l'app. Depuis Daily View (index 0), l'expansion de `FriendCard` ne crée pas de destination de navigation — le geste replie la carte si étendue, quitte l'app sinon.
 
 **FAB :** Coin inférieur droit, 16dp du bord. Opacity `0.7` quand une carte est étendue pour ne pas distraire de l'`ActionRow`.
 

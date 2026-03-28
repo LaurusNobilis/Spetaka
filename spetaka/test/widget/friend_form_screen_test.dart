@@ -2,17 +2,75 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
+import 'package:spetaka/core/router/app_route_types.dart';
 import 'package:spetaka/core/router/app_router.dart';
+import 'package:spetaka/features/acquittement/data/acquittement_providers.dart';
+import 'package:spetaka/features/daily/data/daily_view_provider.dart';
+import 'package:spetaka/features/events/data/event_type_providers.dart';
 import 'package:spetaka/features/events/data/events_providers.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository_provider.dart';
 import 'package:spetaka/features/friends/data/friends_providers.dart';
+import 'package:spetaka/features/friends/domain/friend_form_draft.dart';
 import 'package:spetaka/features/friends/domain/friend_tags_codec.dart';
+import 'package:spetaka/features/friends/presentation/friend_form_screen.dart';
+import 'package:spetaka/features/friends/presentation/friends_list_screen.dart';
+import 'package:spetaka/features/friends/providers/friend_form_draft_provider.dart';
+import 'package:spetaka/features/shell/presentation/app_shell_screen.dart';
+
+GoRouter _createTestRouter() => GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: const HomeRoute().location,
+      builder: (_, __) => const Scaffold(body: SizedBox.shrink()),
+    ),
+    GoRoute(
+      path: const FriendsRoute().location,
+      builder: (_, __) => const FriendsListScreen(),
+    ),
+    GoRoute(
+      path: const NewFriendRoute().location,
+      builder: (_, __) => const FriendFormScreen(),
+    ),
+    GoRoute(
+      path: const SettingsRoute().location,
+      builder: (_, __) => const Scaffold(body: SizedBox.shrink()),
+    ),
+  ],
+);
+
+GoRouter _createDraftTestRouter() => GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: const FriendsRoute().location,
+      builder: (_, __) => const Scaffold(body: Center(child: Text('Friends'))),
+    ),
+    GoRoute(
+      path: const NewFriendRoute().location,
+      builder: (_, __) => const FriendFormScreen(),
+    ),
+    GoRoute(
+      path: '/friends/:id/edit',
+      builder: (_, state) => FriendFormScreen(
+        editFriendId: state.pathParameters['id'],
+      ),
+    ),
+    GoRoute(
+      path: '/friends/:id',
+      builder: (_, state) => Scaffold(
+        body: Center(
+          child: Text('Friend detail ${state.pathParameters['id']}'),
+        ),
+      ),
+    ),
+  ],
+);
 
 /// Builds the full router-test scaffold with an in-memory repo.
 /// Friends list data is reactive via repository watchAll() (StreamProvider).
@@ -25,7 +83,7 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
   await enc.initialize('spetaka-widget-test-pass');
 
   final repo = FriendRepository(db: db, encryptionService: enc);
-  final router = createAppRouter();
+  final router = _createTestRouter();
 
   await tester.pumpWidget(
     ProviderScope(
@@ -36,6 +94,9 @@ Future<_TestHarness> _buildHarness(WidgetTester tester) async {
         // does not keep Dart timers alive and block pumpAndSettle / pump.
         allFriendsProvider.overrideWith(
           (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        lastContactByFriendProvider.overrideWith(
+          (ref) => Stream<Map<String, int>>.value(const <String, int>{}),
         ),
         // Story 4.2: DailyViewScreen (root route, beneath this stack) also
         // needs its event stream stubbed to prevent Drift timer leaks.
@@ -158,12 +219,15 @@ void main() {
       updatedAt: now,
     ),);
 
-    final router = createAppRouter();
+    final router = _createTestRouter();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           friendRepositoryProvider.overrideWithValue(repo),
+          lastContactByFriendProvider.overrideWith(
+            (_) => Stream<Map<String, int>>.value(const <String, int>{}),
+          ),
           // Story 4.2: DailyViewScreen (root route, beneath /friends) watches
           // this provider; stub it to prevent Drift timer leaks.
           watchPriorityInputEventsProvider.overrideWith(
@@ -202,7 +266,7 @@ void main() {
     await enc.initialize('spetaka-widget-test-pass');
     final repo = FriendRepository(db: db, encryptionService: enc);
 
-    final router = createAppRouter();
+    final router = _createTestRouter();
 
     await tester.pumpWidget(
       ProviderScope(
@@ -212,6 +276,9 @@ void main() {
           // Do NOT use pumpAndSettle in this test (live Drift stream).
           allFriendsProvider.overrideWith(
             (ref) => ref.watch(friendRepositoryProvider).watchAll(),
+          ),
+          lastContactByFriendProvider.overrideWith(
+            (_) => Stream<Map<String, int>>.value(const <String, int>{}),
           ),
           // Story 4.2: DailyViewScreen (root route) also watches events;
           // stub it to prevent a second open Drift timer on teardown.
@@ -335,6 +402,557 @@ void main() {
 
     await h.dispose();
   });
-}
 
+  // ---------------------------------------------------------------------------
+  // Story 10.4 — Session-Draft Auto-Save tests
+  // ---------------------------------------------------------------------------
+
+  testWidgets('10.4/AC1 — typing, navigating away, and returning restores the draft', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    final container = ProviderContainer(
+      overrides: [
+        friendRepositoryProvider.overrideWithValue(repo),
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Enter manually'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(find.byType(TextField).at(0), 'DraftAlice');
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(container.read(friendFormDraftProvider)?.name, 'DraftAlice');
+
+    router.go(const FriendsRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // AC1 — banner is visible.
+    expect(find.text('Resuming your draft'), findsOneWidget);
+    // AC1 — name field is pre-filled from draft.
+    expect(find.text('DraftAlice'), findsOneWidget);
+
+    container.dispose();
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('10.4/AC3 — draft cleared after successful save', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    // Use a ProviderContainer to verify draft state after save.
+    final container = ProviderContainer(
+      overrides: [
+        friendRepositoryProvider.overrideWithValue(repo),
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Enter manually'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Enter data — triggers debounced draft save.
+    await tester.enterText(find.byType(TextField).at(0), 'Alice');
+    await tester.enterText(find.byType(TextField).at(1), '06 12 34 56 78');
+    // Wait for 300 ms debounce to fire.
+    await tester.pump(const Duration(milliseconds: 350));
+
+    // Verify draft was saved.
+    expect(container.read(friendFormDraftProvider)?.name, 'Alice');
+
+    // Save the friend.
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+
+    // AC3 — draft is cleared after successful save.
+    expect(container.read(friendFormDraftProvider), isNull);
+
+    container.dispose();
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('10.4/AC3 — save cancels pending debounce before it can restore the draft', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    final container = ProviderContainer(
+      overrides: [
+        friendRepositoryProvider.overrideWithValue(repo),
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Enter manually'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(find.byType(TextField).at(0), 'Alice');
+    await tester.enterText(find.byType(TextField).at(1), '06 12 34 56 78');
+
+    // Save immediately, before the 300 ms debounce callback can fire.
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(container.read(friendFormDraftProvider), isNull);
+
+    container.dispose();
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('10.4/AC4 — discard banner resets form to empty in create mode', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    final container = ProviderContainer(
+      overrides: [
+        friendRepositoryProvider.overrideWithValue(repo),
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
+        ),
+      ],
+    );
+
+    container.read(friendFormDraftProvider.notifier).update(
+      const FriendFormDraft(name: 'DraftBob', mobile: '06 99 88 77 66'),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go(const NewFriendRoute().location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Banner and draft name visible.
+    expect(find.text('Resuming your draft'), findsOneWidget);
+    expect(find.text('DraftBob'), findsOneWidget);
+
+    // AC4 — tap Discard.
+    await tester.tap(find.text('Discard'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Banner gone.
+    expect(find.text('Resuming your draft'), findsNothing);
+    // Draft cleared in provider.
+    expect(container.read(friendFormDraftProvider), isNull);
+    // Name field is now empty.
+    final nameField = tester.widget<TextFormField>(find.byType(TextFormField).at(0));
+    expect(nameField.controller?.text ?? '', isEmpty);
+
+    container.dispose();
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('10.4/AC1/AC4 — edit mode restores draft and discard resets to persisted values', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    const friendId = 'friend-1';
+    await repo.insert(Friend(
+      id: friendId,
+      name: 'Persisted Alice',
+      mobile: '+33600000001',
+      tags: encodeFriendTags({'Famille'}),
+      notes: 'Saved note',
+      careScore: 0.0,
+      isConcernActive: false,
+      concernNote: null,
+      isDemo: false,
+      createdAt: now,
+      updatedAt: now,
+    ),);
+
+    final container = ProviderContainer(
+      overrides: [
+        friendRepositoryProvider.overrideWithValue(repo),
+        allFriendsProvider.overrideWith(
+          (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+        ),
+        watchPriorityInputEventsProvider.overrideWith(
+          (ref) => Stream<List<Event>>.value(const <Event>[]),
+        ),
+      ],
+    );
+
+    container.read(friendFormDraftProvider.notifier).update(
+      const FriendFormDraft(
+        name: 'Draft Alice',
+        mobile: '06 11 22 33 44',
+        notes: 'Draft note',
+      ),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go('/friends/$friendId/edit');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Resuming your draft'), findsOneWidget);
+    expect(find.text('Draft Alice'), findsOneWidget);
+    expect(find.text('Draft note'), findsOneWidget);
+
+    await tester.tap(find.text('Discard'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(container.read(friendFormDraftProvider), isNull);
+
+    final nameField = tester.widget<TextFormField>(find.byType(TextFormField).at(0));
+    final mobileField = tester.widget<TextFormField>(find.byType(TextFormField).at(1));
+    final notesField = tester.widget<TextFormField>(find.byType(TextFormField).at(2));
+
+    expect(nameField.controller?.text, 'Persisted Alice');
+    expect(mobileField.controller?.text, '+33600000001');
+    expect(notesField.controller?.text, 'Saved note');
+
+    container.dispose();
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  testWidgets('2.7/AC4 — stacked edit save pops back to friend detail route', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+    final enc = EncryptionService(lifecycleService: lifecycle);
+    await enc.initialize('spetaka-widget-test-pass');
+    final repo = FriendRepository(db: db, encryptionService: enc);
+    final router = _createDraftTestRouter();
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    const friendId = 'friend-2';
+    await repo.insert(Friend(
+      id: friendId,
+      name: 'Before Edit',
+      mobile: '+33600000002',
+      tags: null,
+      notes: null,
+      careScore: 0.0,
+      isConcernActive: false,
+      concernNote: null,
+      isDemo: false,
+      createdAt: now,
+      updatedAt: now,
+    ),);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          friendRepositoryProvider.overrideWithValue(repo),
+          allFriendsProvider.overrideWith(
+            (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+          ),
+          watchPriorityInputEventsProvider.overrideWith(
+            (ref) => Stream<List<Event>>.value(const <Event>[]),
+          ),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      ),
+    );
+
+    router.go('/friends/$friendId');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Friend detail $friendId'), findsOneWidget);
+
+    router.push('/friends/$friendId/edit');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'After Edit');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Friend detail $friendId'), findsOneWidget);
+
+    final saved = await repo.findById(friendId);
+    expect(saved, isNotNull);
+    expect(saved!.name, 'After Edit');
+
+    await db.close();
+    enc.dispose();
+    lifecycle.dispose();
+  });
+
+  // M2 (4.7 review): verify that edit-save preserves the real AppShellScreen
+  // when stacked above the friend-detail overlay on the root navigator.
+  testWidgets(
+    '4.7/AC6 — edit-save with real shell pops back to detail overlay, shell stays mounted',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+
+      final db = AppDatabase(NativeDatabase.memory());
+      final lifecycle = AppLifecycleService(binding: WidgetsBinding.instance);
+      final enc = EncryptionService(lifecycleService: lifecycle);
+      await enc.initialize('spetaka-shell-edit-test-pass');
+      final repo = FriendRepository(db: db, encryptionService: enc);
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      const friendId = 'friend-shell-edit';
+      await repo.insert(Friend(
+        id: friendId,
+        name: 'Shell Edit Before',
+        mobile: '+33600000099',
+        tags: null,
+        notes: null,
+        careScore: 0.0,
+        isConcernActive: false,
+        concernNote: null,
+        isDemo: false,
+        createdAt: now,
+        updatedAt: now,
+      ));
+
+      // Use the real createAppRouter so AppShellScreen is in the tree.
+      final router = createAppRouter();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            friendRepositoryProvider.overrideWithValue(repo),
+            allFriendsProvider.overrideWith(
+              (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+            lastContactByFriendProvider.overrideWith(
+              (_) => Stream<Map<String, int>>.value(const <String, int>{}),
+            ),
+            watchDailyViewProvider.overrideWith(
+              (_) => const AsyncData(<DailyViewEntry>[]),
+            ),
+            watchFriendByIdProvider(friendId).overrideWith(
+              (_) => Stream<Friend?>.value(Friend(
+                id: friendId,
+                name: 'Shell Edit Before',
+                mobile: '+33600000099',
+                tags: null,
+                notes: null,
+                careScore: 0.0,
+                isConcernActive: false,
+                concernNote: null,
+                isDemo: false,
+                createdAt: now,
+                updatedAt: now,
+              )),
+            ),
+            watchEventsByFriendProvider(friendId).overrideWith(
+              (_) => Stream<List<Event>>.value(const <Event>[]),
+            ),
+            watchEventTypesProvider.overrideWith(
+              (_) => Stream<List<EventTypeEntry>>.value(const <EventTypeEntry>[]),
+            ),
+            watchAcquittementsProvider(friendId).overrideWith(
+              (_) => Stream<List<Acquittement>>.value(const <Acquittement>[]),
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Navigate shell to Friends, then push detail overlay.
+      router.go(const FriendsRoute().location);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      router.push(FriendDetailRoute(friendId).location);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Shell Edit Before'), findsAtLeastNWidgets(1));
+
+      // Push edit overlay on top.
+      router.push(EditFriendRoute(friendId).location);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextFormField).at(0), 'Shell Edit After');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 500)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Should have popped back to detail overlay — shell still mounted.
+      expect(find.byType(AppShellScreen, skipOffstage: false), findsOneWidget);
+
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    },
+  );
+}
 

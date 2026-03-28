@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,6 +114,47 @@ Widget _harnessWithRouter({required Friend? friend}) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
+      routerConfig: router,
+    ),
+  );
+}
+
+Widget _harnessWithRouterAndTheme({
+  required Friend? friend,
+  required ThemeMode themeMode,
+  Stream<List<Acquittement>>? acquittements,
+}) {
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, __) => const FriendCardScreen(id: 'f1'),
+      ),
+    ],
+  );
+
+  return ProviderScope(
+    overrides: [
+      watchFriendByIdProvider('f1').overrideWith(
+        (_) => Stream.value(friend),
+      ),
+      watchEventsByFriendProvider('f1').overrideWith(
+        (_) => Stream.value([]),
+      ),
+      watchEventTypesProvider.overrideWith(
+        (_) => Stream.value(<EventTypeEntry>[]),
+      ),
+      watchAcquittementsProvider('f1').overrideWith(
+        (_) => acquittements ?? Stream.value([]),
+      ),
+    ],
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeMode,
       routerConfig: router,
     ),
   );
@@ -505,6 +548,162 @@ void main() {
 
       expect(find.text('En personne'), findsOneWidget);
       expect(find.text(shortNote), findsOneWidget);
+    });
+  });
+
+  group('FriendCardScreen — Story 8.4 Last Contact', () {
+    testWidgets('AC3 — renders last contact summary when history exists',
+        (tester) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const FriendCardScreen(id: 'f1'),
+          ),
+        ],
+      );
+
+      final widget = ProviderScope(
+        overrides: [
+          watchFriendByIdProvider('f1').overrideWith(
+            (_) => Stream.value(_makeFriend()),
+          ),
+          watchEventsByFriendProvider('f1').overrideWith(
+            (_) => Stream.value([]),
+          ),
+          watchEventTypesProvider.overrideWith(
+            (_) => Stream.value(<EventTypeEntry>[]),
+          ),
+          watchAcquittementsProvider('f1').overrideWith(
+            (_) => Stream.value([
+              Acquittement(
+                id: 'a1',
+                friendId: 'f1',
+                type: 'call',
+                note: null,
+                createdAt: now,
+              ),
+            ]),
+          ),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('friend_card_last_contact_text')), findsOneWidget);
+      expect(find.text('Last contact: Today'), findsOneWidget);
+    });
+
+    testWidgets('AC4 — updates reactively after a new acquittement',
+        (tester) async {
+      final controller = StreamController<List<Acquittement>>();
+      addTearDown(controller.close);
+
+      final initialTs =
+          DateTime.now().subtract(const Duration(days: 14)).millisecondsSinceEpoch;
+      final updatedTs = DateTime.now().millisecondsSinceEpoch;
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const FriendCardScreen(id: 'f1'),
+          ),
+        ],
+      );
+
+      final widget = ProviderScope(
+        overrides: [
+          watchFriendByIdProvider('f1').overrideWith(
+            (_) => Stream.value(_makeFriend()),
+          ),
+          watchEventsByFriendProvider('f1').overrideWith(
+            (_) => Stream.value([]),
+          ),
+          watchEventTypesProvider.overrideWith(
+            (_) => Stream.value(<EventTypeEntry>[]),
+          ),
+          watchAcquittementsProvider('f1').overrideWith((_) => controller.stream),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: router,
+        ),
+      );
+
+      await tester.pumpWidget(widget);
+      controller.add([
+        Acquittement(
+          id: 'a1',
+          friendId: 'f1',
+          type: 'call',
+          note: null,
+          createdAt: initialTs,
+        ),
+      ]);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Last contact: 2 weeks ago'), findsOneWidget);
+
+      controller.add([
+        Acquittement(
+          id: 'a2',
+          friendId: 'f1',
+          type: 'sms',
+          note: null,
+          createdAt: updatedTs,
+        ),
+        Acquittement(
+          id: 'a1',
+          friendId: 'f1',
+          type: 'call',
+          note: null,
+          createdAt: initialTs,
+        ),
+      ]);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Last contact: Today'), findsOneWidget);
+    });
+
+    testWidgets('uses the dark-mode secondary token for the last-contact summary',
+        (tester) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      await tester.pumpWidget(
+        _harnessWithRouterAndTheme(
+          friend: _makeFriend(),
+          themeMode: ThemeMode.dark,
+          acquittements: Stream.value([
+            Acquittement(
+              id: 'a1',
+              friendId: 'f1',
+              type: 'call',
+              note: null,
+              createdAt: now,
+            ),
+          ]),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final textWidget = tester.widget<Text>(find.text('Last contact: Today'));
+      expect(textWidget.style?.color, equals(const Color(0xFFB0A09A)));
     });
   });
 }

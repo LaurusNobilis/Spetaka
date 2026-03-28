@@ -30,8 +30,8 @@ transmit, or sell personal information.
 ### Encryption
 
 Sensitive fields (friend names, phone numbers, notes) are encrypted at rest
-using **AES-256-GCM** with a key derived from / stored in the app's secure
-storage. The raw SQLite database file on disk cannot be read without app-level
+using **AES-256-GCM** with a per-install device key stored locally by the app.
+The raw SQLite database file on disk cannot be read without app-level
 decryption.
 
 ---
@@ -47,9 +47,11 @@ you explicitly save in the app.
 
 ## 4. Phone / Communication Permissions
 
-Spetaka uses the **CALL_PHONE**, **SEND_SMS**, and **OPEN_WHATSAPP** intents to
-launch your device's native dialler, SMS, or WhatsApp app. The app does not
-intercept call state, record conversations, or transmit communication data.
+Spetaka does **not** declare dedicated Android permissions such as
+**CALL_PHONE** or **SEND_SMS**. Instead, it opens your device's native dialler,
+SMS app, or WhatsApp via external links / intents that you confirm on the
+device. The app does not intercept call state, record conversations, or
+transmit communication data.
 
 ---
 

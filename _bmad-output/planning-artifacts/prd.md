@@ -1,10 +1,14 @@
 ---
-stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish, step-12-complete]
+stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish, step-12-complete, step-e-01-discovery, step-e-02-review, step-e-03-edit]
 inputDocuments:
   - "_bmad-output/planning-artifacts/product-brief-Spetaka-2026-02-25.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-02-25.md"
 workflowType: 'prd'
 date: "2026-02-26"
+lastEdited: "2026-03-25"
+editHistory:
+  - date: "2026-03-25"
+    changes: "Added Phase 2 FRs: friend list filters (FR11–13), last contact display (FR14), concern follow-up auto-cadence (FR21, FR51), draft messages & LLM-assisted phrasing (FR44–47). Added Phase 2 NFRs: LLM offline-only constraints (NFR18–21). Renewed FR numbering to accommodate new entries (FR15–51). Updated Phase 2 scoping table with FR/NFR references."
 author: Laurus
 classification:
   projectType: mobile_app
@@ -26,7 +30,7 @@ The app surfaces the right people at the right time through a smart priority vie
 
 Spetaka is built on a strict **pull philosophy**: zero notifications, zero badges, zero widgets — now and in all future versions. It exists when you choose it. This is not a constraint — it is the product's identity.
 
-The v1 release targets Laurus as primary user and close circle as early adopters, distributed via the Google Play Store. It is built in Flutter with SQLite (Drift) for offline-first storage and AES-256 encrypted local file backup for user-controlled data protection — no third-party server, no network transmission. WebDAV sync is Phase 2.
+The v1 release targets Laurus as primary user and close circle as early adopters, distributed via the Google Play Store. It is built in Flutter with SQLite (Drift) for offline-first storage and AES-256 encrypted local file backup for user-controlled data protection — no third-party server, no network transmission. WebDAV sync is Phase 3.
 
 This is a clean rebuild from a validated Ionic prototype. The core priority model was proven. The rebuild delivers it with professional architecture, good engineering practices, and a foundation worthy of long-term maintenance and platform expansion.
 
@@ -38,7 +42,7 @@ Key differentiators:
 - **Pull, not push** — the app exists on your terms. No system interrupts your life to tell you to care.
 - **Person-first, not event-first** — the atomic unit is the friend, not the date. Events serve the relationship, not the calendar.
 - **One-tap from intention to gesture** — the friction between "I should reach out" and actually doing it has been eliminated by design.
-- **Privacy by conviction** — local encrypted backup from day one. Your relationship data never leaves your device unless you explicitly export it. WebDAV sync in Phase 2.
+- **Privacy by conviction** — local encrypted backup from day one. Your relationship data never leaves your device unless you explicitly export it. WebDAV sync in Phase 3.
 - **Built to grow with you** — for the already-intentional person *and* the person who wants to become one. Spetaka makes the right action obvious and frictionless until caring becomes a quiet ritual.
 
 ## Project Classification
@@ -141,7 +145,7 @@ The single metric that matters above all others: **acquittements logged**. If us
 
 ---
 
-### Journey 3 — Local Backup & Restore _(Phase 1)_ / WebDAV Setup _(Phase 2)_
+### Journey 3 — Local Backup & Restore _(Phase 1)_ / WebDAV Setup _(Phase 3)_
 
 **Persona:** Same Laurus, Day 1, after creating his first 3 fiches. He wants to protect his data.
 
@@ -151,7 +155,7 @@ The single metric that matters above all others: **acquittements logged**. If us
 
 **Capabilities revealed _(Phase 1)_:** Local encrypted backup export/import, passphrase setup with clear UX copy, file manager integration, transparent encryption model explained in-app.
 
-**Phase 2 extension:** WebDAV configuration UI, Nextcloud/self-hosted server sync, automatic background sync, full restore from WebDAV after reinstall — _deferred from Phase 1 to reduce scope and security surface._
+**Phase 3 extension:** WebDAV configuration UI, Nextcloud/self-hosted server sync, automatic background sync, full restore from WebDAV after reinstall — _deferred from Phase 1 and Phase 2 to reduce scope and security surface._
 
 ---
 
@@ -187,7 +191,7 @@ He works through the list over two mornings — not all at once, just what feels
 | Concern / préoccupation flag + priority elevation | J4 |
 | Care score tracking + history | J2, J4 |
 | Local backup export / import + passphrase setup | J3 |
-| WebDAV configuration + connection test | J3 _(Phase 2)_ |
+| WebDAV configuration + connection test | J3 _(Phase 3)_ |
 | No punishment / no streak mechanics | J4 |
 | Graceful re-engagement after absence | J4 |
 
@@ -195,7 +199,7 @@ He works through the list over two mornings — not all at once, just what feels
 
 ### Project-Type Overview
 
-Spetaka is a Flutter-based Android application distributed via the Google Play Store. It is offline-first by design, single-user, and requires no backend server. **Phase 1 has no network operations** — data protection is via local encrypted file backup. WebDAV sync is Phase 2. The app targets Android v1 with a clean iOS path for Phase 3.
+Spetaka is a Flutter-based Android application distributed via the Google Play Store. It is offline-first by design, single-user, and requires no backend server. **Phase 1 has no network operations** — data protection is via local encrypted file backup. WebDAV sync is Phase 3. The app targets Android v1 with a clean iOS path for Phase 3 (platform expansion).
 
 ### Technical Architecture Considerations
 
@@ -203,7 +207,7 @@ Spetaka is a Flutter-based Android application distributed via the Google Play S
 |---|---|
 | Framework | Flutter (Dart) — single codebase, Android-first |
 | Local persistence | SQLite via Drift (type-safe, offline-first) |
-| Network | **None in Phase 1** — no REST API, no Firebase, no third-party server; WebDAV sync in Phase 2 |
+| Network | **None in Phase 1 or Phase 2** — no REST API, no Firebase, no third-party server; WebDAV sync in Phase 3 |
 | Encryption | Passphrase-based AES-256 applied to local backup file export; in-memory key only |
 | Key derivation | PBKDF2 or Argon2 |
 | Minimum Android version | API 26+ (Android 8.0) — covers >95% of active devices |
@@ -223,20 +227,20 @@ Spetaka is a Flutter-based Android application distributed via the Google Play S
 | Permission | Purpose | Handling if Denied |
 |---|---|---|
 | `READ_CONTACTS` | Import friend from phone contacts | Manual entry fallback — fully functional without permission |
-| INTERNET | Phase 2 only — WebDAV sync | **Not requested in Phase 1**; app is fully offline |
+| INTERNET | Phase 3 only — WebDAV sync | **Not requested in Phase 1 or Phase 2**; app is fully offline until Phase 3 |
 
 **Permission request strategy:** `READ_CONTACTS` requested at the moment the user first taps "Import from contacts" — not on first launch. Clear rationale shown: *"To import your friend's name and number — nothing is sent anywhere."* If denied, manual name/number entry is available.
 
 ### Offline Mode
 
-The app is fully functional offline. **Phase 1 has no network features.** All reads and writes go to the local SQLite database. Users protect their data via encrypted local backup export/import (FR37–FR38).
+The app is fully functional offline. **Phase 1 has no network features.** All reads and writes go to the local SQLite database. Users protect their data via encrypted local backup export/import (FR42–FR43).
 
 | Scenario | Behaviour |
 |---|---|
 | No network | Full app functionality — not applicable in Phase 1 (no network required) |
 | First install | App fully usable immediately; no configuration required |
 | Reinstall / device migration | Export backup on old device → import backup on new device with passphrase |
-| WebDAV sync | _Phase 2 — not available in Phase 1_ |
+| WebDAV sync | _Phase 3 — not available in Phase 1 or Phase 2_ |
 
 ### Push Strategy
 
@@ -259,7 +263,7 @@ The app is fully functional offline. **Phase 1 has no network features.** All re
 - **Contact import:** Android `ContactsContract` API via Flutter plugin (e.g., `flutter_contacts`). Only name and primary mobile number imported. No photo import in v1.
 - **Action intents:** `tel://` for calls, `sms://` for SMS, `https://wa.me/` for WhatsApp. WhatsApp deep link requires international format — normalisation needed at fiche creation.
 - **Return-to-app detection:** `AppLifecycleState.resumed` to trigger acquittement prompt after user returns from phone/messaging action.
-- **Backup:** `file_picker ^6.x` + `path_provider` + `permission_handler ^11.x` for local encrypted file export/import. _(Phase 2: `webdav_client` for WebDAV sync — deferred.)_
+- **Backup:** `file_picker ^6.x` + `path_provider` + `permission_handler ^11.x` for local encrypted file export/import. _(Phase 3: `webdav_client` for WebDAV sync — deferred.)_
 - **Encryption:** AES-256 symmetric encryption; key derivation via PBKDF2 or Argon2.
 
 ## Project Scoping & Phased Development
@@ -270,11 +274,11 @@ The app is fully functional offline. **Phase 1 has no network features.** All re
 
 **Solo build:** Single developer (Laurus). Scope must be achievable solo without cutting core value. No cuts to the MVP feature set — all listed capabilities are necessary for the core loop to function. The features are tightly coupled: daily view without acquittements = no loop closure; acquittements without fiches = no context. The MVP is indivisible.
 
-**Resource requirement:** Flutter + Dart proficiency, Android development environment. No server access required for Phase 1. _(Phase 2 adds: WebDAV server — Nextcloud or equivalent — for sync testing.)_
+**Resource requirement:** Flutter + Dart proficiency, Android development environment. No server access required for Phase 1 or Phase 2. _(Phase 3 adds: WebDAV server — Nextcloud or equivalent — for sync testing.)_
 
 ### MVP Feature Set (Phase 1)
 
-**Core user journeys supported:** J1 (onboarding), J2 (daily ritual), J3 (local backup/restore; WebDAV in Phase 2), J4 (re-engagement after absence).
+**Core user journeys supported:** J1 (onboarding), J2 (daily ritual), J3 (local backup/restore; WebDAV in Phase 3), J4 (re-engagement after absence).
 
 **Must-have capabilities:**
 
@@ -289,27 +293,28 @@ The app is fully functional offline. **Phase 1 has no network features.** All re
 | Enriched acquittement | Action type selector + optional free-text note about the conversation |
 | Concern / préoccupation flag | Marks a friend as going through something; elevates priority; visible on card |
 | Care score (internal) | Computed from acquittement history; used by priority algorithm; not necessarily exposed in UI v1 |
-| **Local encrypted backup** | AES-256 encrypted `.enc` file export to device storage; passphrase-based; importable on any Android device; WebDAV sync in Phase 2 |
+| **Local encrypted backup** | AES-256 encrypted `.enc` file export to device storage; passphrase-based; importable on any Android device; WebDAV sync in Phase 3 |
 
 **Phase 1 backup strategy (decided):**
-Local encrypted file backup/restore is the Phase 1 data protection mechanism. WebDAV sync is intentionally deferred to Phase 2 to simplify Phase 1 scope, reduce security surface, and focus on the core relationship management loop.
+Local encrypted file backup/restore is the Phase 1 data protection mechanism. WebDAV sync is intentionally deferred to Phase 3 to simplify Phase 1 and Phase 2 scope, reduce security surface, and focus on the core relationship management loop.
 
-### Post-MVP Features (Phase 2 — Growth)
+### Phase 2 — Enrichissement Relationnel & LLM _(scope arrêté le 2026-03-25)_
 
-| Feature | Rationale for deferral |
+| Feature | Epics |
 |---|---|
-| **WebDAV encrypted sync** | Deferred from Phase 1 to simplify scope; local backup (FR37–38) is Phase 1 |
-| Draft messages & rotation | Core loop works without it |
-| Concern follow-up auto-event creation | Acquittement notes cover the intent in v1 |
-| "Last contact" visible on card | Useful; not blocking |
-| "Lost from sight" auto-surfacing | Addressable via cadence events in v1 |
-| LLM-assisted message drafting (local, offline) | Galaxy AI / Gemma — independent of core loop |
-| Full gamification RPG system | Independent of LLM; non-blocking |
+| Filter friend list by tag, name, status, event type | Epic 8 |
+| "Last contact" visible on card and list tile | Epic 8 |
+| Auto concern follow-up cadence (configurable interval) | Epic 9 |
+| Draft messages + LLM-assisted suggestions (on-device, offline — Gemma) | Epic 10 |
+| LLM-enriched daily greeting line | Epic 10 |
+| Session-draft auto-save for friend form | Epic 10 |
 
-### Vision (Phase 3 — Expansion)
+### Vision (Phase 3 — WebDAV Sync & Expansion) _(scope arrêté le 2026-03-25)_
 
 | Feature | Notes |
 |---|---|
+| **WebDAV encrypted sync** | Déféré de Phase 2 — Nextcloud/self-hosted; sync background, restore after reinstall |
+| Gamification RPG | Tisseur / Le Présent / Le Mémoriel / Le Veilleur — bienveillant, jamais punitif |
 | iOS version | Flutter shared codebase — clean path when ready |
 | Shared friends view (partner/spouse) | Opt-in, selective, private-by-default |
 | macOS companion app | After Android + iOS stable |
@@ -324,7 +329,7 @@ Local encrypted file backup/restore is the Phase 1 data protection mechanism. We
 | Encrypted backup complexity | AES-256 + PBKDF2 pattern already proven in Stories 1.3/1.7; backup story fully spec'd (Story 6.1) |
 | `AppLifecycleState.resumed` unreliable on some Android OEMs | Test on Samsung S25 early; fallback: manual "I just reached out" button on card |
 | WhatsApp deep link requires international number format | Normalise number at fiche creation; clear UX guidance if format invalid |
-| Flutter plugin quality/maintenance | Evaluate `flutter_contacts` and `file_picker` early in build; have fallback plugins identified. `webdav_client` evaluated in Phase 2. |
+| Flutter plugin quality/maintenance | Evaluate `flutter_contacts` and `file_picker` early in build; have fallback plugins identified. `webdav_client` evaluated in Phase 3. |
 
 **Market risks:**
 
@@ -337,7 +342,7 @@ Local encrypted file backup/restore is the Phase 1 data protection mechanism. We
 
 | Risk | Mitigation |
 |---|---|
-| Solo build takes longer than expected | Local backup is Phase 1 data protection — no server dependency; Phase 2 (WebDAV) is fully deferred and does not block v1 |
+| Solo build takes longer than expected | Local backup is Phase 1 data protection — no server dependency; Phase 3 (WebDAV) is fully deferred and does not block Phase 1 or Phase 2 |
 | Scope creep pressure from Phase 2 ideas | Hard deferral list maintained; PRD is the boundary document |
 
 **Permanent constraint across all phases:** pull philosophy. Zero notifications, zero badges, zero widgets — every version, every platform, no exceptions.
@@ -356,55 +361,68 @@ Local encrypted file backup/restore is the Phase 1 data protection mechanism. We
 - **FR8:** User can delete a friend card
 - **FR9:** User can mark a friend as having an active concern (préoccupation flag) with a short descriptive note
 - **FR10:** User can clear an active concern flag from a friend card
+- **FR11 _(Phase 2)_:** User can filter the friend list by one or more category tags
+- **FR12 _(Phase 2)_:** User can search the friend list by friend name
+- **FR13 _(Phase 2)_:** User can filter the friend list by status (has active concern, has overdue event, no recent contact)
+- **FR14 _(Phase 2)_:** System displays the date of the most recent acquittement as "last contact" on each friend card and in the friend list
 
 ### Event & Cadence Management
 
-- **FR11:** User can add an event to a friend card with a date, type, and optional free-text comment
-- **FR12:** User can add a recurring check-in cadence to a friend card with a configurable interval
-- **FR13:** User can edit or delete any event on a friend card
-- **FR14:** User can view the list of event types and edit it (add, rename, delete, reorder)
-- **FR15:** System provides 5 default event types at first launch: birthday, wedding anniversary, important life event, regular check-in, important appointment
-- **FR16:** User can manually mark an event as acknowledged (acquitted) from the friend card
+- **FR15:** User can add an event to a friend card with a date, type, and optional free-text comment
+- **FR16:** User can add a recurring check-in cadence to a friend card with a configurable interval
+- **FR17:** User can edit or delete any event on a friend card
+- **FR18:** User can view the list of event types and edit it (add, rename, delete, reorder)
+- **FR19:** System provides 5 default event types at first launch: birthday, wedding anniversary, important life event, regular check-in, important appointment
+- **FR20:** User can manually mark an event as acknowledged (acquitted) from the friend card
+- **FR21 _(Phase 2)_:** When a concern flag is active on a friend card, system automatically creates a recurring check-in cadence with a 7-day default interval; the interval is configurable in settings; the cadence is automatically removed when the concern flag is cleared
 
 ### Daily View & Priority Engine
 
-- **FR17:** User can open a daily view showing friends who need attention today
-- **FR18:** System surfaces overdue unacknowledged events, today's events, and events within the next 3 days in the daily view
-- **FR19:** System orders the daily view by a dynamic priority score weighted by: event type importance, days overdue, friend category, active concern flag (×2), and low care score
-- **FR20:** System displays a heart briefing at the top of the daily view: 2 urgent entries and 2 important entries
-- **FR21:** User can tap any entry in the daily view to open the corresponding friend card
+- **FR22:** User can open a daily view showing friends who need attention today
+- **FR23:** System surfaces overdue unacknowledged events, today's events, and events within the next 3 days in the daily view
+- **FR24:** System orders the daily view by a dynamic priority score weighted by: event type importance, days overdue, friend category, active concern flag (×2), and low care score
+- **FR25:** System displays a heart briefing at the top of the daily view: 2 urgent entries and 2 important entries
+- **FR26:** User can tap any entry in the daily view to open the corresponding friend card
 
 ### Actions & Communication
 
-- **FR22:** User can initiate a phone call to a friend with one tap from their card
-- **FR23:** User can initiate an SMS to a friend with one tap from their card
-- **FR24:** User can open a WhatsApp conversation with a friend with one tap from their card
-- **FR25:** System detects when the user returns to the app after a communication action and presents the friend's card pre-focused for acquittement and note-taking
+- **FR27:** User can initiate a phone call to a friend with one tap from their card
+- **FR28:** User can initiate an SMS to a friend with one tap from their card
+- **FR29:** User can open a WhatsApp conversation with a friend with one tap from their card
+- **FR30:** System detects when the user returns to the app after a communication action and presents the friend's card pre-focused for acquittement and note-taking
 
 ### Acquittement & Contact History
 
-- **FR26:** User can log an acquittement on a friend card specifying the action type (call, SMS, WhatsApp message, voice message, seen in person)
-- **FR27:** User can add a free-text note to an acquittement describing what was discussed or any relevant context
-- **FR28:** System pre-fills the acquittement prompt with the detected action type and current timestamp when triggered by post-action return
-- **FR29:** User can confirm the pre-filled acquittement in one tap
-- **FR30:** System maintains a chronological contact history log per friend card (acquittements with type, date, note)
-- **FR31:** System updates the friend's care score after each acquittement is logged
+- **FR31:** User can log an acquittement on a friend card specifying the action type (call, SMS, WhatsApp message, voice message, seen in person)
+- **FR32:** User can add a free-text note to an acquittement describing what was discussed or any relevant context
+- **FR33:** System pre-fills the acquittement prompt with the detected action type and current timestamp when triggered by post-action return
+- **FR34:** User can confirm the pre-filled acquittement in one tap
+- **FR35:** System maintains a chronological contact history log per friend card (acquittements with type, date, note)
+- **FR36:** System updates the friend's care score after each acquittement is logged
 
 ### Sync & Storage
 
-- **FR32:** _(Phase 2)_ User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
-- **FR33:** _(Phase 2)_ User can test the WebDAV connection before enabling sync
-- **FR34:** _(Phase 2)_ System encrypts all data with the user's passphrase before transmitting to WebDAV
-- **FR35:** _(Phase 2)_ System syncs data to WebDAV automatically when network is available and sync is configured
-- **FR36:** _(Phase 2)_ User can restore all data from WebDAV after reinstall by re-entering their passphrase
-- **FR37:** _(Phase 1)_ User can export all data to an encrypted local file as a standalone backup
-- **FR38:** _(Phase 1)_ User can import and restore data from a previously exported encrypted file
+- **FR37:** _(Phase 3)_ User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
+- **FR38:** _(Phase 3)_ User can test the WebDAV connection before enabling sync
+- **FR39:** _(Phase 3)_ System encrypts all data with the user's passphrase before transmitting to WebDAV
+- **FR40:** _(Phase 3)_ System syncs data to WebDAV automatically when network is available and sync is configured
+- **FR41:** _(Phase 3)_ User can restore all data from WebDAV after reinstall by re-entering their passphrase
+- **FR42:** _(Phase 1)_ User can export all data to an encrypted local file as a standalone backup
+- **FR43:** _(Phase 1)_ User can import and restore data from a previously exported encrypted file
+
+### Draft Messages & LLM Assistance _(Phase 2)_
+
+- **FR44 _(Phase 2)_:** User can create a draft message on a friend card — a free-text message template contextualised for that friend
+- **FR45 _(Phase 2)_:** User can request the on-device LLM to generate alternative phrasings for an existing draft message; the LLM produces ≥ 3 variants from which the user selects or copies one
+- **FR46 _(Phase 2)_:** LLM inference runs entirely on-device with no network call; inference is triggered only by explicit user action (not automatically)
+- **FR47 _(Phase 2)_:** User can edit, save, or discard any draft message or LLM-suggested variant before use
 
 ### Settings & Configuration
 
-- **FR39:** User can view and edit all app settings from a dedicated settings screen
-- **FR40:** User can update the backup passphrase and reset backup settings _(WebDAV sync configuration is Phase 2)_
-- **FR41:** System operates with full functionality when no network connection is available
+- **FR48:** User can view and edit all app settings from a dedicated settings screen
+- **FR49:** User can update the backup passphrase and reset backup settings _(WebDAV sync configuration is Phase 3)_
+- **FR50:** System operates with full functionality when no network connection is available
+- **FR51 _(Phase 2)_:** User can configure the default concern follow-up cadence interval (default: 7 days) from the settings screen
 
 ## Non-Functional Requirements
 
@@ -414,12 +432,12 @@ Local encrypted file backup/restore is the Phase 1 data protection mechanism. We
 - **NFR2:** Priority score recomputation completes within 500ms — the daily view never shows a loading state for ranking
 - **NFR3:** Tapping a 1-tap action button (Call, SMS, WhatsApp) launches the target app within 500ms
 - **NFR4:** Friend card opens within 300ms of tap from any screen
-- **NFR5:** _(Phase 2)_ WebDAV sync runs as a background operation with no perceptible UI impact — not applicable in Phase 1
+- **NFR5:** _(Phase 3)_ WebDAV sync runs as a background operation with no perceptible UI impact — not applicable in Phase 1 or Phase 2
 
 ### Security & Privacy
 
 - **NFR6:** All on-device data is encrypted at rest using AES-256-GCM with a key derived from the user's passphrase (PBKDF2 — 100k iterations, SHA-256). **Phase 1 field encryption covers all PII: `name`, `mobile`, `notes`, `concern_note`, `acquittements.note`** (Stories 1.7 + 1.8). Non-PII structural fields remain plaintext.
-- **NFR7:** _(Phase 2)_ All data transmitted to WebDAV is encrypted client-side before leaving the device — not applicable in Phase 1 (no network transmission)
+- **NFR7:** _(Phase 3)_ All data transmitted to WebDAV is encrypted client-side before leaving the device — not applicable in Phase 1 or Phase 2 (no WebDAV transmission)
 - **NFR8:** The user's passphrase is never stored, transmitted, or logged — only the in-memory derived key is used during an active session
 - **NFR9:** The app requests only `READ_CONTACTS` and `INTERNET` permissions at first point of use — **Phase 1: `INTERNET` is not requested** (no network features); `READ_CONTACTS` requested on first contact import only
 - **NFR10:** No analytics, telemetry, crash reporting, or advertising SDKs are included — zero data transmitted to any third-party service
@@ -427,9 +445,16 @@ Local encrypted file backup/restore is the Phase 1 data protection mechanism. We
 ### Reliability & Data Integrity
 
 - **NFR11:** The local SQLite database is the single source of truth — no data loss after any unexpected app termination or device restart
-- **NFR12:** _(Phase 2)_ WebDAV sync failures must not corrupt or partially overwrite local data — not applicable in Phase 1
+- **NFR12:** _(Phase 3)_ WebDAV sync failures must not corrupt or partially overwrite local data — not applicable in Phase 1 or Phase 2
 - **NFR13:** _(Phase 1 — local backup)_ A full restore from the encrypted local backup file reproduces all friend cards, events, acquittements, and settings without data loss; restore is all-or-nothing (single Drift transaction)
 - **NFR14:** The exported backup file is a complete, self-contained snapshot restorable to any device
+
+### Local LLM _(Phase 2)_
+
+- **NFR18 _(Phase 2)_:** LLM inference executes entirely on-device using a bundled local model (e.g. Gemma-3n-E2B-it or equivalent); no inference request, prompt, or generated text is ever transmitted to any remote server
+- **NFR19 _(Phase 2)_:** The app does not request or use the `INTERNET` permission for LLM inference; the LLM feature must remain fully functional with the device in airplane mode
+- **NFR20 _(Phase 2)_:** The bundled LLM model does not exceed 4 GB of device storage; model selection must meet this constraint at implementation time
+- **NFR21 _(Phase 2)_:** LLM inference is triggered only by explicit user action; no background or automatic inference is performed
 
 ### Accessibility
 

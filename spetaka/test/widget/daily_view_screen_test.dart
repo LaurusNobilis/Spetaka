@@ -4,6 +4,8 @@
 // 4.6 — Inline card expansion: single-open rule, action-row visibility,
 //        back-gesture collapse.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +13,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spetaka/core/actions/contact_action_service.dart';
 import 'package:spetaka/core/actions/phone_normalizer.dart';
+import 'package:spetaka/core/ai/llm_inference_service.dart';
+import 'package:spetaka/core/ai/model_manager.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
@@ -68,7 +72,11 @@ DailyViewEntry _entry({
   );
 }
 
-Widget _harness(List<DailyViewEntry> entries) {
+Widget _harness(
+  List<DailyViewEntry> entries, {
+  ModelDownloadState modelState = const ModelDownloadIdle(),
+  LlmInferenceService? llmInferenceService,
+}) {
   final router = GoRouter(
     routes: [
       GoRoute(
@@ -98,8 +106,11 @@ Widget _harness(List<DailyViewEntry> entries) {
 
   return ProviderScope(
     overrides: [
-      watchDailyViewProvider
-          .overrideWith((_) => AsyncData(entries)),
+      watchDailyViewProvider.overrideWith((_) => AsyncData(entries)),
+      // Prevent ModelManagerNotifier from accessing the file system in tests.
+      modelManagerProvider.overrideWithValue(modelState),
+      if (llmInferenceService != null)
+        llmInferenceServiceProvider.overrideWithValue(llmInferenceService),
       contactActionServiceProvider.overrideWithValue(fakeActionService),
     ],
     child: MaterialApp.router(
@@ -151,12 +162,52 @@ void main() {
       await tester.pumpWidget(_harness(entries));
       await tester.pump();
 
-      final text = tester
-          .widget<Text>(find.byKey(const Key('greeting_banner')))
-          .data!;
+      // Key 'greeting_banner' is on the outer Padding; find the Text inside.
+      final textFinder = find.descendant(
+        of: find.byKey(const Key('greeting_banner')),
+        matching: find.byType(Text),
+      );
+      final text = tester.widget<Text>(textFinder).data!;
       expect(text, isNotEmpty);
       expect(text.toLowerCase(), isNot(contains('failed')));
       expect(text.toLowerCase(), isNot(contains('missed')));
+    });
+
+    testWidgets('AC2 — greeting updates when the model returns a valid line',
+        (tester) async {
+      final llmCompleter = Completer<List<String>>();
+      final entries = [_entry(id: 'a', name: 'Alice', isConcernActive: true)];
+
+      await tester.pumpWidget(
+        _harness(
+          entries,
+          modelState: const ModelReady(),
+          llmInferenceService: LlmInferenceService(
+            inferenceRunner: (_) => llmCompleter.future,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final textFinder = find.descendant(
+        of: find.byKey(const Key('greeting_banner')),
+        matching: find.byType(Text),
+      );
+      String currentGreetingText() => tester
+          .widgetList<Text>(textFinder)
+          .map((widget) => widget.data)
+          .whereType<String>()
+          .last;
+
+      final initialText = currentGreetingText();
+
+      llmCompleter.complete(['"Bonjour Laurus"\nIgnore ceci']);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final updatedText = currentGreetingText();
+      expect(updatedText, 'Bonjour Laurus');
+      expect(updatedText, isNot(initialText));
     });
   });
 

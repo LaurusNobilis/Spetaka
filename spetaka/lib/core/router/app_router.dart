@@ -13,111 +13,33 @@ import '../../features/settings/presentation/manage_category_tags_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/presentation/app_shell_screen.dart';
 import '../l10n/l10n_extension.dart';
+import 'app_route_types.dart';
 
-sealed class AppRoute {
-  const AppRoute();
+// Re-export route types so existing `import app_router.dart` consumers
+// continue to resolve AppRoute, HomeRoute, FriendsRoute, etc.
+export 'app_route_types.dart';
 
-  String get location;
-
-  void go(BuildContext context) => context.go(location);
-
-  void push(BuildContext context) => context.push(location);
-}
-
-class HomeRoute extends AppRoute {
-  const HomeRoute();
-
-  @override
-  String get location => '/';
-}
-
-class FriendsRoute extends AppRoute {
-  const FriendsRoute();
-
-  @override
-  String get location => '/friends';
-}
-
-class NewFriendRoute extends AppRoute {
-  const NewFriendRoute();
-
-  @override
-  String get location => '/friends/new';
-}
-
-class FriendDetailRoute extends AppRoute {
-  const FriendDetailRoute(this.id);
-
-  final String id;
-
-  @override
-  String get location => '/friends/$id';
-}
-
-class EditFriendRoute extends AppRoute {
-  const EditFriendRoute(this.id);
-
-  final String id;
-
-  @override
-  String get location => '/friends/$id/edit';
-}
-
-class AddEventRoute extends AppRoute {
-  const AddEventRoute(this.friendId);
-
-  final String friendId;
-
-  @override
-  String get location => '/friends/$friendId/events/new';
-}
-
-class EditEventRoute extends AppRoute {
-  const EditEventRoute({required this.friendId, required this.eventId});
-
-  final String friendId;
-  final String eventId;
-
-  @override
-  String get location => '/friends/$friendId/events/$eventId/edit';
-}
-
-class SettingsRoute extends AppRoute {
-  const SettingsRoute();
-
-  @override
-  String get location => '/settings';
-}
-
-class SettingsSyncRoute extends AppRoute {
-  const SettingsSyncRoute();
-
-  @override
-  String get location => '/settings/sync';
-}
-
-class ManageEventTypesRoute extends AppRoute {
-  const ManageEventTypesRoute();
-
-  @override
-  String get location => '/settings/event-types';
-}
-
-class ManageCategoryTagsRoute extends AppRoute {
-  const ManageCategoryTagsRoute();
-
-  @override
-  String get location => '/settings/category-tags';
-}
-
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
-
-GoRouter createAppRouter() => GoRouter(
-      navigatorKey: _rootNavigatorKey,
+GoRouter createAppRouter({
+  WidgetBuilder? modelDownloadBuilder,
+  String initialLocation = '/',
+}) {
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final shellNavigatorKey = GlobalKey<NavigatorState>();
+  return GoRouter(
+      initialLocation: initialLocation,
+      navigatorKey: rootNavigatorKey,
       routes: <RouteBase>[
+        // Model download gate — overlays the shell (Story 10.1 AC5).
+        GoRoute(
+          path: const ModelDownloadRoute().location,
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) =>
+              modelDownloadBuilder != null
+                  ? modelDownloadBuilder(context)
+                  : const SizedBox.shrink(),
+        ),
         ShellRoute(
-          navigatorKey: _shellNavigatorKey,
+          navigatorKey: shellNavigatorKey,
           builder: (context, state, child) => AppShellScreen(child: child),
           routes: <RouteBase>[
             // Base index routes — AppShellScreen decides which page to show.
@@ -126,69 +48,78 @@ GoRouter createAppRouter() => GoRouter(
               pageBuilder: (context, state) => const NoTransitionPage<void>(
                 child: SizedBox.shrink(),
               ),
+              routes: <RouteBase>[
+                GoRoute(
+                  path: 'settings',
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) => const SettingsScreen(),
+                  routes: <RouteBase>[
+                    GoRoute(
+                      path: 'sync',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) => const WebDavSetupScreen(),
+                    ),
+                    GoRoute(
+                      path: 'event-types',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) =>
+                          const ManageEventTypesScreen(),
+                    ),
+                    GoRoute(
+                      path: 'category-tags',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) =>
+                          const ManageCategoryTagsScreen(),
+                    ),
+                  ],
+                ),
+              ],
             ),
             GoRoute(
               path: const FriendsRoute().location,
               pageBuilder: (context, state) => const NoTransitionPage<void>(
                 child: SizedBox.shrink(),
               ),
-            ),
-
-            // Friends overlay routes (pushed on top of the shell).
-            GoRoute(
-              path: const NewFriendRoute().location,
-              builder: (context, state) => const FriendFormScreen(),
-            ),
-            GoRoute(
-              path: '/friends/:id',
-              builder: (context, state) => FriendCardScreen(
-                id: state.pathParameters['id'] ?? '',
-              ),
               routes: <RouteBase>[
                 GoRoute(
-                  path: 'edit',
-                  builder: (context, state) => FriendFormScreen(
-                    editFriendId: state.pathParameters['id'],
+                  path: 'new',
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) => const FriendFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) => FriendCardScreen(
+                    id: state.pathParameters['id'] ?? '',
                   ),
-                ),
-                GoRoute(
-                  path: 'events/new',
-                  builder: (context, state) => AddEventScreen(
-                    friendId: state.pathParameters['id'] ?? '',
-                  ),
-                ),
-                GoRoute(
-                  path: 'events/:eventId/edit',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    if (extra is Event) {
-                      return EditEventScreen(event: extra);
-                    }
-                    final eventId = state.pathParameters['eventId'] ?? '';
-                    return _EditEventRouteLoader(eventId: eventId);
-                  },
-                ),
-              ],
-            ),
-
-            // Settings overlay routes.
-            GoRoute(
-              path: const SettingsRoute().location,
-              builder: (context, state) => const SettingsScreen(),
-              routes: <RouteBase>[
-                GoRoute(
-                  path: 'sync',
-                  builder: (context, state) => const WebDavSetupScreen(),
-                ),
-                GoRoute(
-                  path: 'event-types',
-                  builder: (context, state) =>
-                      const ManageEventTypesScreen(),
-                ),
-                GoRoute(
-                  path: 'category-tags',
-                  builder: (context, state) =>
-                      const ManageCategoryTagsScreen(),
+                  routes: <RouteBase>[
+                    GoRoute(
+                      path: 'edit',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) => FriendFormScreen(
+                        editFriendId: state.pathParameters['id'],
+                      ),
+                    ),
+                    GoRoute(
+                      path: 'events/new',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) => AddEventScreen(
+                        friendId: state.pathParameters['id'] ?? '',
+                      ),
+                    ),
+                    GoRoute(
+                      path: 'events/:eventId/edit',
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        if (extra is Event) {
+                          return EditEventScreen(event: extra);
+                        }
+                        final eventId = state.pathParameters['eventId'] ?? '';
+                        return _EditEventRouteLoader(eventId: eventId);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -196,7 +127,13 @@ GoRouter createAppRouter() => GoRouter(
         ),
       ],
     );
+}
 
+// Stub router instance used by tests that import app_router.dart directly.
+// The production router (with the real ModelDownloadScreen) is built in
+// app.dart where flutter_gemma is explicitly imported.
+//
+// ignore: prefer_const_constructors
 final GoRouter appRouter = createAppRouter();
 
 class _EditEventRouteLoader extends ConsumerWidget {

@@ -3,7 +3,10 @@ stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-c
 inputDocuments:
   - "_bmad-output/planning-artifacts/prd.md"
   - "_bmad-output/planning-artifacts/architecture.md"
+  - "_bmad-output/planning-artifacts/architecture-phase2-addendum.md"
   - "_bmad-output/planning-artifacts/ux-design-specification.md"
+phaseContext: "Phase 2 additions run — Phase 1 epics/stories preserved intact"
+lastUpdated: "2026-03-25"
 ---
 
 # Spetaka - Epic Breakdown
@@ -16,6 +19,7 @@ This document provides the complete epic and story breakdown for Spetaka, decomp
 
 ### Functional Requirements
 
+**Phase 1 — Friend Management (Fiches)**
 FR1: User can create a friend card (fiche) by importing contact details from the phone's address book
 FR2: User can create a friend card manually by entering name and mobile number
 FR3: User can assign one or more category tags to a friend card
@@ -26,37 +30,69 @@ FR7: User can edit any field on a friend card at any time
 FR8: User can delete a friend card
 FR9: User can mark a friend as having an active concern (préoccupation flag) with a short descriptive note
 FR10: User can clear an active concern flag from a friend card
-FR11: User can add an event to a friend card with a date, type, and optional free-text comment
-FR12: User can add a recurring check-in cadence to a friend card with a configurable interval
-FR13: User can edit or delete any event on a friend card
-FR14: User can view the list of event types and edit it (add, rename, delete, reorder)
-FR15: System provides 5 default event types at first launch: birthday, wedding anniversary, important life event, regular check-in, important appointment
-FR16: User can manually mark an event as acknowledged (acquitted) from the friend card
-FR17: User can open a daily view showing friends who need attention today
-FR18: System surfaces overdue unacknowledged events, today's events, and events within the next 3 days in the daily view
-FR19: System orders the daily view by a dynamic priority score weighted by: event type importance, days overdue, friend category, active concern flag (×2), and low care score
-FR20: System displays a heart briefing at the top of the daily view: 2 urgent entries and 2 important entries
-FR21: User can tap any entry in the daily view to open the corresponding friend card
-FR22: User can initiate a phone call to a friend with one tap from their card
-FR23: User can initiate an SMS to a friend with one tap from their card
-FR24: User can open a WhatsApp conversation with a friend with one tap from their card
-FR25: System detects when the user returns to the app after a communication action and presents the friend's card pre-focused for acquittement and note-taking
-FR26: User can log an acquittement on a friend card specifying the action type (call, SMS, WhatsApp message, voice message, seen in person)
-FR27: User can add a free-text note to an acquittement describing what was discussed or any relevant context
-FR28: System pre-fills the acquittement prompt with the detected action type and current timestamp when triggered by post-action return
-FR29: User can confirm the pre-filled acquittement in one tap
-FR30: System maintains a chronological contact history log per friend card (acquittements with type, date, note)
-FR31: System updates the friend's care score after each acquittement is logged
-FR32: User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
-FR33: User can test the WebDAV connection before enabling sync
-FR34: System encrypts all data with the user's passphrase before transmitting to WebDAV
-FR35: System syncs data to WebDAV automatically when network is available and sync is configured
-FR36: User can restore all data from WebDAV after reinstall by re-entering their passphrase
-FR37: User can export all data to an encrypted local file as a standalone backup
-FR38: User can import and restore data from a previously exported encrypted file
-FR39: User can view and edit all app settings from a dedicated settings screen
-FR40: User can update or reset their WebDAV sync configuration including passphrase
-FR41: System operates with full functionality when no network connection is available
+
+**Phase 2 — Friend List Enhancements**
+FR11 _(Phase 2)_: User can filter the friend list by one or more category tags
+FR12 _(Phase 2)_: User can search the friend list by friend name
+FR13 _(Phase 2)_: User can filter the friend list by status (has active concern, has overdue event, no recent contact)
+FR14 _(Phase 2)_: System displays the date of the most recent acquittement as "last contact" on each friend card and in the friend list
+
+**Phase 1 — Event & Cadence Management**
+FR15: User can add an event to a friend card with a date, type, and optional free-text comment
+FR16: User can add a recurring check-in cadence to a friend card with a configurable interval
+FR17: User can edit or delete any event on a friend card
+FR18: User can view the list of event types and edit it (add, rename, delete, reorder)
+FR19: System provides 5 default event types at first launch: birthday, wedding anniversary, important life event, regular check-in, important appointment
+FR20: User can manually mark an event as acknowledged (acquitted) from the friend card
+
+**Phase 2 — Smart Concern Cadence**
+FR21 _(Phase 2)_: When a concern flag is active on a friend card, system automatically creates a recurring check-in cadence with a 7-day default interval; the interval is configurable in settings; the cadence is automatically removed when the concern flag is cleared
+
+**Phase 1 — Daily View & Priority Engine**
+FR22: User can open a daily view showing friends who need attention today
+FR23: System surfaces overdue unacknowledged events, today's events, and events within the next 3 days in the daily view
+FR24: System orders the daily view by a dynamic priority score weighted by: event type importance, days overdue, friend category, active concern flag (×2), and low care score
+FR25: System displays a heart briefing at the top of the daily view: 2 urgent entries and 2 important entries
+FR26: User can tap any entry in the daily view to open the corresponding friend card
+
+**Phase 1 — Actions & Communication**
+FR27: User can initiate a phone call to a friend with one tap from their card
+FR28: User can initiate an SMS to a friend with one tap from their card
+FR29: User can open a WhatsApp conversation with a friend with one tap from their card
+FR30: System detects when the user returns to the app after a communication action and presents the friend's card pre-focused for acquittement and note-taking
+
+**Phase 1 — Acquittement & Contact History**
+FR31: User can log an acquittement on a friend card specifying the action type (call, SMS, WhatsApp message, voice message, seen in person)
+FR32: User can add a free-text note to an acquittement describing what was discussed or any relevant context
+FR33: System pre-fills the acquittement prompt with the detected action type and current timestamp when triggered by post-action return
+FR34: User can confirm the pre-filled acquittement in one tap
+FR35: System maintains a chronological contact history log per friend card (acquittements with type, date, note)
+FR36: System updates the friend's care score after each acquittement is logged
+
+**Phase 3 — WebDAV Sync** _(deferred from Phase 2, decision 2026-03-25)_
+FR37 _(Phase 3)_: User can configure a WebDAV server connection (URL, username, password, encryption passphrase)
+FR38 _(Phase 3)_: User can test the WebDAV connection before enabling sync
+FR39 _(Phase 3)_: System encrypts all data with the user's passphrase before transmitting to WebDAV
+FR40 _(Phase 3)_: System syncs data to WebDAV automatically when network is available and sync is configured
+FR41 _(Phase 3)_: User can restore all data from WebDAV after reinstall by re-entering their passphrase
+
+**Phase 1 — Local Backup**
+FR42: User can export all data to an encrypted local file as a standalone backup
+FR43: User can import and restore data from a previously exported encrypted file
+
+**Phase 2 — Draft Messages & On-Device LLM**
+FR44 _(Phase 2)_: User can create a draft message on a friend card — a free-text message template contextualised for that friend
+FR45 _(Phase 2)_: User can request the on-device LLM to generate alternative phrasings for an existing draft message; the LLM produces ≥ 3 variants from which the user selects or copies one
+FR46 _(Phase 2)_: LLM inference runs entirely on-device with no network call; inference is triggered only by explicit user action (not automatically)
+FR47 _(Phase 2)_: User can edit, save, or discard any draft message or LLM-suggested variant before use
+
+**Phase 1 — Settings & Configuration**
+FR48: User can view and edit all app settings from a dedicated settings screen
+FR49: User can update the backup passphrase and reset backup settings (WebDAV sync configuration is Phase 3)
+FR50: System operates with full functionality when no network connection is available
+
+**Phase 2 — Concern Cadence Settings**
+FR51 _(Phase 2)_: User can configure the default concern follow-up cadence interval (default: 7 days) from the settings screen
 
 ### NonFunctional Requirements
 
@@ -64,19 +100,25 @@ NFR1: The daily view loads and renders its full content within 1 second on the p
 NFR2: Priority score recomputation completes within 500ms — the daily view never shows a loading state for ranking
 NFR3: Tapping a 1-tap action button (Call, SMS, WhatsApp) launches the target app within 500ms
 NFR4: Friend card opens within 300ms of tap from any screen
-NFR5: **Phase 2** — WebDAV sync background operation (not applicable in Phase 1 — no WebDAV)
+NFR5: **Phase 3** — WebDAV sync background operation (not applicable in Phase 1 or Phase 2 — no WebDAV)
 NFR6: All on-device data is encrypted at rest using AES-256 with a key derived from the user's passphrase (PBKDF2 or Argon2) — **Phase 1: all fields including `name` and `mobile` (Story 1.8)**
-NFR7: **Phase 2** — Data transmitted to WebDAV is encrypted client-side (not applicable in Phase 1)
+NFR7: **Phase 3** — Data transmitted to WebDAV is encrypted client-side (not applicable in Phase 1 or Phase 2)
 NFR8: The user's passphrase is never stored, transmitted, or logged — only the in-memory derived key is used during an active session
 NFR9: The app requests only READ_CONTACTS and INTERNET permissions, each requested at first point of use, not at install — **Phase 1: INTERNET not required (no WebDAV)**
 NFR10: No analytics, telemetry, crash reporting, or advertising SDKs are included — zero data transmitted to any third-party service
 NFR11: The local SQLite database is the single source of truth — no data loss after any unexpected app termination or device restart
-NFR12: **Phase 2** — WebDAV sync failures must not corrupt local data (not applicable in Phase 1)
+NFR12: **Phase 3** — WebDAV sync failures must not corrupt local data (not applicable in Phase 1 or Phase 2)
 NFR13: **Phase 1 (local backup):** A full restore from the encrypted local backup file reproduces all friend cards, events, acquittements, and settings without data loss
 NFR14: The exported backup file is a complete, self-contained snapshot restorable to any device
 NFR15: All interactive elements meet the minimum touch target size of 48×48dp (Android Material Design baseline)
 NFR16: Text content meets WCAG AA contrast ratio (4.5:1 minimum for normal text)
 NFR17: Core flows (daily view, friend card, acquittement) are navigable with Android TalkBack screen reader
+
+**Phase 2 — On-Device LLM**
+NFR18 _(Phase 2)_: LLM inference executes entirely on-device using a bundled local model (Gemma-3n-E2B-it or equivalent); no inference request, prompt, or generated text is ever transmitted to any remote server
+NFR19 _(Phase 2)_: The app does not request or use the `INTERNET` permission for LLM inference; the LLM feature must remain fully functional with the device in airplane mode
+NFR20 _(Phase 2)_: The bundled LLM model does not exceed 4 GB of device storage; model selection must meet this constraint at implementation time
+NFR21 _(Phase 2)_: LLM inference is triggered only by explicit user action; no background or automatic inference is performed
 
 ### Additional Requirements
 
@@ -87,7 +129,7 @@ NFR17: Core flows (daily view, friend card, acquittement) are navigable with And
 - Local persistence: Drift v2.31.0 — single `AppDatabase`, reactive stream-based queries
 - Navigation: GoRouter v14.6.3 with declarative typed route tree
 - Encryption library: `encrypt ^5.0.3` — AES-256-GCM mode; PBKDF2 (100,000 iterations, SHA-256) via `dart:crypto` for key derivation
-- WebDAV client: **Phase 2 only** — `webdav_client ^3.0.1` not included in Phase 1 dependencies
+- WebDAV client: **Phase 3 only** — `webdav_client ^3.0.1` not included in Phase 1 or Phase 2 dependencies
 - Contact import plugin: `flutter_contacts ^1.1.9+2` — READ_CONTACTS at point-of-use only
 - URL launcher: `url_launcher ^6.3.1` routed through centralized `ContactActionService`
 - Entity IDs: UUID v4 strings via `uuid ^4.5.1` — never auto-increment integers
@@ -114,55 +156,83 @@ NFR17: Core flows (daily view, friend card, acquittement) are navigable with And
 - Adjustable density preference persisted (shared_preferences)
 - All design tokens centralized in `lib/shared/theme/app_tokens.dart`
 
+**From Architecture Phase 2 Addendum — On-Device LLM (impacts Phase 2 Epics 10):**
+- LLM integration: `flutter_gemma` package wrapping MediaPipe Tasks GenAI API — Dart-native, isolate-compatible
+- Model: Gemma-3n-E2B-it (INT4 quantised, ~2 GB, well within 4 GB NFR20 constraint)
+- Model downloaded once to `getApplicationDocumentsDirectory()` internal storage — never bundled in APK
+- Two capability gates: `AiCapabilityChecker` (Android API ≥ 29 + RAM ≥ 4 GB) + `ModelManager` (model downloaded state machine)
+- If hardware unsupported → LLM features fully hidden (no dead UI elements)
+- If model not downloaded → `ModelDownloadScreen` hard gate before any LLM feature
+- Core AI module: `lib/core/ai/` contains `llm_inference_service.dart`, `model_manager.dart`, `ai_capability_checker.dart`, `prompt_templates.dart`, `greeting_service.dart`
+- `LlmInferenceService`: all inference runs in `Dart Isolate` — UI thread never blocked; 30-second timeout with static fallback
+- `PromptTemplates`: all prompts centralised as constants — no runtime prompt construction outside this file
+- UC1 (daily greeting line): `GreetingService` generates coach-tone greeting async post-view-load; static fallback shown immediately while awaiting — zero degraded UX
+- UC2 (message suggestion): user taps "Suggest message" on event → LLM generates ≥ 3 variants → `DraftMessageSheet` shows variants for selection/editing/copy-and-send
+- `DraftMessage` is session-only in-memory Riverpod state — NOT persisted to SQLite (no schema migration needed)
+- `DraftMessageSheet`: event context header, 3 variant cards, editable text field, "Copy & Send via WhatsApp/SMS" → `ContactActionService`
+- Session-draft storage: `FriendFormDraftNotifier` (Riverpod) persists friend form state in-memory during session — clears on save or explicit discard
+- pubspec.yaml Phase 2 LLM addition: `flutter_gemma: ^1.x.x`
+- No additional Android permissions beyond `INTERNET` already added for WebDAV
+
 ### FR Coverage Map
 
-FR1: Epic 2 - Import fiche depuis contacts téléphoniques
-FR2: Epic 2 - Création manuelle fiche (nom + mobile)
-FR3: Epic 2 - Assignation de tags de catégorie
-FR4: Epic 2 - Notes libres contextuelles sur la fiche
-FR5: Epic 2 - Liste de toutes les fiches
-FR6: Epic 2 - Ouverture fiche complète avec détails + historique
-FR7: Epic 2 - Édition de tout champ d'une fiche
-FR8: Epic 2 - Suppression de fiche
-FR9: Epic 2 - Flag préoccupation active avec note descriptive
-FR10: Epic 2 - Effacement du flag préoccupation
-FR11: Epic 3 - Ajout événement avec date, type, commentaire optionnel
-FR12: Epic 3 - Cadence récurrente avec intervalle configurable
-FR13: Epic 3 - Édition ou suppression d'événement
-FR14: Epic 3 - Édition de la liste des types d'événements (ajout, renommage, suppression, réordre)
-FR15: Epic 3 - 5 types d'événements par défaut au premier lancement
-FR16: Epic 3 - Acquittement manuel d'un événement depuis la fiche
-FR17: Epic 4 - Vue quotidienne — amis qui nécessitent attention aujourd'hui
-FR18: Epic 4 - Surface overdue + aujourd'hui + +3 jours dans la vue quotidienne
-FR19: Epic 4 - Score de priorité dynamique (importance type, jours overdue, catégorie, flag ×2, care score bas)
-FR20: Epic 4 - Briefing cœur 2+2 (2 urgents + 2 importants) en tête de vue quotidienne
-FR21: Epic 4 - Tap sur entrée vue quotidienne → ouvre la fiche ami
-FR22: Epic 5 - 1-tap appel téléphonique depuis la fiche
-FR23: Epic 5 - 1-tap SMS depuis la fiche
-FR24: Epic 5 - 1-tap ouverture WhatsApp depuis la fiche
-FR25: Epic 5 - Détection retour app post-action + présentation fiche pré-focalisée pour acquittement
-FR26: Epic 5 - Acquittement avec type d'action (call, SMS, WhatsApp, voice, seen in person)
-FR27: Epic 5 - Note libre descriptive sur l'acquittement
-FR28: Epic 5 - Pré-remplissage type d'action + horodatage au retour app
-FR29: Epic 5 - Confirmation acquittement pré-rempli en 1 tap
-FR30: Epic 5 - Log chronologique d'historique de contacts par fiche
-FR31: Epic 5 - Mise à jour du care score après chaque acquittement
-FR32: **Phase 2** — Configuration connexion WebDAV (URL, user, password, passphrase)
-FR33: **Phase 2** — Test de connexion WebDAV avant activation sync
-FR34: **Phase 2** — Chiffrement client-side AES-256 avant transmission WebDAV
-FR35: **Phase 2** — Sync automatique WebDAV dès réseau disponible
-FR36: **Phase 2** — Restore complet depuis WebDAV après réinstallation
-FR37: Epic 6 (Phase 1) — Export données vers fichier local chiffré
-FR38: Epic 6 (Phase 1) — Import et restore depuis fichier local chiffré
-FR39: Epic 7 - Écran paramètres complet éditable
-FR40: Epic 7 - Mise à jour du passphrase de sauvegarde et reset de configuration backup
-FR41: Epic 7 - Fonctionnement complet sans connexion réseau
+FR1: Epic 2 — Import fiche depuis contacts téléphoniques
+FR2: Epic 2 — Création manuelle fiche (nom + mobile)
+FR3: Epic 2 — Assignation de tags de catégorie
+FR4: Epic 2 — Notes libres contextuelles sur la fiche
+FR5: Epic 2 — Liste de toutes les fiches
+FR6: Epic 2 — Ouverture fiche complète avec détails + historique
+FR7: Epic 2 — Édition de tout champ d'une fiche
+FR8: Epic 2 — Suppression de fiche
+FR9: Epic 2 — Flag préoccupation active avec note descriptive
+FR10: Epic 2 — Effacement du flag préoccupation
+FR11: **Phase 2 Epic 8** — Filtrage liste d'amis par tags de catégorie
+FR12: **Phase 2 Epic 8** — Recherche dans la liste d'amis par nom
+FR13: **Phase 2 Epic 8** — Filtrage par statut (préoccupation active, overdue, no recent contact)
+FR14: **Phase 2 Epic 8** — Affichage date dernier contact ("last contact") sur fiche et liste
+FR15: Epic 3 — Ajout événement avec date, type, commentaire optionnel
+FR16: Epic 3 — Cadence récurrente avec intervalle configurable
+FR17: Epic 3 — Édition ou suppression d'événement
+FR18: Epic 3 — Édition de la liste des types d'événements (ajout, renommage, suppression, réordre)
+FR19: Epic 3 — 5 types d'événements par défaut au premier lancement
+FR20: Epic 3 — Acquittement manuel d'un événement depuis la fiche
+FR21: **Phase 2 Epic 9** — Cadence follow-up automatique 7j lors de l'activation d'un flag préoccupation; intervalle configurable; cadence supprimée quand flag effacé
+FR22: Epic 4 — Vue quotidienne — amis qui nécessitent attention aujourd'hui
+FR23: Epic 4 — Surface overdue + aujourd'hui + +3 jours dans la vue quotidienne
+FR24: Epic 4 — Score de priorité dynamique (importance type, jours overdue, catégorie, flag ×2, care score bas)
+FR25: Epic 4 — Briefing cœur 2+2 (2 urgents + 2 importants) en tête de vue quotidienne
+FR26: Epic 4 — Tap sur entrée vue quotidienne → ouvre la fiche ami
+FR27: Epic 5 — 1-tap appel téléphonique depuis la fiche
+FR28: Epic 5 — 1-tap SMS depuis la fiche
+FR29: Epic 5 — 1-tap ouverture WhatsApp depuis la fiche
+FR30: Epic 5 — Détection retour app post-action + présentation fiche pré-focalisée pour acquittement
+FR31: Epic 5 — Acquittement avec type d'action (call, SMS, WhatsApp, voice, seen in person)
+FR32: Epic 5 — Note libre descriptive sur l'acquittement
+FR33: Epic 5 — Pré-remplissage type d'action + horodatage au retour app
+FR34: Epic 5 — Confirmation acquittement pré-rempli en 1 tap
+FR35: Epic 5 — Log chronologique d'historique de contacts par fiche
+FR36: Epic 5 — Mise à jour du care score après chaque acquittement
+FR37: **Phase 3** — Configuration connexion WebDAV (URL, user, password, passphrase)
+FR38: **Phase 3** — Test de connexion WebDAV avant activation sync
+FR39: **Phase 3** — Chiffrement client-side AES-256 avant transmission WebDAV
+FR40: **Phase 3** — Sync automatique WebDAV dès réseau disponible
+FR41: **Phase 3** — Restore complet depuis WebDAV après réinstallation
+FR42: Epic 6 (Phase 1) — Export données vers fichier local chiffré
+FR43: Epic 6 (Phase 1) — Import et restore depuis fichier local chiffré
+FR44: **Phase 2 Epic 10** — Création draft message sur fiche ami
+FR45: **Phase 2 Epic 10** — LLM génère ≥ 3 phrasings alternatifs pour le draft
+FR46: **Phase 2 Epic 10** — Inférence LLM on-device uniquement, déclenchée par action explicite
+FR47: **Phase 2 Epic 10** — Édition, sauvegarde, ou abandon de tout draft avant utilisation
+FR48: Epic 7 — Écran paramètres complet éditable
+FR49: Epic 7 — Mise à jour du passphrase de sauvegarde et reset configuration backup
+FR50: Epic 7 — Fonctionnement complet sans connexion réseau
+FR51: **Phase 2 Epic 9** — Configuration de l'intervalle de cadence follow-up (défaut: 7 jours) depuis les paramètres
 
 ## Epic List
 
 ### Epic 1: Project Foundation & Core Infrastructure
 Laurus (and any developer) can initialize the full Spetaka project scaffold with all cross-cutting infrastructure in place — Drift database, AES-256 encryption service, **full sensitive field encryption at the repository layer covering all PII fields including name and mobile (NFR6 complete — Story 1.8)**, AppLifecycle detection, phone number normalization, GoRouter navigation, dark-mode-aware design token system, and GitHub Actions CI/CD — creating a solid, architecture-compliant foundation that unblocks all feature epics.
-**FRs covered:** None (technical foundation — unblocks FR1–FR41)
+**FRs covered:** None (technical foundation — unblocks all Phase 1 FRs)
 **Additional requirements:** flutter create scaffold, Drift AppDatabase + DAOs skeleton, EncryptionService (AES-256-GCM + PBKDF2), sensitive field encryption at repository layer for narrative fields (NFR6 — Story 1.7), **extend field encryption to `name` and `mobile` (NFR6 complete — Story 1.8)**, AppLifecycleService, PhoneNormalizer, ContactActionService skeleton, GoRouter route tree, app_tokens.dart + AppTheme (light + warm dark mode), GitHub Actions CI/CD (analyze → test → build APK)
 
 ### Epic 2: Friend Cards & Circle Management
@@ -171,23 +241,40 @@ Laurus can build and manage his full relational circle — create friend cards b
 
 ### Epic 3: Events & Cadences
 Laurus can define what matters for each friend — birthdays, anniversaries, important life events, regular check-ins — and set recurring cadence intervals. The event type list is fully personalized. Events are the raw material the priority engine consumes to surface the right people at the right moment.
-**FRs covered:** FR11, FR12, FR13, FR14, FR15, FR16
+**FRs covered:** FR15, FR16, FR17, FR18, FR19, FR20
 
 ### Epic 4: Daily View & Priority Engine
 Laurus has a warm, intelligent daily view that tells him exactly who deserves his care today — powered by a dynamic priority score, the 2+2 heart briefing, a coach-tone greeting line, density control, and a virtual friend "Sophie" on first launch. This is the heart of the Spetaka ritual.
-**FRs covered:** FR17, FR18, FR19, FR20, FR21
+**FRs covered:** FR22, FR23, FR24, FR25, FR26
 
 ### Epic 5: Actions & Acquittement — The Care Loop
 Laurus can contact any friend in one tap and close the care loop with a warm, frictionless acquittement. The complete gesture — from intention to action to logged contact — happens in seconds. This epic delivers the defining Spetaka experience.
-**FRs covered:** FR22, FR23, FR24, FR25, FR26, FR27, FR28, FR29, FR30, FR31
+**FRs covered:** FR27, FR28, FR29, FR30, FR31, FR32, FR33, FR34, FR35, FR36
 
 ### Epic 6: Local Backup & Privacy
-Laurus can protect and restore all his relational data with a single AES-256 encrypted local backup file — export to his device, restore on any Android device with his passphrase. No network connection required. WebDAV sync moves to Phase 2.
-**FRs covered:** FR37, FR38
+Laurus can protect and restore all his relational data with a single AES-256 encrypted local backup file — export to his device, restore on any Android device with his passphrase. No network connection required. WebDAV sync moves to Phase 3.
+**FRs covered:** FR42, FR43
 
 ### Epic 7: Settings, Offline Resilience & Play Store Release
 Laurus has a complete, accessible settings screen, a fully verified offline-first experience, and a Play Store release track ready for 4 weeks of personal validation — then public distribution. Accessibility audit (NFR15–17) and zero-notification architecture verification complete the release readiness checklist.
-**FRs covered:** FR39, FR40 (backup passphrase + settings reset), FR41
+**FRs covered:** FR48, FR49 (backup passphrase + settings reset), FR50
+
+---
+
+> **Phase 2 Epics below — Epics 8, 9, 10 (scope arrêté le 2026-03-25)**
+
+### Epic 8: Friend List Intelligence — Filters, Search & Last Contact _(Phase 2)_
+Laurus can filter his friend list by category tags, search by name, filter by status (concern, overdue, no recent contact), and see when he last reached each person directly on the card and list view — making his growing circle navigable and immediately contextual at a glance.
+**FRs covered:** FR11, FR12, FR13, FR14
+
+### Epic 9: Smart Concern Cadence _(Phase 2)_
+When Laurus marks a friend as going through something difficult, Spetaka automatically creates a check-in cadence so that friend stays top-of-mind with no manual configuration. The default interval is configurable in settings. The cadence is automatically removed when the concern is cleared.
+**FRs covered:** FR21, FR51
+
+### Epic 10: On-Device LLM & Message Assistance _(Phase 2)_
+Laurus can request on-device LLM-generated message suggestions for any event on a friend card — producing ≥ 3 warm, contextualised WhatsApp or SMS variants instantly, with no network call and no passphrase required. The daily greeting line is also enriched by the LLM when the model is available. Everything runs on-device; nothing is transmitted.
+**FRs covered:** FR44, FR45, FR46, FR47
+**NFRs addressed:** NFR18, NFR19, NFR20, NFR21
 
 ---
 
@@ -258,7 +345,7 @@ So that every feature screen has a consistent navigation framework and visual fo
 **Given** the project scaffold from Story 1.1 exists
 **When** the app shell is configured
 **Then** `lib/app.dart` contains `MaterialApp.router` with `GoRouter` and `ProviderScope`
-**And** `lib/core/router/app_router.dart` defines the complete typed route tree: `/` → `DailyViewScreen`, `/friends` → `FriendsListScreen`, `/friends/new` → `FriendFormScreen`, `/friends/:id` → `FriendCardScreen`, `/settings` → `SettingsScreen` — **`/settings/sync` (WebDavSetupScreen) is Phase 2** — each screen is a placeholder widget with a title `Text` for now
+**And** `lib/core/router/app_router.dart` defines the complete typed route tree: `/` → `DailyViewScreen`, `/friends` → `FriendsListScreen`, `/friends/new` → `FriendFormScreen`, `/friends/:id` → `FriendCardScreen`, `/settings` → `SettingsScreen` — **`/settings/sync` (WebDavSetupScreen) is Phase 3** — each screen is a placeholder widget with a title `Text` for now
 **And** `lib/shared/theme/app_tokens.dart` defines all design tokens: color palette (calm, warm), spacing scale, border radii, typography scale (DM Sans primary, Lora for greeting line), motion durations
 **And** `lib/shared/theme/app_theme.dart` builds `ThemeData` with M3 `ColorScheme` derived from tokens
 **And** `lib/shared/widgets/loading_widget.dart` and `lib/shared/widgets/error_widget.dart` exist as reusable standard states
@@ -700,6 +787,39 @@ So that reaching out requires zero navigation, and the entire daily ritual stays
 
 ---
 
+### Story 4.7: Navigation Swipe — Daily View ↔ Friends List
+
+As Laurus,
+I want to swipe left/right to switch between the Daily View and the Friends List,
+so that navigation between the two main screens feels fluid and natural, without needing a navigation button.
+
+**Acceptance Criteria:**
+
+**Given** the app shell is implemented with a new `AppShellScreen` hosting a `PageController` + `PageView`
+**Then** index 0 = Daily View, index 1 = Friends List; the `people_outline` `IconButton` is removed from the Daily View `AppBar` and all "go to Friends list" triggers use the shared `PageController`
+**And** a 2-dot page indicator at the bottom of the shell reflects the active page using `Theme.of(context).colorScheme.primary` (no hard-coded values) with a localized TalkBack semantics label (NFR17)
+
+**Given** Laurus is on the Daily View (index 0)
+**When** he swipes left
+**Then** the app transitions to the Friends List (index 1); swiping right from Friends List returns to Daily View
+
+**Given** Laurus is on the Friends List (index 1) and presses the Android back button
+**When** the system back gesture fires
+**Then** the shell animates back to Daily View (index 0) — the app does not exit
+**And** pressing back from index 0 applies default behaviour: inner `DailyViewScreen` collapses any expanded card first, then the app exits on a subsequent back
+
+**Given** GoRouter sub-routes are active (`/friends/:id`, `/friends/new`, event edit/new routes, `/settings`)
+**When** any sub-route is pushed
+**Then** it is pushed above the shell via `parentNavigatorKey` pointing to the root navigator — swipe state is preserved on return; the `PageController` is not reset
+
+**Given** the `PageView` shell is active
+**Then** horizontal swipe gestures do not interfere with vertical scroll inside the `CustomScrollView` / `ListView` on either page
+**And** the existing `PopScope` on `DailyViewScreen` (collapse expanded card before exit) functions correctly without conflict with the shell's own back handling
+
+**Technical:** GoRouter `ShellRoute` refactor required. Full task breakdown and dev notes: `_bmad-output/implementation-artifacts/4-7-swipe-navigation-daily-friends.md`. New file: `lib/features/shell/presentation/app_shell_screen.dart`.
+
+---
+
 ## Epic 5: Actions & Acquittement — The Care Loop
 
 Laurus can contact any friend in one tap and close the care loop with a warm, frictionless acquittement. The complete gesture — from intention to action to logged contact — happens in seconds.
@@ -796,9 +916,9 @@ So that the priority engine has fresh signal about how recently and frequently I
 
 ## Epic 6: Local Backup & Privacy
 
-Laurus can protect and restore all his relational data with a single AES-256-GCM encrypted local backup file — exported to device storage, restorable to any Android device using his passphrase. No network connection required. WebDAV sync is Phase 2.
+Laurus can protect and restore all his relational data with a single AES-256-GCM encrypted local backup file — exported to device storage, restorable to any Android device using his passphrase. No network connection required. WebDAV sync is deferred to Phase 3.
 
-> **Phase 1 scope change:** WebDAV stories (original 6.1–6.4) are deferred to Phase 2.
+> **Phase 1 scope change:** WebDAV stories (original 6.1–6.4) are deferred to Phase 3 _(decision 2026-03-25)_.
 > This epic now has a single story: encrypted local file export and import.
 > The implementation artifact `6-5-encrypted-local-file-export-import.md` is the
 > authoritative Phase 1 spec (now re-titled Story 6.1 internally).
@@ -911,10 +1031,9 @@ So that the distribution pipeline is in place and Spetaka reaches his close circ
 
 ---
 
-## UX Backlog — Filtering & Discovery
+## UX Backlog — Filtering & Discovery _(superseded by Phase 2 — Epics 8 & 9)_
 
-> Ces stories sont hors périmètre Phase 1. Elles pourront être priorisées après la
-> validation Play Store (Story 7.4) ou intégrées en Phase 2 selon les retours utilisateurs.
+> Ces stories ont été intégrées dans les Epics 8 et 9 (Phase 2 — scope défini le 2026-03-25). Les critères d'acceptation complets figurent dans les stories correspondantes ci-dessous.
 
 ### UX-2.10 — Filtrer la liste des amis par tag
 
@@ -957,25 +1076,401 @@ afin d'avoir une vue calendaire ou thématique de mon cercle.
 
 ---
 
-## Phase 2 Backlog — WebDAV Sync
+## Phase 3 Backlog — WebDAV Sync _(déféré de Phase 2, décision 2026-03-25)_
 
-> Ces stories sont déportées de la Phase 1. Elles seront estimées et priorisées
-> avant le kick-off Phase 2. Les artifacts `6-1` à `6-4` conservent les critères d'acceptation.
+> Ces stories sont déportées à la Phase 3 (décision 2026-03-25). Le périmètre Phase 2 est défini par les Epics 8, 9 et 10. Les artifacts `6-1` à `6-4` conservent leurs critères d'acceptation.
 
-### FR32–FR36 (deferred): WebDAV Sync Stories
+### FR37–FR41 (deferred to Phase 3): WebDAV Sync Stories
 
 | Story | FR | Description |
 |---|---|---|
-| P2-6.1 | FR32, FR33 | WebDAV Configuration UI & Connection Test |
-| P2-6.2 | FR34, FR35 | WebDAV Encrypt & Upload (with atomic upload-then-rename) |
-| P2-6.3 | FR35 | Automatic Background WebDAV Sync |
-| P2-6.4 | FR36 | Full Restore from WebDAV After Reinstall |
+| P3-6.1 | FR37, FR38 | WebDAV Configuration UI & Connection Test |
+| P3-6.2 | FR39, FR40 | WebDAV Encrypt & Upload (with atomic upload-then-rename) |
+| P3-6.3 | FR40 | Automatic Background WebDAV Sync |
+| P3-6.4 | FR41 | Full Restore from WebDAV After Reinstall |
 
-**Phase 2 security requirements to address:**
+**Phase 3 security requirements to address:**
 - `flutter_secure_storage` for WebDAV password (Android Keystore)
 - PBKDF2 salt stored in `flutter_secure_storage` (upgrade from `shared_preferences`)
 - HTTPS enforced — block/warn on `http://` WebDAV URLs
 - Atomic upload: write to `spetaka_backup.enc.tmp`, then MOVE to `spetaka_backup.enc`
 - Brute-force protection on restore passphrase entry (exponential backoff)
+
+---
+
+## Epic 8: Friend List Intelligence — Filters, Search & Last Contact _(Phase 2)_
+
+Laurus can filter his friend list by category tags, search by friend name, filter by relationship status (concern active / overdue event / no recent contact), and see the date of last contact directly on each list tile and friend card — making a growing circle fast to navigate and immediately contextual at a glance.
+
+### Story 8.1: Filter Friend List by Category Tags
+
+As Laurus,
+I want to filter my friend list by one or more category tags (e.g., "Family", "Close friends"),
+So that I can focus on a specific group of my circle without scrolling through everyone.
+
+**Acceptance Criteria:**
+
+**Given** Laurus is on `FriendsListScreen` with friends assigned to various category tags
+**When** the screen loads
+**Then** a horizontal chips bar appears below the screen header displaying all distinct category tags currently assigned across all friend records — derived from `categoryTagsProvider` (a `Provider<List<String>>` reading distinct tag values from the friends stream)
+**And** all chips start in a deselected state — the list shows all friends unfiltered
+
+**Given** Laurus taps one or more tag chips
+**When** a chip is selected
+**Then** the friend list narrows to show only friends who have **at least one** of the selected tags (union / OR logic)
+**And** selected chips are visually highlighted using the terracotta primary color; unselected chips use the muted sand style
+**And** the filter is applied in-memory via `filteredFriendsProvider` — a derived Riverpod `Provider<List<Friend>>` that combines `allFriendsProvider` + `activeTagFiltersProvider`; no additional SQL query is issued
+
+**Given** one or more chips are selected and Laurus taps a selected chip again
+**When** the chip is deselected
+**Then** the selection is removed; if no chips remain selected, the full list is shown again
+
+**Given** the filtered list
+**When** zero friends match the selected tags
+**Then** the same warm empty-state widget is shown: "No friends with these tags yet."
+
+**Given** `activeTagFiltersProvider` is a `StateProvider<Set<String>>`
+**Then** its state is scoped to the session only — not persisted to `shared_preferences`; on next app launch the full unfiltered list is shown
+**And** no orphaned-tag risk is introduced: tag chip values come from live friend data, not a separate stored list — if a tag is renamed or deleted from all friends, it disappears from the chips bar automatically
+
+**Given** all interactive chip elements
+**Then** each chip meets 48×48dp minimum touch target (NFR15) and has a TalkBack content description: `'Filter by [tag name], [selected/not selected]'` (NFR17)
+
+---
+
+### Story 8.2: Search Friend List by Name
+
+As Laurus,
+I want to search my friend list by typing a name,
+So that I can instantly find any friend in a large circle without scrolling.
+
+**Acceptance Criteria:**
+
+**Given** Laurus is on `FriendsListScreen`
+**When** he taps the search icon in the app bar
+**Then** an inline search text field expands within the app bar (no navigation, no new screen) — keyboard appears automatically
+**And** the search icon is replaced by a clear (✕) icon while the field is active
+
+**Given** Laurus types one or more characters into the search field
+**When** any character is entered
+**Then** the friend list filters in real-time to show only friends whose `name` contains the typed string (case-insensitive, leading/trailing whitespace ignored)
+**And** filtering is performed in-memory in a derived `searchFilteredFriendsProvider` — no new Drift query; operates on the already-loaded `allFriendsProvider` stream
+**And** tag filters (Story 8.1) and search filters compose: if tags are selected AND search is active, the result is friends matching BOTH constraints (intersection)
+
+**Given** the search yields zero results
+**Then** the warm empty state shows: "No friend named '[typed text]' in your circle."
+
+**Given** Laurus taps the clear (✕) icon or presses the Android back button while search is active
+**When** search is cleared
+**Then** the search field collapses, the full (or tag-filtered) list is restored, `searchQueryProvider` resets to empty string
+
+**Given** the search field is active
+**Then** the field has `keyboardType: TextInputType.name` and TalkBack label: `'Search friends by name'` (NFR17)
+**And** the search field is not persisted — cleared on navigation away from `FriendsListScreen`
+
+---
+
+### Story 8.3: Filter Friend List by Status
+
+As Laurus,
+I want to filter my friend list by relationship status — friends with an active concern, friends with an overdue event, or friends with no recent contact,
+So that I can triage quickly and give attention to the people who need it most from within the full list.
+
+**Acceptance Criteria:**
+
+**Given** Laurus is on `FriendsListScreen`
+**When** he taps a "Filter" icon (funnel icon, top bar)
+**Then** a filter bottom sheet (`StatusFilterSheet`) opens with three toggle options:
+  - **Active concern** — friends where `is_concern_active = true`
+  - **Overdue event** — friends with at least one unacknowledged event past its due date or cadence interval
+  - **No recent contact** — friends whose most recent acquittement `logged_at` is more than 30 days ago (configurable constant `kNoRecentContactDays = 30`)
+
+**Given** Laurus toggles one or more status filters
+**When** the sheet is dismissed (tap outside or close button)
+**Then** the friend list reflects the active status filters immediately — applied in-memory via `statusFilteredFriendsProvider`
+**And** status filters compose with tag filters (Story 8.1) and search (Story 8.2): all three constraints are applied as an intersection
+
+**Given** a status filter is active
+**Then** a subtle badge or indicator on the "Filter" icon signals that filters are active (e.g., filled funnel icon + count badge)
+
+**Given** Laurus taps "Clear all filters" in the sheet
+**Then** all status filters are reset; the full unfiltered list is shown
+
+**Given** a "No recent contact" filter is active
+**Then** the threshold uses the last acquittement `logged_at` date from the `acquittements` table — a Drift query `maxLoggedAtForFriend(friendId)` is used if not already available; result is joined into the friends stream at the provider level
+**And** friends who have never been contacted (no acquittements) are included in "No recent contact" results
+
+**Given** status filters
+**Then** they are session-only (not persisted); each chip/toggle meets 48×48dp (NFR15)
+
+---
+
+### Story 8.4: "Last Contact" Display on Card and List Tile
+
+As Laurus,
+I want to see when I last reached out to each friend directly on the list tile and on their card,
+So that I have instant context about the recency of each relationship without needing to open the contact history.
+
+**Acceptance Criteria:**
+
+**Given** a friend has at least one logged acquittement
+**When** `FriendCardTile` renders in `FriendsListScreen`
+**Then** the tile displays a "Last contact" line below the friend's name in the secondary text style: e.g., `"Last contact: 3 weeks ago"` — using a human-readable relative format via `intl` `DateFormat` (`"3 days ago"`, `"2 weeks ago"`, `"3 months ago"`)
+**And** the date is the `MAX(logged_at)` from `acquittements` WHERE `friend_id = X` — derived from an extended friend stream that joins the latest acquittement per friend
+
+**Given** a friend has no acquittements
+**When** `FriendCardTile` renders
+**Then** the tile shows no "Last contact" line — the field is absent rather than showing "Never" (avoid guilt framing per UX principles)
+
+**Given** Laurus opens `FriendCardScreen`
+**When** the screen loads
+**Then** the "Last contact" date is displayed below the friend's name / action buttons in the same relative format
+**And** it updates reactively when a new acquittement is logged (e.g., immediately after closing the `AcquittementSheet`)
+
+**Given** the `allFriendsProvider` stream
+**Then** it is extended (or a new `friendsWithLastContactProvider` is created) to include the `lastContactAt` value per friend — computed via a Drift `watchAllWithLastContact()` query using a LEFT JOIN or subquery on `acquittements`; this is the only SQL change required for this story
+
+**Given** the "Last contact" text
+**Then** it uses the `color.text.secondary` (`#8C7B70` warm greige) token — never primary ink; never alarming; meets WCAG AA contrast (NFR16)
+**And** TalkBack reads it as part of the tile's combined content description: `'[name], last contact [relative date]'` (NFR17)
+
+---
+
+## Epic 9: Smart Concern Cadence _(Phase 2)_
+
+When Laurus marks a friend as going through something difficult, Spetaka automatically creates a check-in cadence so that friend stays actively top-of-mind with no manual follow-up setup required. The default cadence interval is user-configurable in settings. The cadence is automatically removed when the concern is cleared.
+
+### Story 9.1: Auto-Create Concern Follow-Up Cadence on Flag Activation
+
+As Laurus,
+I want Spetaka to automatically create a recurring check-in cadence when I set a concern flag on a friend,
+So that a friend going through a difficult time is automatically surfaced in my daily view without me needing to manually add a cadence.
+
+**Acceptance Criteria:**
+
+**Given** Laurus sets a concern flag on a friend (via `FriendCardScreen` "Set concern" flow from Story 2.9)
+**When** `FriendRepository.setConcern(friendId, concernNote)` is called
+**Then** `FriendRepository` automatically creates a new `Event` record for that friend with: `type = 'Regular check-in'`, `is_recurring = true`, `cadence_days` = the value from `ConcernCadenceSettingsProvider` (default: 7), `is_acknowledged = false`, and a `comment` of `'Auto-created — concern follow-up'`
+**And** the event creation and the concern flag update are performed atomically in a single Drift transaction — either both succeed or neither does
+**And** the new cadence event becomes immediately visible in the events list on `FriendCardScreen` labeled: `"Regular check-in — every 7 days (concern follow-up)"`
+**And** the cadence event appears in the priority engine's surface window on the next daily view load, subject to the standard overdue/window logic
+
+**Given** Laurus clears the concern flag on a friend (via `FriendCardScreen` "Clear concern" flow from Story 2.9)
+**When** `FriendRepository.clearConcern(friendId)` is called
+**Then** the automatically-created cadence event (identified by its `comment = 'Auto-created — concern follow-up'` marker) is deleted from the `events` table in the same atomic transaction as the concern flag clear
+**And** only the auto-created concern cadence is deleted — any other manually-added cadences on the friend are untouched
+**And** if no auto-created concern cadence exists for this friend (e.g., it was manually deleted earlier), the clear operation succeeds without error
+
+**Given** a friend already has an auto-created concern cadence and Laurus sets the concern flag again (re-activate after clearing)
+**When** `setConcern` is called
+**Then** a new cadence event is created with the current `ConcernCadenceSettingsProvider` interval — no duplicate detection needed (previous cadence was already deleted on clear)
+
+**Given** the concern cadence auto-creation
+**Then** it reads the interval from `ConcernCadenceSettingsProvider` (Story 9.2), not a hardcoded value — the default is 7 if no user setting has been saved
+
+**Given** `flutter test test/repositories/friend_repository_test.dart`
+**Then** tests pass including: set concern → verify auto-cadence event created with `cadence_days = 7`; clear concern → verify auto-cadence event deleted and other events untouched; set concern with custom settings interval of 14 → verify `cadence_days = 14`
+
+---
+
+### Story 9.2: Configurable Concern Cadence Interval in Settings
+
+As Laurus,
+I want to configure the default interval for the automatic concern follow-up cadence from the Settings screen,
+So that the cadence matches how frequently I want to check in on friends going through difficult times.
+
+**Acceptance Criteria:**
+
+**Given** Laurus navigates to `SettingsScreen`
+**When** the screen loads
+**Then** a "Concern follow-up cadence" section is displayed with a label showing the current default interval (e.g., "Every 7 days — default")
+**And** tapping the setting opens a selector (bottom sheet or inline dropdown) with options: Every 3 days, Every 5 days, Every 7 days (default), Every 10 days, Every 14 days, Every 21 days, Every 30 days — presented as human-readable labels
+
+**Given** Laurus selects an interval
+**When** the selector is dismissed
+**Then** the new interval is immediately saved to `shared_preferences` under the key `'concern_cadence_days'` as an integer
+**And** `ConcernCadenceSettingsProvider` — a Riverpod `StreamProvider<int>` reading from `shared_preferences` — emits the new value; all downstream consumers react immediately
+**And** the settings screen label updates to reflect the selected interval
+
+**Given** the setting is changed
+**Then** existing auto-created concern cadences already in the `events` table are **not** retroactively updated — the new interval applies only to concern flags set after the change
+**And** this behaviour is clearly noted in the UI: `"Applies to new concern flags — existing cadences are not changed."`
+
+**Given** no value has been saved to `shared_preferences`
+**Then** `ConcernCadenceSettingsProvider` defaults to `7` — no null handling required by consumers; always returns a valid integer
+
+**Given** the selector
+**Then** all options meet 48×48dp touch targets (NFR15); TalkBack reads: `'Concern cadence: Every [N] days, [selected/not selected]'` (NFR17)
+
+---
+
+## Epic 10: On-Device LLM & Message Assistance _(Phase 2)_
+
+Laurus can tap "Suggest message" on any event in a friend card and receive ≥ 3 warm, contextualised WhatsApp or SMS message variants generated entirely on his device — no network connection, no API key, no passphrase required. He can edit, copy, and send directly via `ContactActionService`. The daily greeting line is enriched by the LLM when a model is available, with a static fallback ensuring zero degraded UX. The friend card form auto-saves draft state in memory during the session, recovered transparently on return.
+
+### Story 10.1: LLM Capability Check, Model Download Gate & Infrastructure
+
+As a developer,
+I want the `lib/core/ai/` module fully in place — capability checking, model state machine, and `LlmInferenceService` — so that all LLM-dependent features (10.2, 10.3) can be built on a tested, isolated foundation.
+
+**Acceptance Criteria:**
+
+**Given** `flutter_gemma: ^1.x.x` is added to `pubspec.yaml` dependencies
+**When** the app is built
+**Then** `flutter analyze` and `flutter test` pass cleanly; no new permissions beyond `INTERNET` (already added for WebDAV) are introduced
+
+**Given** the AI module is implemented
+**Then** `lib/core/ai/` contains: `ai_capability_checker.dart`, `model_manager.dart`, `llm_inference_service.dart`, `prompt_templates.dart`, `greeting_service.dart` — each as a distinct file
+
+**Given** `AiCapabilityChecker.isSupported()` is called at runtime
+**Then** it returns `true` only if Android API level ≥ 29 AND available RAM ≥ 4 GB; returns `false` otherwise
+**And** the result is exposed via `@riverpod AiCapabilityChecker aiCapabilityChecker(...)` and cached for the session — not re-checked on every build
+
+**Given** hardware is unsupported (`isSupported() = false`)
+**Then** all LLM feature entry points (`"Suggest message"` button on events, LLM greeting) are **hidden entirely** — not greyed out, not disabled with a tooltip; the UI is identical to a non-LLM build for this device
+**And** no `ModelDownloadScreen` is ever shown on an unsupported device
+
+**Given** hardware is supported AND `ModelManager.isModelReady = false`
+**When** Laurus taps any LLM feature entry point
+**Then** he is navigated to `ModelDownloadScreen` (route: `/model-download`) before any LLM UI is shown
+**And** `ModelDownloadScreen` displays: required storage (`~2 GB`), a "Download model" button, a linear progress indicator during download, a "Cancel" button, and an error state with retry option on network failure
+**And** `ModelManager` exposes `Stream<ModelDownloadState>` with states: `idle / downloading(progress: double) / ready / error(message: String)`
+**And** downloaded model is stored at `{appDocumentsDir}/spetaka_llm/gemma3n_e2b_it_int4.bin` — inaccessible to other apps
+
+**Given** hardware is supported AND model is ready (`ModelManager.isModelReady = true`)
+**Then** LLM feature entry points are visible and active; `ModelDownloadScreen` is never shown
+
+**Given** `LlmInferenceService.infer(String prompt)`
+**Then** inference executes in a `Dart Isolate` via `Isolate.run()` — the UI thread is never blocked
+**And** a 30-second timeout is enforced: on timeout, the method returns an empty `List<String>` — callers handle empty list gracefully (fallback to static content or user-visible message)
+**And** `LlmInferenceService` is a singleton exposed via Riverpod; multiple concurrent inference calls are queued, not parallelised
+
+**Given** `flutter test test/unit/ai/`
+**Then** unit tests pass: `AiCapabilityChecker` returns correct values for mocked API level/RAM combinations; `ModelManager` transitions through states correctly given mocked download events; `LlmInferenceService` returns empty list on timeout without throwing
+
+---
+
+### Story 10.2: Message Suggestion — DraftMessageSheet with ≥ 3 LLM Variants
+
+As Laurus,
+I want to tap "Suggest message" on an event in a friend card and receive ≥ 3 warm, contextualised WhatsApp or SMS message variants — generated on my device — so that I can pick, edit, and send the right message in seconds without composing from scratch.
+
+**Acceptance Criteria:**
+
+**Given** `ModelManager.isModelReady = true` and Laurus is on `FriendCardScreen` viewing an event
+**When** he taps "Suggest message" on any event
+**Then** `DraftMessageSheet` opens as a bottom sheet in `AsyncLoading` state — a subtle loading indicator is shown (no spinner filling the full sheet; a small terracotta progress bar at the top suffices)
+**And** `DraftMessageNotifier.requestSuggestions(friendId: ..., event: ..., channel: 'whatsapp')` is called immediately
+
+**Given** `LlmMessageRepository.generateSuggestions(...)` runs
+**Then** it reads friend `name` from `FriendRepository` (read-only, decrypted)
+**And** builds a prompt using `PromptTemplates.messageSuggestion(friendName: ..., eventType: ..., eventContext: ..., channel: ...)` — the prompt is a constant template in `prompt_templates.dart`, never constructed ad-hoc in the repository
+**And** calls `LlmInferenceService.infer(prompt)` in an Isolate
+**And** parses the numbered-list response (`1. ... 2. ... 3. ...`) into a `List<String>` of ≥ 3 trimmed variants; if fewer than 3 are parsed, the sheet shows what was returned (minimum 1) plus a "Generate more" button
+
+**Given** inference completes successfully
+**When** `DraftMessageSheet` transitions to `AsyncData` state
+**Then** the sheet displays:
+  - An event context header (e.g., `"For Sophie — Birthday in 3 days"`)
+  - Exactly 3 (or more) selectable variant cards — tapping one highlights it in the terracotta primary style
+  - An editable text field pre-filled with the selected variant; Laurus can freely edit
+  - A channel selector (WhatsApp / SMS) — defaults to WhatsApp if the friend has a valid number
+  - A `"Copy & Send via [channel]"` button (terracotta, full-width)
+  - A `"Discard"` text button
+
+**Given** Laurus taps `"Copy & Send via WhatsApp"`
+**Then** the selected / edited text is copied to the system clipboard
+**And** `ContactActionService.whatsapp(friend.mobile)` fires the WhatsApp intent (existing behaviour)
+**And** `DraftMessageNotifier.clear()` is called — the draft is discarded from in-memory state
+**And** `AppLifecycleService` records the pending acquittement as it would for any WhatsApp action (standard flow — acquittement sheet will appear on return)
+
+**Given** Laurus taps `"Discard"` or dismisses the sheet
+**Then** `DraftMessageNotifier.clear()` is called — no data is written to SQLite; the draft evaporates
+
+**Given** inference returns an empty list (timeout or parse failure)
+**Then** `DraftMessageSheet` shows an error state: `"Couldn't generate suggestions right now. You can write your own message below."` with an empty editable field and the same `"Copy & Send"` button — Laurus can still compose manually
+
+**Given** `DraftMessage` domain model
+**Then** it is a pure in-memory Dart class — **never persisted to SQLite**; no Drift table or schema migration is introduced by this story
+
+**Given** all interactive elements in `DraftMessageSheet`
+**Then** they meet 48×48dp touch targets (NFR15) and TalkBack labels (NFR17): variant cards labelled `'Message option [N]: [first 20 chars]...'`; confirm button labelled `'Copy and send via [channel]'`
+
+---
+
+### Story 10.3: LLM-Enriched Daily Greeting Line
+
+As Laurus,
+I want the daily view greeting line to be dynamically generated by the on-device LLM when the model is available — reflecting my actual relationship state at that moment,
+So that opening Spetaka feels genuinely personal rather than cycling through a static rotation.
+
+**Acceptance Criteria:**
+
+**Given** `DailyViewScreen` loads (or re-enters foreground)
+**When** the `GreetingLineWidget` renders
+**Then** it immediately displays a static fallback greeting from a hardcoded pool in `GreetingService.staticFallback(context)` — no loading spinner, no blank space, no delay; the UI is immediately complete
+
+**Given** `ModelManager.isModelReady = true`
+**When** the static greeting is shown
+**Then** `GreetingService.generateAsync()` is called in the background (non-blocking, no `await` on the render path):
+  - Context passed to the prompt: urgent friend count, concern flag count, approximate care score average
+  - Prompt template from `PromptTemplates.greetingLine(urgentCount, concernCount, userName)` — a constant in `prompt_templates.dart`
+  - Calls `LlmInferenceService.infer(prompt)` in an Isolate (30s timeout)
+  - On response: `greetingLineProvider` state is updated with the LLM result
+  - `GreetingLineWidget` reacts via Riverpod and smoothly cross-fades (300ms `easeInOutCubic`) from the static greeting to the LLM greeting
+
+**Given** `ModelManager.isModelReady = false` OR the Isolate times out
+**Then** the static greeting remains — no update, no error shown; the experience is identical to the pre-LLM version
+**And** the static pool contains at minimum 8 greeting variants covering: 0 urgent, 1 urgent, 2+ urgent, concern-flagged friend present — all in coach tone, never metric-framed
+
+**Given** `greetingLineProvider`
+**Then** it is a `@riverpod class GreetingLineNotifier` returning `String` (never null/async from the widget's perspective — always has a valid value); the static fallback is the initial value set in `build()`
+
+**Given** the cross-fade animation between static and LLM greetings
+**Then** it runs at 60fps on Samsung S25 using `AnimatedSwitcher` with `FadeTransition` child — no `AnimatedContainer` resize (greeting line height stays constant)
+**And** TalkBack reads the most recent greeting text; transition does not cause focus jump (NFR17)
+
+---
+
+### Story 10.4: Session-Draft Auto-Save for Friend Form
+
+As Laurus,
+I want the friend form to automatically save my in-progress edits in memory during the session — and restore them transparently if I navigate away and return,
+So that I never lose a partially-filled friend card due to an accidental back gesture or app switch.
+
+**Acceptance Criteria:**
+
+**Given** Laurus opens `FriendFormScreen` (new friend creation or editing an existing friend)
+**When** the screen initialises
+**Then** `FriendFormDraftNotifier` state is checked via `ref.read(friendFormDraftProvider)`:
+  - If `null` → blank form (or edit form pre-filled from the existing friend record as normal)
+  - If non-null → form fields are pre-filled from the draft AND a dismissible "Resuming your draft" banner appears at the top of the form (`InfoBannerWidget`, sage color, `"Resuming your draft — [Discard]"`)
+
+**Given** Laurus types in any field on the form
+**When** a field value changes (via `onChanged` callback)
+**Then** a 300ms debounced `Timer` fires and calls `FriendFormDraftNotifier.update(FriendFormDraft(...currentFormState...))`
+**And** the debounce is implemented inline in `FriendFormScreen` using Flutter's `Timer` — no shared `Debouncer` utility class is created (single use case)
+
+**Given** Laurus taps "Save" with a valid form
+**When** `FriendRepository.save(friend)` or `FriendRepository.update(friend)` completes successfully
+**Then** `FriendFormDraftNotifier.clear()` is called immediately after save — the draft is discarded
+
+**Given** Laurus taps "Discard" or explicitly dismisses the "Resuming your draft" banner's Discard action
+**Then** `FriendFormDraftNotifier.clear()` is called; the form resets to empty (new) or the current persisted values (edit)
+
+**Given** Laurus switches apps or Spetaka is backgrounded while the form is open
+**When** Laurus returns to Spetaka with the form still in the navigation stack
+**Then** the form fields still show the in-progress values — Riverpod state survives `AppLifecycleState.paused`/`resumed` as long as the process is alive; `AppLifecycleService` does not emit a draft-clearing event
+
+**Given** Android kills the Spetaka process (memory pressure or device restart) while the form has unsaved content
+**Then** `FriendFormDraftNotifier` state is lost — this is intentional per architecture addendum decision Q5; no data is ever written to SQLite for session drafts; on next open the form is blank (new) or the last persisted state (edit)
+
+**Given** `FriendFormDraft` domain class
+**Then** it lives in `lib/features/friends/domain/friend_form_draft.dart` with nullable fields: `name`, `mobile`, `notes`, `List<String> categoryTags`, `bool isConcernActive`, `concernNote`
+**And** `FriendFormDraftNotifier` lives in `lib/features/friends/providers/friend_form_draft_provider.dart` — a `@riverpod class` extending `_$FriendFormDraftNotifier`, returning `FriendFormDraft?`
+**And** no Drift table is created; no `schemaVersion` is incremented by this story
+
+**Given** `flutter test test/widgets/friend_form_test.dart`
+**Then** tests pass: open form → type name → navigate away → navigate back → draft banner shown → name field pre-filled; save success → draft cleared; discard banner → form reset
 
 

@@ -1,6 +1,6 @@
 # Story 7.4: Play Store Release Preparation
 
-Status: backlog
+Status: in-progress
 
 ## Story
 As Laurus, I want release pipeline and Play Store setup ready so rollout can proceed safely after validation gate.
@@ -17,7 +17,7 @@ As Laurus, I want release pipeline and Play Store setup ready so rollout can pro
 - [x] Finalize versioning and CI build-number flow.
 - [x] Configure signing/keystore hygiene.
 - [x] Prepare privacy policy + data safety form inputs.
-- [x] Validate release build and internal-track deploy steps.
+- [ ] Validate internal-track submission on Samsung S25 and complete deploy verification.
 
 ## References
 - `_bmad-output/planning-artifacts/epics.md` (Epic 7, Story 7.4)
@@ -42,7 +42,7 @@ tasks were implemented as configuration, Groovy (Gradle), and Markdown artifacts
 - `android/app/build.gradle`: replaced the hardcoded `signingConfig = signingConfigs.debug`
   in the `release` buildType. The Groovy block now reads `key.properties` (gitignored)
   when present and configures a proper `signingConfigs.release`; falls back to debug only
-  when the file is absent (unsigned local builds / fork PRs).
+  when the file is absent (debug-signed local builds / fork PRs).
 - `spetaka/.gitignore`: added entries for `android/key.properties`, `android/upload-keystore.jks`,
   and `android/*.jks` / `android/*.keystore`.
 - `android/key.properties.template`: non-sensitive template committed to guide setup.
@@ -55,8 +55,9 @@ tasks were implemented as configuration, Groovy (Gradle), and Markdown artifacts
 
 **Task 3 — Privacy policy + data safety form (AC: 3)**
 - `docs/privacy-policy.md`: comprehensive 10-section policy covering data types,
-  AES-256 encryption at rest, permissions (READ_CONTACTS, CALL_PHONE, INTERNET),
-  data sharing (none), deletion (uninstall), children's privacy, and contact info.
+  AES-256 encryption at rest, declared permissions (`READ_CONTACTS`, `INTERNET`),
+  external dialer / SMS / WhatsApp launches, data sharing (none), deletion (uninstall),
+  children's privacy, and contact info.
 - `docs/play-store-data-safety.md`: structured Play Console form inputs for each
   collected data type (Contacts, Name/Phone, notes/events/tags, app activity),
   explicit list of non-collected types, submission checklist with AC5 validation steps.
@@ -71,12 +72,13 @@ tasks were implemented as configuration, Groovy (Gradle), and Markdown artifacts
   process, and bilingual release notes template (FR + EN).
 
 ### Completion Notes
-- All four tasks implemented and verified: `flutter analyze` returns "No issues found".
+- Release preparation artifacts implemented and reviewed: `flutter analyze` returns "No issues found".
 - No new Dart runtime code was introduced; all changes are CI/configuration/documentation.
 - Signing infrastructure is conditional — CI works with or without secrets (graceful degradation).
-- Privacy policy and data safety form ready for Play Console submission; AC5 (Samsung S25 validation)
-  is documented as a manual step in `docs/release-process.md` Section 7 since it requires physical
-  device access outside the automated pipeline.
+- Privacy policy and data safety form were corrected during code review to match the current
+  Android manifest and encryption implementation.
+- AC5 (Samsung S25 validation and internal track submission) remains pending manual execution;
+  the required checklist is documented in `docs/release-process.md` Section 7.
 - Release progression plan (AC6) documented end-to-end in `docs/release-process.md` Section 8.
 
 ## File List
@@ -91,5 +93,8 @@ tasks were implemented as configuration, Groovy (Gradle), and Markdown artifacts
 ## Change Log
 - 2026-03-05: Story 7.4 deferred to backlog (do later). Release validation/submission remains pending.
 - 2026-03-05: Story 7.4 implemented — CI versioning, signing hygiene, privacy policy,
-  data safety form, release process documentation. All ACs satisfied. (Story 7.4, dev: Amelia)
+  data safety form, release process documentation. AC1-4 and AC6 satisfied; AC5 requires manual
+  Samsung S25 validation and internal track submission. (Story 7.4, dev: Amelia)
+- 2026-03-25: Code review corrected release documentation to match manifest permissions,
+  encryption key storage, and CI signing behavior; story returned to in-progress pending AC5.
 

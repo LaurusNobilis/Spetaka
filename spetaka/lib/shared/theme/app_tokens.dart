@@ -55,6 +55,11 @@ abstract final class AppTokens {
   /// Muted sub-text on dark.
   static const Color darkTextSub = Color(0xFFB0A09A);
 
+  /// Returns the supporting-text token matching the active brightness.
+  static Color textSubFor(Brightness brightness) {
+    return brightness == Brightness.dark ? darkTextSub : lightTextSub;
+  }
+
   /// Outlines on dark.
   static const Color darkOutline = Color(0xFF6A5E58);
 

@@ -100,7 +100,7 @@ class _BriefingRow extends StatelessWidget {
           '${friend.name}, ${localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent)}${hasConcern ? ', ${context.l10n.concernActiveSemantics}' : ''}',
       button: true,
       child: InkWell(
-        onTap: () => FriendDetailRoute(friend.id).go(context),
+        onTap: () => FriendDetailRoute(friend.id).push(context),
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

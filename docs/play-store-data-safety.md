@@ -14,7 +14,7 @@ Console when creating or updating the store listing.
 | Question | Answer |
 |---|---|
 | Does your app collect or share any of the required user data types? | **Yes** |
-| Is all of the user data collected by your app encrypted in transit? | **Yes** (HTTPS / no network calls in v1.0; encrypted local storage) |
+| Is all of the user data collected by your app encrypted in transit? | **Not applicable in v1.0** (the current release does not transmit user data over the network) |
 | Do you provide a way for users to request that their data is deleted? | **Yes** — uninstall removes all app data |
 
 ---
@@ -103,8 +103,11 @@ has a visible justification:
 | Permission | Justification shown to users |
 |---|---|
 | `READ_CONTACTS` | "Import a friend's name and number from your contacts" |
-| `CALL_PHONE` | "Call a friend directly from the app" |
 | `INTERNET` | Required by Flutter runtime; no external calls made in v1.0 |
+
+Spetaka does not declare `CALL_PHONE` or `SEND_SMS`. Call, SMS, and WhatsApp
+flows open external apps through system links and do not require dedicated
+runtime permissions in the current implementation.
 
 ---
 

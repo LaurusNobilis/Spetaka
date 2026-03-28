@@ -9,6 +9,7 @@ import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../backup/providers/backup_providers.dart';
+import '../data/concern_cadence_provider.dart';
 import '../data/display_prefs_provider.dart';
 
 // ---------------------------------------------------------------------------
@@ -104,6 +105,7 @@ class SettingsScreen extends ConsumerWidget {
             _DisplaySection(),
             _EventTypesSection(),
             _CategoryTagsSection(),
+            _ConcernCadenceSection(),
             _SyncPlaceholderSection(),
             _FeedbackSection(),
           ],
@@ -733,6 +735,103 @@ class _EventTypesSection extends StatelessWidget {
             title: Text(context.l10n.manageEventTypesLabel),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => const ManageEventTypesRoute().go(context),
+          ),
+        ),
+        const Divider(height: 24),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Concern Cadence section — Story 9.2
+// ---------------------------------------------------------------------------
+
+class _ConcernCadenceSection extends ConsumerWidget {
+  const _ConcernCadenceSection();
+
+  void _showCadencePicker(BuildContext context, WidgetRef ref, int current) {
+    final l = context.l10n;
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        return ListView(
+          shrinkWrap: true,
+          children: [
+            for (final days in concernCadenceOptions)
+              Semantics(
+                container: true,
+                excludeSemantics: true,
+                button: true,
+                selected: days == current,
+                label: l.concernCadenceSemantics(
+                  days, days == current ? l.chipStateSelected : l.chipStateNotSelected,
+                ),
+                child: ListTile(
+                  minVerticalPadding: 12,
+                  leading: Icon(
+                    days == current
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                  ),
+                  title: Text(
+                    days == kDefaultConcernCadenceDays
+                        ? '${l.concernCadenceEveryNDays(days)} (${l.concernCadenceDefault})'
+                        : l.concernCadenceEveryNDays(days),
+                  ),
+                  onTap: () async {
+                    await ref.read(concernCadenceProvider.notifier).set(days);
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                    }
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final days = ref.watch(concernCadenceProvider);
+    final l = context.l10n;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeading(l.concernCadenceSectionTitle),
+        Semantics(
+          container: true,
+          excludeSemantics: true,
+          button: true,
+          label: l.concernCadenceSemantics(
+            days, l.chipStateSelected,
+          ),
+          child: ListTile(
+            minVerticalPadding: 12,
+            leading: const Icon(Icons.update_outlined),
+            title: Text(l.concernCadenceLabel),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  days == kDefaultConcernCadenceDays
+                      ? '${l.concernCadenceEveryNDays(days)} — ${l.concernCadenceDefault}'
+                      : l.concernCadenceEveryNDays(days),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l.concernCadenceAppliesNote,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showCadencePicker(context, ref, days),
           ),
         ),
         const Divider(height: 24),

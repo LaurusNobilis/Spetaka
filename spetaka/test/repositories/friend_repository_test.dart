@@ -452,4 +452,177 @@ void main() {
       await repo.clearConcern('no-such-id');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 9.1 — FriendRepository concern auto-cadence (AC1, AC2, AC4)
+  // ---------------------------------------------------------------------------
+
+  group('FriendRepository — Story 9.1 concern auto-cadence', () {
+    late AppDatabase db;
+    late EncryptionService enc;
+    late AppLifecycleService lifecycle;
+    late FriendRepository repo;
+
+    setUp(() async {
+      db = buildDb();
+      (enc, lifecycle) = await buildService();
+      repo = FriendRepository(db: db, encryptionService: enc);
+    });
+
+    tearDown(() async {
+      await db.close();
+      enc.dispose();
+      lifecycle.dispose();
+    });
+
+    // -------------------------------------------------------------------------
+    // AC1 / AC4: setConcern creates auto-cadence event with cadence_days=7
+    // -------------------------------------------------------------------------
+
+    test(
+      'setConcern creates recurring cadence event with cadence_days=7 (default)',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        await repo.setConcern(friend.id, note: 'Hard time');
+
+        final events = await db.eventDao.findByFriendId(friend.id);
+        expect(events, hasLength(1));
+
+        final event = events.first;
+        expect(event.friendId, friend.id);
+        expect(event.type, 'Prendre des nouvelles');
+        expect(event.isRecurring, isTrue);
+        expect(event.cadenceDays, 7);
+        expect(event.comment, 'Auto-created \u2014 concern follow-up');
+        expect(event.isAcknowledged, isFalse);
+      },
+    );
+
+    // -------------------------------------------------------------------------
+    // AC3 / AC4: setConcern with custom cadenceDays=14 creates event with 14
+    // -------------------------------------------------------------------------
+
+    test(
+      'setConcern with cadenceDays:14 creates event with cadence_days=14',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        await repo.setConcern(friend.id, cadenceDays: 14);
+
+        final events = await db.eventDao.findByFriendId(friend.id);
+        expect(events, hasLength(1));
+        expect(events.first.cadenceDays, 14);
+      },
+    );
+
+    // -------------------------------------------------------------------------
+    // AC1: setConcern also updates the friend flag (atomicity check)
+    // -------------------------------------------------------------------------
+
+    test(
+      'setConcern atomically updates friend flag AND creates cadence event',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        await repo.setConcern(friend.id, note: 'Checked');
+
+        final found = await repo.findById(friend.id);
+        expect(found!.isConcernActive, isTrue);
+        expect(found.concernNote, 'Checked');
+
+        final events = await db.eventDao.findByFriendId(friend.id);
+        expect(events, hasLength(1));
+        expect(events.first.isRecurring, isTrue);
+      },
+    );
+
+    // -------------------------------------------------------------------------
+    // AC2 / AC4: clearConcern deletes the auto-created cadence event
+    // -------------------------------------------------------------------------
+
+    test(
+      'clearConcern deletes auto-created cadence event',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        await repo.setConcern(friend.id);
+        final eventsAfterSet = await db.eventDao.findByFriendId(friend.id);
+        expect(eventsAfterSet, hasLength(1)); // sanity: auto-cadence exists
+
+        await repo.clearConcern(friend.id);
+
+        final eventsAfterClear = await db.eventDao.findByFriendId(friend.id);
+        expect(eventsAfterClear, isEmpty);
+      },
+    );
+
+    // -------------------------------------------------------------------------
+    // AC2: clearConcern leaves other manually-added events untouched
+    // -------------------------------------------------------------------------
+
+    test(
+      'clearConcern leaves manually-added events untouched',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        // Manually insert an event (simulates user-added cadence).
+        const manualId = 'manual-event-id';
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await db.eventDao.insertEvent(
+          EventsCompanion.insert(
+            id: manualId,
+            friendId: friend.id,
+            type: 'Prendre des nouvelles',
+            date: now,
+            isRecurring: const Value(true),
+            comment: const Value(null),  // no marker — NOT auto-created
+            isAcknowledged: const Value(false),
+            createdAt: now,
+            cadenceDays: const Value(30),
+          ),
+        );
+
+        await repo.setConcern(friend.id);
+
+        final eventsAfterSet = await db.eventDao.findByFriendId(friend.id);
+        expect(eventsAfterSet, hasLength(2)); // manual + auto-cadence
+
+        await repo.clearConcern(friend.id);
+
+        final eventsAfterClear = await db.eventDao.findByFriendId(friend.id);
+        expect(eventsAfterClear, hasLength(1));
+        expect(eventsAfterClear.first.id, manualId); // manual event survives
+      },
+    );
+
+    // -------------------------------------------------------------------------
+    // AC2: clearConcern is safe when no auto-cadence exists
+    // -------------------------------------------------------------------------
+
+    test(
+      'clearConcern succeeds without error when no auto-cadence exists',
+      () async {
+        final friend = makeMinimalFriend();
+        await repo.insert(friend);
+
+        // Set concern flag manually without auto-cadence (legacy row).
+        await repo.update(friend.copyWith(
+          isConcernActive: true,
+          updatedAt: friend.updatedAt + 1,
+        ));
+
+        // Should not throw even though no auto-cadence event exists.
+        await expectLater(repo.clearConcern(friend.id), completes);
+
+        final found = await repo.findById(friend.id);
+        expect(found!.isConcernActive, isFalse);
+      },
+    );
+  });
 }

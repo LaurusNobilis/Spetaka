@@ -63,7 +63,14 @@ class _AppShellScreenState extends State<AppShellScreen> {
 
   int _currentIndex = 0;
 
+  static bool _isBasePath(String path) => path == '/' || path == '/friends';
+
   static int _indexForPath(String path) {
+    if (path == '/friends') return 1;
+    return 0;
+  }
+
+  static int _initialIndexForPath(String path) {
     if (path.startsWith('/friends')) return 1;
     return 0;
   }
@@ -80,8 +87,15 @@ class _AppShellScreenState extends State<AppShellScreen> {
     setState(() => _currentIndex = desiredIndex);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (!_pageController.hasClients) return;
+      if (!mounted) {
+        _isSyncingFromRouter = false;
+        return;
+      }
+      if (!_pageController.hasClients) {
+        // Cannot jump — reset flag so the next swipe still calls context.go.
+        _isSyncingFromRouter = false;
+        return;
+      }
       _pageController.jumpToPage(desiredIndex);
     });
   }
@@ -103,14 +117,14 @@ class _AppShellScreenState extends State<AppShellScreen> {
     final path = GoRouterState.of(context).uri.path;
 
     if (!_isInitialized) {
-      _currentIndex = _indexForPath(path);
+      _currentIndex = _initialIndexForPath(path);
       _pageController = PageController(initialPage: _currentIndex);
       _isInitialized = true;
       return;
     }
 
-    // Only auto-sync for the base page namespaces.
-    if (path == '/' || path.startsWith('/friends')) {
+    // Only auto-sync when the router is on one of the two shell base pages.
+    if (_isBasePath(path)) {
       _syncWithRouterPath(path);
     }
   }
@@ -131,7 +145,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
     );
 
     final path = GoRouterState.of(context).uri.path;
-    final isBaseLocation = path == '/' || path == '/friends';
+    final isBaseLocation = _isBasePath(path);
     final routerCanPop = GoRouter.of(context).canPop();
     final indicatorLabel = context.l10n.shellPageIndicatorSemantics(
       _currentIndex == 0 ? context.l10n.dailyTitle : context.l10n.friendsTitle,
@@ -185,8 +199,8 @@ class _AppShellScreenState extends State<AppShellScreen> {
                 ),
               ),
             ),
-            // Render overlay routes (friends detail, settings, etc.) above the
-            // shell without interfering with swipe gestures on base pages.
+            // The shell child remains a no-op placeholder for the two base
+            // routes; keep it out of layout on non-base locations.
             Offstage(offstage: isBaseLocation, child: widget.child),
           ],
         ),

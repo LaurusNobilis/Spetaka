@@ -6,12 +6,15 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/actions/contact_action_service.dart';
+import '../../../core/ai/ai_capability_checker.dart';
+import '../../../core/ai/model_manager.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/l10n/l10n_extension.dart';
 import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../features/drafts/presentation/draft_message_sheet.dart';
 import '../../../features/acquittement/data/acquittement_providers.dart';
 import '../../../features/acquittement/domain/pending_action_state.dart';
 import '../../../features/acquittement/presentation/acquittement_sheet.dart';
@@ -20,8 +23,11 @@ import '../../../features/events/data/event_repository_provider.dart';
 import '../../../features/events/data/event_type_providers.dart';
 import '../../../features/events/data/events_providers.dart';
 import '../../../features/events/domain/event_type.dart';
+import '../../../shared/theme/app_tokens.dart';
+import '../../../shared/utils/relative_date.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
+import '../../settings/data/concern_cadence_provider.dart';
 import '../data/friend_repository_provider.dart';
 import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
@@ -290,9 +296,10 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
     final note = noteController.text;
     noteController.dispose();
     if (!confirmed || !context.mounted) return;
+    final cadenceDays = ref.read(concernCadenceProvider);
     await ref
         .read(friendRepositoryProvider)
-        .setConcern(friend.id, note: note);
+        .setConcern(friend.id, note: note, cadenceDays: cadenceDays);
   }
 
   // 2.9/AC3: clear concern with confirmation.
@@ -406,6 +413,9 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             // ── Story 5.2: OEM fallback manual acquittement button ────────
             ManualAcquittementButton(friendId: friend.id),
             const SizedBox(height: 24),
+
+            _LastContactSummary(friendId: friend.id),
+            const SizedBox(height: 20),
 
             // ── Mobile — AC1 ─────────────────────────────────────────────────
             _DetailSection(
@@ -521,6 +531,60 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LastContactSummary extends ConsumerWidget {
+  const _LastContactSummary({required this.friendId});
+
+  final String friendId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncHistory = ref.watch(watchAcquittementsProvider(friendId));
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final textColor = AppTokens.textSubFor(Theme.of(context).brightness);
+
+    return asyncHistory.when(
+      loading: () => const SizedBox.shrink(),
+      error: (err, _) {
+        final message = err is AppError
+            ? errorMessageFor(err)
+            : context.l10n.somethingWentWrong;
+
+        return Semantics(
+          label: message,
+          child: Text(
+            message,
+            key: const Key('friend_card_last_contact_error_text'),
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+          ),
+        );
+      },
+      data: (entries) {
+        if (entries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final lastContactAt =
+            DateTime.fromMillisecondsSinceEpoch(entries.first.createdAt);
+        final relativeDate = formatRelativeDate(
+          lastContactAt,
+          languageCode: Localizations.localeOf(context).languageCode,
+        );
+        final label = context.l10n.lastContactLabel(relativeDate);
+
+        return Semantics(
+          label: label,
+          child: Text(
+            label,
+            key: const Key('friend_card_last_contact_text'),
+            style: textTheme.bodyMedium?.copyWith(color: textColor),
+          ),
+        );
+      },
     );
   }
 }
@@ -760,6 +824,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
           children: [
             Expanded(
               child: _ActionButton(
+                buttonKey: const Key('friend_card_action_call_button'),
                 icon: Icons.phone_outlined,
                 label: context.l10n.callAction,
                 onPressed: _handleCall,
@@ -768,6 +833,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
             const SizedBox(width: 8),
             Expanded(
               child: _ActionButton(
+                buttonKey: const Key('friend_card_action_sms_button'),
                 icon: Icons.sms_outlined,
                 label: context.l10n.smsAction,
                 onPressed: _handleSms,
@@ -776,6 +842,7 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
             const SizedBox(width: 8),
             Expanded(
               child: _ActionButton(
+                buttonKey: const Key('friend_card_action_whatsapp_button'),
                 icon: Icons.chat_outlined,
                 label: context.l10n.whatsappAction,
                 onPressed: _handleWhatsApp,
@@ -803,11 +870,13 @@ class _ActionButtonRowState extends State<_ActionButtonRow> {
 /// so launch failures never produce unhandled exceptions.
 class _ActionButton extends StatefulWidget {
   const _ActionButton({
+    required this.buttonKey,
     required this.icon,
     required this.label,
     required this.onPressed,
   });
 
+  final Key buttonKey;
   final IconData icon;
   final String label;
   final Future<void> Function() onPressed;
@@ -837,6 +906,7 @@ class _ActionButtonState extends State<_ActionButton> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 48),
         child: OutlinedButton.icon(
+          key: widget.buttonKey,
           onPressed: _busy ? null : _handlePress,
           icon: Icon(widget.icon),
           label: FittedBox(
@@ -989,6 +1059,23 @@ class _EventsSection extends ConsumerWidget {
                   onEdit: () => _handleEdit(context, event),
                   onDelete: () => _handleDelete(context, ref, event, eventTypes),
                   onAcknowledge: () => _handleAcknowledge(ref, event),
+                  onSuggestMessage: () {
+                    // Gate: hide if device does not support LLM.
+                    final isSupported = ref.read(aiCapabilityCheckerProvider);
+                    if (!isSupported) return;
+                    // Gate: redirect to ModelDownloadScreen if model not ready.
+                    final modelState = ref.read(modelManagerProvider);
+                    if (modelState is! ModelReady) {
+                      const ModelDownloadRoute().push(context);
+                      return;
+                    }
+                    showDraftMessageSheet(
+                      context: context,
+                      ref: ref,
+                      friendId: friendId,
+                      event: event,
+                    );
+                  },
                 ),
             ],
           );
@@ -1006,6 +1093,7 @@ class _EventRow extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onAcknowledge,
+    required this.onSuggestMessage,
   });
 
   final Event event;
@@ -1015,6 +1103,7 @@ class _EventRow extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onAcknowledge;
+  final VoidCallback onSuggestMessage;
 
   static String _cadenceLabel(BuildContext context, int days) {
     final l = context.l10n;
@@ -1121,6 +1210,17 @@ class _EventRow extends StatelessWidget {
             icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.primary),
             tooltip: context.l10n.eventActionsTooltip,
             itemBuilder: (ctx) => [
+              // Story 10.2 AC1: "Suggest message" — first in the menu (proactive action).
+              PopupMenuItem(
+                value: _EventAction.suggestMessage,
+                child: Row(
+                  children: [
+                    Icon(Icons.message_outlined, size: 18, color: Theme.of(ctx).colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(ctx.l10n.suggestMessageAction),
+                  ],
+                ),
+              ),
               if (!isDone)
                 PopupMenuItem(
                   value: _EventAction.acknowledge,
@@ -1178,6 +1278,8 @@ class _EventRow extends StatelessWidget {
                   onDelete();
                 case _EventAction.acknowledge:
                   onAcknowledge();
+                case _EventAction.suggestMessage:
+                  onSuggestMessage();
               }
             },
           ),
@@ -1187,7 +1289,7 @@ class _EventRow extends StatelessWidget {
   }
 }
 
-enum _EventAction { edit, delete, acknowledge }
+enum _EventAction { edit, delete, acknowledge, suggestMessage }
 
 
 // ---------------------------------------------------------------------------

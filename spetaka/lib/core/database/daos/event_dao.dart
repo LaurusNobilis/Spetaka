@@ -98,4 +98,19 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
             updates: {events},
         );
     }
+
+  /// Returns the auto-created concern follow-up cadence event for [friendId],
+  /// or null if none exists.
+  ///
+  /// Story 9.1: identifies the event by the `comment` marker
+  /// 'Auto-created — concern follow-up'. Used by `FriendRepository.clearConcern`
+  /// to locate the event for atomic deletion.
+  Future<Event?> findConcernCadenceByFriendId(String friendId) =>
+      (select(events)
+            ..where(
+              (e) =>
+                  e.friendId.equals(friendId) &
+                  e.comment.equals('Auto-created — concern follow-up'),
+            ))
+          .getSingleOrNull();
 }

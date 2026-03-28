@@ -1,4 +1,4 @@
-# generated: 2026-02-26
+# generated: 2026-03-25 (updated: 2026-03-25 — Phase 2 sprint plan added by Bob)
 # project: Spetaka
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,13 +33,17 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-02-26
+generated: 2026-03-25
 project: Spetaka
 project_key: NOKEY
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
 development_status:
+  # =============================================================
+  # PHASE 1 — Foundation + Feature epics
+  # =============================================================
+
   epic-1: done
   1-1-flutter-project-scaffold-feature-first-architecture: done
   1-2-drift-database-foundation-migration-infrastructure: done
@@ -51,7 +55,7 @@ development_status:
   1-8-extend-field-encryption-name-mobile-nfr6-complete: done
   epic-1-retrospective: done
 
-  epic-2: in-progress
+  epic-2: done                                        # upgraded 2026-03-25: all 9 stories done
   2-1-friend-card-creation-via-phone-contact-import: done
   2-2-friend-card-creation-via-manual-entry: done
   2-3-category-tags-assignment: done
@@ -63,7 +67,7 @@ development_status:
   2-9-concern-preoccupation-flag: done
   epic-2-retrospective: optional
 
-  epic-3: in-progress
+  epic-3: done                                        # upgraded 2026-03-25: all 5 stories done
   3-1-add-a-dated-event-to-a-friend-card: done
   3-2-add-a-recurring-check-in-cadence: done
   3-3-edit-or-delete-an-event: done
@@ -78,7 +82,8 @@ development_status:
   4-4-coach-tone-greeting-line-density-control: done
   4-5-virtual-friend-sophie-first-launch-onboarding: done
   4-6-daily-view-inline-card-expansion-detail-access: done
-  4-7-swipe-navigation-daily-friends: review
+  # Story 4.7 added to epics.md on 2026-03-25 — doc debt resolved (cf. implementation-readiness-report-2026-03-25)
+  4-7-swipe-navigation-daily-friends: done
   epic-4-retrospective: optional
 
   epic-5: done
@@ -90,7 +95,8 @@ development_status:
   epic-5-retrospective: optional
 
   epic-6: done
-  # Phase 1: Local encrypted backup only (WebDAV → Phase 2)
+  # Phase 1: Local encrypted backup only (WebDAV → Phase 3)
+  # Note: story artifact is 6-5-encrypted-local-file-export-import.md (renamed from 6.1 internally)
   6-5-encrypted-local-file-export-import: done
   epic-6-retrospective: optional
 
@@ -98,23 +104,78 @@ development_status:
   7-1-complete-settings-screen: done
   7-2-offline-first-verification-graceful-degradation: done
   7-3-full-accessibility-audit-compliance: done
-  7-4-play-store-release-preparation: backlog
+  # RELEASE GATE: Start 7.4 after Story 4.7 reaches done
+  7-4-play-store-release-preparation: in-progress
   epic-7-retrospective: optional
 
-# =============================================================
-# PHASE 2 BACKLOG — WebDAV Sync (deferred from Phase 1)
-# Stories listed here are NOT scheduled. They will be scoped
-# and estimated before Phase 2 kick-off.
-# =============================================================
-phase-2-backlog:
-  p2-epic-6-webdav-config-ui-connection-test: backlog
-  p2-epic-6-webdav-sync-encrypt-upload: backlog
-  p2-epic-6-automatic-background-webdav-sync: backlog
-  p2-epic-6-full-restore-from-webdav-after-reinstall: backlog
+  # =============================================================
+  # PHASE 2 — Epics 8, 9, 10 — formally scoped 2026-03-25
+  # Sprint plan generated: 2026-03-25 (Bob — Scrum Master)
+  # Stories defined in epics.md (Phase 2 additions, lastUpdated 2026-03-25).
+  # Phase 2 kickoff gate: Story 4.7 done + Story 7.4 done (Play Store internal track)
+  # Suggested sequencing: Epic 8 → Epic 9 → Epic 10 (LLM last, largest infra)
+  # =============================================================
+
+  epic-8: in-progress
+  8-1-filter-friend-list-by-category-tags: done
+  8-2-search-friend-list-by-name: done
+  8-3-filter-friend-list-by-status: done
+  8-4-last-contact-display-on-card-and-list-tile: done
+  epic-8-retrospective: optional
+
+  epic-9: in-progress
+  9-1-auto-create-concern-follow-up-cadence-on-flag-activation: done
+  9-2-configurable-concern-cadence-interval-in-settings: done
+  epic-9-retrospective: optional
+
+  epic-10: done
+  10-1-llm-capability-check-model-download-gate-infrastructure: done
+  10-2-message-suggestion-draftmessagesheet-with-3-llm-variants: done
+  10-3-llm-enriched-daily-greeting-line: done
+  10-4-session-draft-auto-save-for-friend-form: done
+  epic-10-retrospective: optional
 
 # =============================================================
-# UX BACKLOG — Filtering & Discovery (deferred)
+# PHASE 2 BRAINSTORM BACKLOG — Pre-scope ideation (2026-03-25)
+# Items below were brainstormed before Epic 8/9/10 were formally
+# defined. Most are now covered by development_status above.
+# Items not yet covered by Epics 8–10 are kept here for Phase 2
+# refinement.
+# Superseded mappings:
+#   p2-filter-friends-list-by-tag         → 8-1
+#   p2-last-contact-visible-on-friend-card → 8-4
+#   p2-auto-followup-event-on-concern      → 9-1
+#   p2-draft-message-preparation-on-card  → 10-2
+#   p2-llm-draft-generation-from-event-context → 10-2
 # =============================================================
-ux-backlog:
-  ux-2-10-filter-friends-list-by-tag: backlog
-  ux-3-6-filter-friends-by-event-type: backlog
+phase-2-brainstorm-backlog:
+  # --- Not yet formally epiced ---
+  p2-filter-friends-by-event-type: backlog           # Filtrer amis par type d'événement (cf. UX-3.6)
+  p2-draft-rotation-for-recurring-cadences: backlog  # 3 variantes en rotation pour contacts récurrents
+  p2-llm-palette-vs-composer-mode: backlog           # Mode Compositeur vs Mode Palette (3-5 fragments)
+  p2-llm-personal-voice-library: backlog             # Fichier .md éditable (phrases perso) injecté dans prompt LLM
+
+# =============================================================
+# PHASE 3 BACKLOG — WebDAV Sync + Gamification + Expansion
+# Déféré de Phase 2 le 2026-03-25.
+# =============================================================
+phase-3-backlog:
+  # --- WebDAV Sync (déféré Phase 1 → Phase 2 → Phase 3) ---
+  p3-webdav-config-ui-connection-test: backlog
+  p3-webdav-sync-encrypt-upload: backlog
+  p3-webdav-automatic-background-sync: backlog
+  p3-webdav-full-restore-after-reinstall: backlog
+
+  # --- Gamification RPG ---
+  p3-rpg-character-stats-xp-or-du-coeur: backlog    # Personnage, PVR, XP, Or du Cœur
+  p3-rpg-4-classes-level-10: backlog                 # Tisseur, Le Présent, Le Mémoriel, Le Veilleur
+  p3-rpg-daily-quests: backlog                       # 3 quêtes générées à l'ouverture
+  p3-rpg-foret-des-liens: backlog                    # Forêt : chaque ami = graine qui grandit
+  p3-rpg-trophees: backlog                           # Trophées (jamais punitifs)
+  p3-rpg-boutique-du-gardien: backlog                # Thèmes visuels, avatars cosmétiques
+
+  # --- Expansion plateforme ---
+  p3-ios-port: backlog                               # iOS — Flutter shared codebase
+  p3-photos-on-friend-cards: backlog                 # Après WebDAV stable
+  p3-macos-companion-app: backlog                    # Après Android + iOS stables
+  p3-shared-friends-view-partner: backlog            # Vue amis partagée, opt-in, privé par défaut

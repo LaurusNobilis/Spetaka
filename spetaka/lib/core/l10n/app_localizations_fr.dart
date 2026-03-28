@@ -649,4 +649,180 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get heartBriefingTitle => 'Aperçu prioritaire';
+
+  @override
+  String get noFriendsWithTagsYet =>
+      'Aucun ami avec ces étiquettes pour le moment.';
+
+  @override
+  String get searchFriendsByName => 'Rechercher des amis par nom';
+
+  @override
+  String noFriendNamedSearch(String query) {
+    return 'Aucun ami nommé « $query » dans votre cercle.';
+  }
+
+  @override
+  String filterByTagSemantics(String tag, String state) {
+    return 'Filtrer par $tag, $state';
+  }
+
+  @override
+  String get chipStateSelected => 'sélectionné';
+
+  @override
+  String get chipStateNotSelected => 'non sélectionné';
+
+  @override
+  String get concernCadenceSectionTitle => 'Suivi de préoccupation';
+
+  @override
+  String get concernCadenceLabel => 'Cadence de suivi';
+
+  @override
+  String concernCadenceEveryNDays(int days) {
+    return 'Tous les $days jours';
+  }
+
+  @override
+  String get concernCadenceDefault => 'défaut';
+
+  @override
+  String get concernCadenceAppliesNote =>
+      'S\'applique aux nouvelles préoccupations — les cadences existantes ne sont pas modifiées.';
+
+  @override
+  String concernCadenceSemantics(int days, String state) {
+    return 'Cadence de préoccupation : Tous les $days jours, $state';
+  }
+
+  @override
+  String get draftResumingBanner => 'Reprise de votre brouillon';
+
+  @override
+  String lastContactLabel(String date) {
+    return 'Dernier contact : $date';
+  }
+
+  @override
+  String get draftDiscard => 'Annuler';
+
+  @override
+  String get modelDownloadTitle => 'Configuration IA';
+
+  @override
+  String get modelDownloadStorageRequired =>
+      'Cette fonctionnalité nécessite le téléchargement d\'un modèle IA (~2 Go). Assurez-vous d\'avoir suffisamment d\'espace de stockage.';
+
+  @override
+  String get modelDownloadButton => 'Télécharger le modèle';
+
+  @override
+  String get modelDownloadCancelButton => 'Annuler';
+
+  @override
+  String get modelDownloadRetryButton => 'Réessayer';
+
+  @override
+  String modelDownloadProgressSemantics(int percent) {
+    return 'Téléchargement du modèle IA, $percent pour cent terminé';
+  }
+
+  @override
+  String modelDownloadErrorMessage(String error) {
+    return 'Échec du téléchargement : $error';
+  }
+
+  @override
+  String get modelDownloadComplete =>
+      'Modèle IA prêt — vous pouvez maintenant utiliser les suggestions intelligentes.';
+
+  @override
+  String get modelDownloadOkButton => 'Terminer';
+
+  @override
+  String get statusFilterTooltip => 'Filtrer par statut';
+
+  @override
+  String statusFilterActiveSemantics(int count) {
+    return 'Filtrer par statut, $count actif(s)';
+  }
+
+  @override
+  String get statusFilterSheetTitle => 'Filtrer par statut';
+
+  @override
+  String get statusFilterActiveConcern => 'Préoccupation active';
+
+  @override
+  String get statusFilterOverdueEvent => 'Événement en retard';
+
+  @override
+  String get statusFilterNoRecentContact => 'Pas de contact récent';
+
+  @override
+  String get statusFilterClearAll => 'Effacer tous les filtres';
+
+  @override
+  String get noFriendsMatchingStatus =>
+      'Aucun ami ne correspond aux filtres actifs.';
+
+  // ---------------------------------------------------------------------------
+  // Story 10.2 — DraftMessageSheet l10n
+  // ---------------------------------------------------------------------------
+
+  @override
+  String get suggestMessageAction => 'Suggérer un message';
+
+  @override
+  String get draftMessageSheetTitle => 'Suggestions de message';
+
+  @override
+  String get draftMessageGenerating => 'Génération en cours...';
+
+  @override
+  String draftMessageEventHeader(String name, String eventContext) {
+    return 'Pour $name — $eventContext';
+  }
+
+  @override
+  String draftMessageVariantSemantics(int n, String preview) {
+    return 'Option de message $n : $preview';
+  }
+
+  @override
+  String get draftMessageChannelWhatsApp => 'WhatsApp';
+
+  @override
+  String get draftMessageChannelSms => 'SMS';
+
+  @override
+  String get draftMessageChannelWhatsAppSemantics => 'Envoyer via WhatsApp';
+
+  @override
+  String get draftMessageChannelSmsSemantics => 'Envoyer via SMS';
+
+  @override
+  String get draftMessageSendViaWhatsApp => 'Copier et envoyer via WhatsApp';
+
+  @override
+  String get draftMessageSendViaSms => 'Copier et envoyer via SMS';
+
+  @override
+  String get draftMessageDiscard => 'Annuler';
+
+  @override
+  String get draftMessageDiscardSemantics => 'Annuler la suggestion';
+
+  @override
+  String get draftMessageError =>
+      'Impossible de générer des suggestions pour le moment. Vous pouvez écrire votre message ci-dessous.';
+
+  @override
+  String get draftMessageGenerateMore => 'Générer plus';
+
+  @override
+  String draftMessageSendSemantics(String channel) {
+    return 'Copier et envoyer via $channel';
+  }
 }

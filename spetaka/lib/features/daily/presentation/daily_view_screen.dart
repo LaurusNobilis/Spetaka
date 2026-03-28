@@ -22,9 +22,10 @@ import '../../../features/acquittement/domain/pending_action_state.dart';
 import '../../../features/acquittement/presentation/acquittement_sheet.dart';
 import '../data/daily_view_provider.dart';
 import '../data/density_provider.dart';
-import '../domain/greeting_service.dart';
+import '../data/greeting_line_provider.dart';
 import '../domain/priority_engine.dart';
 import 'daily_text_helpers.dart';
+import 'greeting_line_widget.dart';
 import 'heart_briefing_widget.dart';
 
 const _kExpandDuration = Duration(milliseconds: 300);
@@ -45,6 +46,7 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
   String? _expandedFriendId;
   final ScrollController _scrollController = ScrollController();
   StreamSubscription<PendingActionState>? _pendingSub;
+  StreamSubscription<AppLifecycleState>? _lifecycleSub;
 
   Widget _navAction({
     required BuildContext context,
@@ -95,6 +97,10 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
           .read(appLifecycleServiceProvider)
           .pendingActionStream
           .listen(_onPendingAction);
+      _lifecycleSub = ref
+          .read(appLifecycleServiceProvider)
+          .lifecycleStates
+          .listen(_onLifecycleChanged);
     });
   }
 
@@ -119,9 +125,18 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
     });
   }
 
+  void _onLifecycleChanged(AppLifecycleState state) {
+    if (!mounted || state != AppLifecycleState.resumed) {
+      return;
+    }
+
+    ref.invalidate(greetingLineProvider);
+  }
+
   @override
   void dispose() {
     _pendingSub?.cancel();
+    _lifecycleSub?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -150,22 +165,6 @@ class _DailyViewScreenState extends ConsumerState<DailyViewScreen> {
         appBar: AppBar(
           title: Text(context.l10n.dailyTitle),
           actions: [
-            _navAction(
-              context: context,
-              label: context.l10n.navDaily,
-              icon: Icons.view_agenda_outlined,
-              tooltip: context.l10n.navDaily,
-              isCurrent: true,
-              onPressed: null,
-            ),
-            _navAction(
-              context: context,
-              label: context.l10n.navFriends,
-              icon: Icons.people_outline,
-              tooltip: context.l10n.navFriends,
-              isCurrent: false,
-              onPressed: () => const FriendsRoute().go(context),
-            ),
             _navAction(
               context: context,
               label: context.l10n.navSettings,
@@ -233,16 +232,10 @@ class _DailyList extends StatelessWidget {
       );
     }
 
-    final hasConcern = entries.any((e) => e.friend.isConcernActive);
-    final greeting = const GreetingService().greeting(
-      surfacedCount: entries.length,
-      hasConcern: hasConcern,
-    );
-
     return CustomScrollView(
       controller: scrollController,
       slivers: [
-        SliverToBoxAdapter(child: _GreetingBanner(greeting: greeting)),
+        const SliverToBoxAdapter(child: GreetingLineWidget()),
         SliverToBoxAdapter(child: HeartBriefingWidget(entries: entries)),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -261,34 +254,6 @@ class _DailyList extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 4.4 Greeting banner
-// ---------------------------------------------------------------------------
-
-class _GreetingBanner extends StatelessWidget {
-  const _GreetingBanner({required this.greeting});
-  final String greeting;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      label: greeting,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          greeting,
-          key: const Key('greeting_banner'),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ),
     );
   }
 }

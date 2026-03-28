@@ -63,7 +63,7 @@ import 'app_localizations_fr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr')
+    Locale('fr'),
   ];
 
   /// Application name
@@ -1261,6 +1261,298 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heart Briefing'**
   String get heartBriefingTitle;
+
+  /// Empty state when tag filter yields zero results — Story 8.1 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'No friends with these tags yet.'**
+  String get noFriendsWithTagsYet;
+
+  /// TalkBack label and hint for friend list search field — Story 8.2 AC6
+  ///
+  /// In en, this message translates to:
+  /// **'Search friends by name'**
+  String get searchFriendsByName;
+
+  /// Empty state when friend search yields no results — Story 8.2 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'No friend named \"{query}\" in your circle.'**
+  String noFriendNamedSearch(String query);
+
+  /// TalkBack content description for a tag filter chip — Story 8.1 AC7
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by {tag}, {state}'**
+  String filterByTagSemantics(String tag, String state);
+
+  /// Chip state for screen readers when a filter chip is selected
+  ///
+  /// In en, this message translates to:
+  /// **'selected'**
+  String get chipStateSelected;
+
+  /// Chip state for screen readers when a filter chip is not selected
+  ///
+  /// In en, this message translates to:
+  /// **'not selected'**
+  String get chipStateNotSelected;
+
+  /// Section heading for concern cadence settings — Story 9.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Concern Follow-up'**
+  String get concernCadenceSectionTitle;
+
+  /// Label for the concern cadence setting tile — Story 9.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up cadence'**
+  String get concernCadenceLabel;
+
+  /// Human-readable label for cadence interval — Story 9.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String concernCadenceEveryNDays(int days);
+
+  /// Suffix shown next to the default cadence option — Story 9.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'default'**
+  String get concernCadenceDefault;
+
+  /// Subtitle note clarifying cadence change scope — Story 9.2 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to new concern flags — existing cadences are not changed.'**
+  String get concernCadenceAppliesNote;
+
+  /// TalkBack content description for cadence option — Story 9.2 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Concern cadence: Every {days} days, {state}'**
+  String concernCadenceSemantics(int days, String state);
+
+  /// Banner message when a saved draft is restored — Story 10.4 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Resuming your draft'**
+  String get draftResumingBanner;
+
+  /// Secondary label showing the most recent contact date for a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Last contact: {date}'**
+  String lastContactLabel(String date);
+
+  /// Action button on draft banner to discard the draft — Story 10.4 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get draftDiscard;
+
+  /// Title of the model download screen — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model Setup'**
+  String get modelDownloadTitle;
+
+  /// Storage requirement notice on model download screen — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'This feature requires downloading an AI model (~2 GB). Make sure you have enough storage space.'**
+  String get modelDownloadStorageRequired;
+
+  /// Button to start AI model download — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Download model'**
+  String get modelDownloadButton;
+
+  /// Button to cancel in-progress AI model download — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get modelDownloadCancelButton;
+
+  /// Button to retry AI model download after error — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get modelDownloadRetryButton;
+
+  /// TalkBack label for download progress — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading AI model, {percent} percent complete'**
+  String modelDownloadProgressSemantics(int percent);
+
+  /// Error message when AI model download fails — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed: {error}'**
+  String modelDownloadErrorMessage(String error);
+
+  /// Success message after AI model download completes — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'AI model ready — you can now use smart suggestions.'**
+  String get modelDownloadComplete;
+
+  /// Button to dismiss the AI model ready screen — Story 10.1 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get modelDownloadOkButton;
+
+  /// Tooltip for the status filter funnel icon in the friends list AppBar — Story 8.3 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by status'**
+  String get statusFilterTooltip;
+
+  /// TalkBack label for the filter icon when one or more status filters are active — Story 8.3 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by status, {count} active'**
+  String statusFilterActiveSemantics(int count);
+
+  /// Title shown at the top of the status filter bottom sheet — Story 8.3 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by status'**
+  String get statusFilterSheetTitle;
+
+  /// Toggle label for isConcernActive filter in StatusFilterSheet — Story 8.3 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Active concern'**
+  String get statusFilterActiveConcern;
+
+  /// Toggle label for overdue-event filter in StatusFilterSheet — Story 8.3 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue event'**
+  String get statusFilterOverdueEvent;
+
+  /// Toggle label for no-recent-contact filter in StatusFilterSheet — Story 8.3 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'No recent contact'**
+  String get statusFilterNoRecentContact;
+
+  /// Button to reset all status filters in StatusFilterSheet — Story 8.3 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all filters'**
+  String get statusFilterClearAll;
+
+  /// Empty state shown when status filters yield zero results — Story 8.3 AC2
+  ///
+  /// In en, this message translates to:
+  /// **'No friends match the active filters.'**
+  String get noFriendsMatchingStatus;
+
+  // ---------------------------------------------------------------------------
+  // Story 10.2 — DraftMessageSheet l10n
+  // ---------------------------------------------------------------------------
+
+  /// Popup menu item label for "Suggest message" action on event row — Story 10.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest message'**
+  String get suggestMessageAction;
+
+  /// Title of the DraftMessageSheet bottom sheet — Story 10.2 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'Message suggestions'**
+  String get draftMessageSheetTitle;
+
+  /// Loading body placeholder text in DraftMessageSheet — Story 10.2 AC1
+  ///
+  /// In en, this message translates to:
+  /// **'Generating...'**
+  String get draftMessageGenerating;
+
+  /// Event context header in DraftMessageSheet — Story 10.2 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'For {name} — {eventContext}'**
+  String draftMessageEventHeader(String name, String eventContext);
+
+  /// Semantics label for variant cards — Story 10.2 AC8
+  ///
+  /// In en, this message translates to:
+  /// **'Message option {n}: {preview}'**
+  String draftMessageVariantSemantics(int n, String preview);
+
+  /// Channel chip label for WhatsApp — Story 10.2 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get draftMessageChannelWhatsApp;
+
+  /// Channel chip label for SMS — Story 10.2 AC3
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get draftMessageChannelSms;
+
+  /// Semantics label for the WhatsApp channel chip — Story 10.2 AC8
+  ///
+  /// In en, this message translates to:
+  /// **'Send via WhatsApp'**
+  String get draftMessageChannelWhatsAppSemantics;
+
+  /// Semantics label for the SMS channel chip — Story 10.2 AC8
+  ///
+  /// In en, this message translates to:
+  /// **'Send via SMS'**
+  String get draftMessageChannelSmsSemantics;
+
+  /// Confirm button label when WhatsApp channel is selected — Story 10.2 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'Copy & Send via WhatsApp'**
+  String get draftMessageSendViaWhatsApp;
+
+  /// Confirm button label when SMS channel is selected — Story 10.2 AC4
+  ///
+  /// In en, this message translates to:
+  /// **'Copy & Send via SMS'**
+  String get draftMessageSendViaSms;
+
+  /// Discard button label — Story 10.2 AC5
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get draftMessageDiscard;
+
+  /// Semantics label for discard button — Story 10.2 AC8
+  ///
+  /// In en, this message translates to:
+  /// **'Discard suggestion'**
+  String get draftMessageDiscardSemantics;
+
+  /// Error state message when no suggestions were generated — Story 10.2 AC6
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate suggestions right now. You can write your own message below.'**
+  String get draftMessageError;
+
+  /// "Generate more" button in DraftMessageSheet when < 3 variants — Story 10.2 AC2
+  ///
+  /// In en, this message translates to:
+  /// **'Generate more'**
+  String get draftMessageGenerateMore;
+
+  /// Semantics label for the confirm / send button — Story 10.2 AC8
+  ///
+  /// In en, this message translates to:
+  /// **'Copy and send via {channel}'**
+  String draftMessageSendSemantics(String channel);
 }
 
 class _AppLocalizationsDelegate
@@ -1290,8 +1582,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

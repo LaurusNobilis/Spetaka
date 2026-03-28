@@ -113,7 +113,7 @@ Every push to `main` (or manual `workflow_dispatch`) produces:
 Both artifacts are retained for 30 days.
 
 The build is signed when the `SIGNING_KEYSTORE_B64` secret is present; otherwise
-it falls back to the debug key (unsigned for CI PRs from forks, etc.).
+it falls back to the debug key (debug-signed for CI PRs from forks, etc.).
 
 ---
 

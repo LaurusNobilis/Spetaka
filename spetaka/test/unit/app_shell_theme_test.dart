@@ -103,15 +103,26 @@ void main() {
   // ── appRouter ───────────────────────────────────────────────────────────
 
   group('appRouter routes', () {
-    RouteBase? findRoute(List<RouteBase> routes, String path) {
+    String joinRoutePath(String prefix, String segment) {
+      if (segment.isEmpty) return prefix;
+      if (segment.startsWith('/')) return segment;
+      if (prefix.isEmpty || prefix == '/') return '/$segment';
+      return '$prefix/$segment';
+    }
+
+    RouteBase? findRoute(List<RouteBase> routes, String path, {String prefix = ''}) {
       for (final r in routes) {
         if (r is ShellRoute) {
-          final found = findRoute(r.routes, path);
+          final found = findRoute(r.routes, path, prefix: prefix);
           if (found != null) return found;
         }
-        if (r is GoRoute && r.path == path) return r;
+        if (r is GoRoute && joinRoutePath(prefix, r.path) == path) return r;
         if (r is GoRoute && r.routes.isNotEmpty) {
-          final found = findRoute(r.routes, path);
+          final found = findRoute(
+            r.routes,
+            path,
+            prefix: joinRoutePath(prefix, r.path),
+          );
           if (found != null) return found;
         }
       }
@@ -144,7 +155,7 @@ void main() {
     });
 
     test('settings/sync route exists', () {
-      final found = findRoute(appRouter.configuration.routes, 'sync');
+      final found = findRoute(appRouter.configuration.routes, '/settings/sync');
       expect(found, isNotNull);
     });
   });
@@ -168,6 +179,9 @@ void main() {
             allFriendsProvider.overrideWith(
               (ref) => Stream<List<Friend>>.value(const <Friend>[]),
             ),
+            lastContactByFriendProvider.overrideWith(
+              (_) => Stream<Map<String, int>>.value(const <String, int>{}),
+            ),
             watchPriorityInputEventsProvider.overrideWith(
               (ref) => Stream<List<Event>>.value(const <Event>[]),
             ),
@@ -184,6 +198,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    Future<void> settleShellNavigation(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
     testWidgets('can navigate to / (Daily)', (tester) async {
       final router = createAppRouter();
       await pumpAppWithRouter(tester, router);
@@ -196,7 +216,7 @@ void main() {
       // navigation-only test. Story 2.2 AC5 is covered by widget tests.
       await pumpAppWithRouter(tester, router, stubFriendsList: true);
       router.go(const FriendsRoute().location);
-      await tester.pumpAndSettle();
+      await settleShellNavigation(tester);
       expect(find.text('Friends'), findsAtLeastNWidgets(1));
     });
 
@@ -204,7 +224,7 @@ void main() {
       final router = createAppRouter();
       await pumpAppWithRouter(tester, router, stubFriendsList: true);
       router.go(const NewFriendRoute().location);
-      await tester.pumpAndSettle();
+      await settleShellNavigation(tester);
       expect(find.text('Add Friend'), findsAtLeastNWidgets(1));
     });
 
@@ -241,6 +261,9 @@ void main() {
             friendRepositoryProvider.overrideWithValue(repo),
             allFriendsProvider.overrideWith(
               (ref) => Stream<List<Friend>>.value(const <Friend>[]),
+            ),
+            lastContactByFriendProvider.overrideWith(
+              (_) => Stream<Map<String, int>>.value(const <String, int>{}),
             ),
             // Story 4.2: DailyViewScreen (root route, beneath the stack)
             // watches this provider; stub it to prevent Drift timer leaks.
@@ -286,7 +309,7 @@ void main() {
       final router = createAppRouter();
       await pumpAppWithRouter(tester, router);
       router.go(const SettingsRoute().location);
-      await tester.pumpAndSettle();
+      await settleShellNavigation(tester);
       expect(find.text('Settings'), findsAtLeastNWidgets(1));
     });
 
@@ -294,7 +317,7 @@ void main() {
       final router = createAppRouter();
       await pumpAppWithRouter(tester, router);
       router.go(const SettingsSyncRoute().location);
-      await tester.pumpAndSettle();
+      await settleShellNavigation(tester);
       expect(find.text('Sync & Backup'), findsAtLeastNWidgets(1));
     });
   });

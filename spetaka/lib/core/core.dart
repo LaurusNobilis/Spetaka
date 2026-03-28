@@ -7,6 +7,13 @@ export 'actions/contact_action_service.dart';
 // Phone normalization — Story 1.5.
 // PhoneNormalizer is the ONLY phone-number formatting / parsing entrypoint.
 export 'actions/phone_normalizer.dart';
+// AI module — Story 10.1.
+// On-device LLM infrastructure: capability check, model management, inference.
+export 'ai/ai_capability_checker.dart';
+export 'ai/greeting_service.dart';
+export 'ai/llm_inference_service.dart';
+export 'ai/model_manager.dart';
+export 'ai/prompt_templates.dart';
 // Database — Story 1.2.
 // Only AppDatabase is exported; DAOs are internal to the repository layer.
 export 'database/app_database.dart';

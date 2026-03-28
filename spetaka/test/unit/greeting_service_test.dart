@@ -3,7 +3,7 @@
 // Pure Dart — no Flutter dependencies.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spetaka/features/daily/domain/greeting_service.dart';
+import 'package:spetaka/core/ai/greeting_service.dart';
 
 void main() {
   const service = GreetingService(userName: 'Laurus');
