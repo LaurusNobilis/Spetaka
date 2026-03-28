@@ -22,7 +22,10 @@ import 'package:spetaka/features/drafts/providers/draft_message_providers.dart';
 // ---------------------------------------------------------------------------
 
 typedef _Generator = Future<DraftMessage> Function(
-    String friendId, Event event, String channel);
+  String friendId,
+  Event event,
+  String channel,
+);
 
 /// Wraps [DraftMessageNotifier] and replaces the repo call with [_generator].
 /// All other state-machine methods (selectVariant, updateEditedText, clear)

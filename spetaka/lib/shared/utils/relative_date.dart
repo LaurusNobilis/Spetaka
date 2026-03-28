@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 /// Formats a recent date into a small, localized relative string.
 ///
 /// Story 8.4 keeps this helper dependency-light and testable while still

@@ -8,7 +8,6 @@ import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/encryption/encryption_service.dart';
 import 'package:spetaka/core/l10n/app_localizations.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
-import 'package:spetaka/core/router/app_route_types.dart';
 import 'package:spetaka/core/router/app_router.dart';
 import 'package:spetaka/features/acquittement/data/acquittement_providers.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
@@ -866,7 +865,7 @@ void main() {
         isDemo: false,
         createdAt: now,
         updatedAt: now,
-      ));
+      ),);
 
       // Use the real createAppRouter so AppShellScreen is in the tree.
       final router = createAppRouter();
@@ -897,7 +896,7 @@ void main() {
                 isDemo: false,
                 createdAt: now,
                 updatedAt: now,
-              )),
+              ),),
             ),
             watchEventsByFriendProvider(friendId).overrideWith(
               (_) => Stream<List<Event>>.value(const <Event>[]),
@@ -925,14 +924,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      router.push(FriendDetailRoute(friendId).location);
+      router.push(const FriendDetailRoute(friendId).location);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Shell Edit Before'), findsAtLeastNWidgets(1));
 
       // Push edit overlay on top.
-      router.push(EditFriendRoute(friendId).location);
+      router.push(const EditFriendRoute(friendId).location);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump();

@@ -191,7 +191,7 @@ void main() {
 
       expect(find.text('Daily'), findsOneWidget);
 
-      router.push(FriendDetailRoute(friendId).location);
+      router.push(const FriendDetailRoute(friendId).location);
       await settleShell(tester);
 
       expect(find.text('Alice Example'), findsAtLeastNWidgets(1));
@@ -293,7 +293,7 @@ void main() {
       expect(find.text('Friends'), findsOneWidget);
 
       // Push add-event overlay.
-      router.push(AddEventRoute(friendId).location);
+      router.push(const AddEventRoute(friendId).location);
       await settleShell(tester);
 
       expect(find.text('Add Event'), findsAtLeastNWidgets(1));
@@ -342,7 +342,7 @@ void main() {
       expect(find.text('Friends'), findsOneWidget);
 
       // Push edit-event overlay, passing the event via router extra.
-      router.push(EditEventRoute(friendId: friendId, eventId: eventId).location, extra: event);
+      router.push(const EditEventRoute(friendId: friendId, eventId: eventId).location, extra: event);
       await settleShell(tester);
 
       expect(find.text('Edit Event'), findsAtLeastNWidgets(1));

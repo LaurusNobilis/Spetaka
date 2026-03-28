@@ -615,10 +615,13 @@ void main() {
         await repo.update(friend.copyWith(
           isConcernActive: true,
           updatedAt: friend.updatedAt + 1,
-        ));
+        ),);
 
         // Should not throw even though no auto-cadence event exists.
-        await expectLater(repo.clearConcern(friend.id), completes);
+        await expectLater(
+          repo.clearConcern(friend.id),
+          completes,
+        );
 
         final found = await repo.findById(friend.id);
         expect(found!.isConcernActive, isFalse);
