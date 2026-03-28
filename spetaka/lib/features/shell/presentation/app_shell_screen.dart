@@ -6,13 +6,18 @@ import '../../daily/presentation/daily_view_screen.dart';
 import '../../friends/presentation/friends_list_screen.dart';
 
 class AppShellController {
-  const AppShellController({
+  AppShellController({
     required this.currentIndex,
     required this.animateToPage,
   });
 
   final int currentIndex;
   final void Function(int index) animateToPage;
+
+  /// Set by a child PopScope (e.g. FriendsListScreen search) when it handles
+  /// a pop event. The shell's PopScope checks this flag in a post-frame
+  /// callback to avoid double-handling.
+  bool popHandledByChild = false;
 
   void showDaily() => animateToPage(0);
 
@@ -159,7 +164,16 @@ class _AppShellScreenState extends State<AppShellScreen> {
           if (didPop) return;
           if (routerCanPop) return;
           if (_currentIndex != 1) return;
-          _animateToPage(0);
+          // Defer so child PopScopes (e.g. search clear) can set
+          // popHandledByChild before we act.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            if (controller.popHandledByChild) {
+              controller.popHandledByChild = false;
+              return;
+            }
+            _animateToPage(0);
+          });
         },
         child: Stack(
           children: [

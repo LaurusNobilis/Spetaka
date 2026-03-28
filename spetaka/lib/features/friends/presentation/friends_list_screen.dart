@@ -11,6 +11,7 @@ import '../../../shared/theme/app_tokens.dart';
 import '../../../shared/utils/relative_date.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_widget.dart';
+import '../../shell/presentation/app_shell_screen.dart';
 import '../data/friends_providers.dart';
 import '../domain/friend_tags_codec.dart';
 
@@ -66,12 +67,15 @@ class _FriendsListScreenState extends ConsumerState<FriendsListScreen> {
   }
 
   void _scheduleSearchResetIfHidden(BuildContext context) {
-    final isHostedInShell =
-        context.findAncestorWidgetOfExactType<PageView>() != null;
-    if (!isHostedInShell) return;
+    final shell = AppShellScope.maybeOf(context);
+    if (shell == null) return;
 
     final location = GoRouterState.of(context).uri.path;
-    final isVisibleOnFriendsRoute = location == const FriendsRoute().location;
+    final route = ModalRoute.of(context);
+    final isVisibleOnFriendsRoute =
+        shell.currentIndex == 1 &&
+        location == const FriendsRoute().location &&
+        (route?.isCurrent ?? true);
     final hasSearchState =
         _isSearchActive ||
         _searchController.text.isNotEmpty ||
@@ -144,6 +148,7 @@ class _FriendsListScreenState extends ConsumerState<FriendsListScreen> {
       canPop: !_isSearchActive,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && _isSearchActive) {
+          AppShellScope.maybeOf(context)?.popHandledByChild = true;
           _clearSearch();
         }
       },

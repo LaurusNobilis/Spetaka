@@ -67,9 +67,7 @@ Widget buildHarness({required List<Friend> friends}) {
 }
 
 Future<void> settleShell(WidgetTester tester) async {
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 300));
-  await tester.pump(const Duration(milliseconds: 300));
+  await tester.pumpAndSettle();
 }
 
 Future<GoRouter> pumpShellHarness(
@@ -101,9 +99,9 @@ Future<GoRouter> pumpShellHarness(
     ),
   );
 
-  await settleShell(tester);
-  await tester.drag(find.byType(PageView), const Offset(-400, 0));
-  await settleShell(tester);
+  await tester.pumpAndSettle();
+  await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+  await tester.pumpAndSettle();
 
   return router;
 }
@@ -295,11 +293,11 @@ void main() {
       expect(find.text('Alice'), findsOneWidget);
       expect(find.text('Bob'), findsNothing);
 
-      await tester.drag(find.byType(PageView), const Offset(400, 0));
+      await tester.fling(find.byType(PageView), const Offset(400, 0), 1000);
       await settleShell(tester);
       expect(find.text('Daily'), findsOneWidget);
 
-      await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
       await settleShell(tester);
 
       expect(find.text('Friends'), findsOneWidget);
