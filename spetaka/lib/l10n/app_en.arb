@@ -1002,5 +1002,81 @@
   "noFriendsMatchingStatus": "No friends match the active filters.",
   "@noFriendsMatchingStatus": {
     "description": "Empty state shown when status filters yield zero results — Story 8.3 AC2"
+  },
+
+  "suggestMessageAction": "Suggest message",
+  "@suggestMessageAction": {
+    "description": "Popup menu item label for 'Suggest message' action on event row — Story 10.2 AC1"
+  },
+  "draftMessageSheetTitle": "Message suggestions",
+  "@draftMessageSheetTitle": {
+    "description": "Title of the DraftMessageSheet bottom sheet — Story 10.2 AC3"
+  },
+  "draftMessageGenerating": "Generating...",
+  "@draftMessageGenerating": {
+    "description": "Loading body placeholder text in DraftMessageSheet — Story 10.2 AC1"
+  },
+  "draftMessageEventHeader": "For {name} — {eventContext}",
+  "@draftMessageEventHeader": {
+    "description": "Event context header in DraftMessageSheet — Story 10.2 AC3",
+    "placeholders": {
+      "name": { "type": "String" },
+      "eventContext": { "type": "String" }
+    }
+  },
+  "draftMessageVariantSemantics": "Message option {n}: {preview}",
+  "@draftMessageVariantSemantics": {
+    "description": "Semantics label for variant cards — Story 10.2 AC8",
+    "placeholders": {
+      "n": { "type": "int" },
+      "preview": { "type": "String" }
+    }
+  },
+  "draftMessageChannelWhatsApp": "WhatsApp",
+  "@draftMessageChannelWhatsApp": {
+    "description": "Channel chip label for WhatsApp — Story 10.2 AC3"
+  },
+  "draftMessageChannelSms": "SMS",
+  "@draftMessageChannelSms": {
+    "description": "Channel chip label for SMS — Story 10.2 AC3"
+  },
+  "draftMessageChannelWhatsAppSemantics": "Send via WhatsApp",
+  "@draftMessageChannelWhatsAppSemantics": {
+    "description": "Semantics label for the WhatsApp channel chip — Story 10.2 AC8"
+  },
+  "draftMessageChannelSmsSemantics": "Send via SMS",
+  "@draftMessageChannelSmsSemantics": {
+    "description": "Semantics label for the SMS channel chip — Story 10.2 AC8"
+  },
+  "draftMessageSendViaWhatsApp": "Copy & Send via WhatsApp",
+  "@draftMessageSendViaWhatsApp": {
+    "description": "Confirm button label when WhatsApp channel is selected — Story 10.2 AC4"
+  },
+  "draftMessageSendViaSms": "Copy & Send via SMS",
+  "@draftMessageSendViaSms": {
+    "description": "Confirm button label when SMS channel is selected — Story 10.2 AC4"
+  },
+  "draftMessageDiscard": "Discard",
+  "@draftMessageDiscard": {
+    "description": "Discard button label — Story 10.2 AC5"
+  },
+  "draftMessageDiscardSemantics": "Discard suggestion",
+  "@draftMessageDiscardSemantics": {
+    "description": "Semantics label for discard button — Story 10.2 AC8"
+  },
+  "draftMessageError": "Couldn't generate suggestions right now. You can write your own message below.",
+  "@draftMessageError": {
+    "description": "Error state message when no suggestions were generated — Story 10.2 AC6"
+  },
+  "draftMessageGenerateMore": "Generate more",
+  "@draftMessageGenerateMore": {
+    "description": "'Generate more' button in DraftMessageSheet when < 3 variants — Story 10.2 AC2"
+  },
+  "draftMessageSendSemantics": "Copy and send via {channel}",
+  "@draftMessageSendSemantics": {
+    "description": "Semantics label for the confirm / send button — Story 10.2 AC8",
+    "placeholders": {
+      "channel": { "type": "String" }
+    }
   }
 }

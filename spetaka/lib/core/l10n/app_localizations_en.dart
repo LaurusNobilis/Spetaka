@@ -754,10 +754,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noFriendsMatchingStatus => 'No friends match the active filters.';
 
-  // ---------------------------------------------------------------------------
-  // Story 10.2 — DraftMessageSheet l10n
-  // ---------------------------------------------------------------------------
-
   @override
   String get suggestMessageAction => 'Suggest message';
 
@@ -803,7 +799,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get draftMessageError =>
-      "Couldn't generate suggestions right now. You can write your own message below.";
+      'Couldn\'t generate suggestions right now. You can write your own message below.';
 
   @override
   String get draftMessageGenerateMore => 'Generate more';

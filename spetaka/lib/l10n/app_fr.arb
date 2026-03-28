@@ -225,5 +225,22 @@
   "statusFilterOverdueEvent": "Événement en retard",
   "statusFilterNoRecentContact": "Pas de contact récent",
   "statusFilterClearAll": "Effacer tous les filtres",
-  "noFriendsMatchingStatus": "Aucun ami ne correspond aux filtres actifs."
+  "noFriendsMatchingStatus": "Aucun ami ne correspond aux filtres actifs.",
+
+  "suggestMessageAction": "Suggérer un message",
+  "draftMessageSheetTitle": "Suggestions de message",
+  "draftMessageGenerating": "Génération en cours...",
+  "draftMessageEventHeader": "Pour {name} — {eventContext}",
+  "draftMessageVariantSemantics": "Option de message {n} : {preview}",
+  "draftMessageChannelWhatsApp": "WhatsApp",
+  "draftMessageChannelSms": "SMS",
+  "draftMessageChannelWhatsAppSemantics": "Envoyer via WhatsApp",
+  "draftMessageChannelSmsSemantics": "Envoyer via SMS",
+  "draftMessageSendViaWhatsApp": "Copier et envoyer via WhatsApp",
+  "draftMessageSendViaSms": "Copier et envoyer via SMS",
+  "draftMessageDiscard": "Annuler",
+  "draftMessageDiscardSemantics": "Annuler la suggestion",
+  "draftMessageError": "Impossible de générer des suggestions pour le moment. Vous pouvez écrire votre message ci-dessous.",
+  "draftMessageGenerateMore": "Générer plus",
+  "draftMessageSendSemantics": "Copier et envoyer via {channel}"
 }

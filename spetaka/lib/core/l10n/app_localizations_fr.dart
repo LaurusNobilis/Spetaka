@@ -767,10 +767,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noFriendsMatchingStatus =>
       'Aucun ami ne correspond aux filtres actifs.';
 
-  // ---------------------------------------------------------------------------
-  // Story 10.2 — DraftMessageSheet l10n
-  // ---------------------------------------------------------------------------
-
   @override
   String get suggestMessageAction => 'Suggérer un message';
 
