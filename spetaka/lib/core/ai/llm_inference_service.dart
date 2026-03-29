@@ -146,6 +146,11 @@ class LlmInferenceService {
   /// Each yielded [String] is an incremental token (delta). Callers must
   /// accumulate tokens to obtain the full response.
   ///
+  /// A **per-token timeout of 3 minutes** is enforced: if the native backend
+  /// produces no token for 3 consecutive minutes the stream is closed
+  /// gracefully. This prevents infinite hangs when the LiteRT backend stalls
+  /// silently (observed on some devices).
+  ///
   /// Serialized with [infer] via the same lock — only one inference runs at
   /// a time. Stream closes on error (never throws).
   Stream<String> inferStream(String prompt) async* {
@@ -167,7 +172,19 @@ class LlmInferenceService {
       _model ??= await FlutterGemma.getActiveModel();
       final chat = await _model!.createChat();
       await chat.addQuery(Message.text(text: prompt, isUser: true));
-      await for (final response in chat.generateChatResponseAsync()) {
+
+      // Per-token timeout: if the native inference engine produces no new
+      // token for 3 minutes, close the stream rather than hanging forever.
+      await for (final response in chat.generateChatResponseAsync().timeout(
+        const Duration(minutes: 3),
+        onTimeout: (sink) {
+          dev.log(
+            'LlmInferenceService: no token for 3 min — closing stream',
+            name: 'ai.inference',
+          );
+          sink.close();
+        },
+      )) {
         if (response is TextResponse) {
           yield response.token;
         }
