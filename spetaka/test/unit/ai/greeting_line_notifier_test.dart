@@ -8,10 +8,17 @@ import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/features/daily/data/daily_view_provider.dart';
 import 'package:spetaka/features/daily/data/greeting_line_provider.dart';
 import 'package:spetaka/features/daily/domain/priority_engine.dart';
+import 'package:spetaka/features/settings/data/pseudo_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Fake PseudoNotifier — avoids SharedPreferences in unit tests.
+class _FakePseudoNotifier extends PseudoNotifier {
+  @override
+  String build() => 'Laurus';
+}
 
 DailyViewEntry _entry({
   String id = 'test-id',
@@ -103,6 +110,7 @@ void main() {
         () async {
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           watchDailyViewProvider.overrideWith((_) => AsyncData([_entry()])),
           modelManagerProvider.overrideWith(
             () => _FakeModelManagerNotifier(
@@ -143,6 +151,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           watchDailyViewProvider.overrideWith((_) => AsyncData([_entry()])),
           modelManagerProvider.overrideWith(
             () => _FakeModelManagerNotifier(
@@ -184,6 +193,7 @@ void main() {
     test('AC3 — static retained when LLM returns empty list', () async {
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           watchDailyViewProvider.overrideWith((_) => AsyncData([_entry()])),
           modelManagerProvider.overrideWith(
             () => _FakeModelManagerNotifier(
@@ -222,6 +232,7 @@ void main() {
     test('AC5 — provider always returns String, never throws', () async {
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           watchDailyViewProvider
               .overrideWith((_) => const AsyncData(<DailyViewEntry>[])),
           modelManagerProvider.overrideWith(
@@ -255,6 +266,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           _testDailyViewProvider.overrideWith(
             () => _SeededTestDailyViewNotifier(
               initialState: AsyncData([_entry()]),
@@ -305,6 +317,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           _testDailyViewProvider.overrideWith(
             () => _SeededTestDailyViewNotifier(
               initialState: AsyncData([_entry(id: 'a')]),
@@ -353,6 +366,7 @@ void main() {
     test('ignores invalid LLM output and keeps static fallback', () async {
       final container = ProviderContainer(
         overrides: [
+          pseudoProvider.overrideWith(() => _FakePseudoNotifier()),
           watchDailyViewProvider.overrideWith((_) => AsyncData([_entry()])),
           modelManagerProvider.overrideWith(
             () => _FakeModelManagerNotifier(
