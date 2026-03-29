@@ -1,7 +1,11 @@
 // LlmInferenceService — Story 10.1 (AC7)
 //
 // Singleton wrapper around flutter_gemma inference.
-// - 30-second timeout — returns empty list on timeout, never throws.
+// - 5-minute timeout — returns empty list on timeout, never throws.
+//   (Loading the 2 GB model into native memory on first use can take
+//   20-40 s on mid-range phones; previous 30 s limit was too aggressive.)
+// - warmUp() pre-loads the model in the background so the first inference
+//   call is fast.
 // - Concurrent calls are serialized via Completer queue.
 // - Air-gapped: zero network calls (NFR19).
 
@@ -15,7 +19,7 @@ part 'llm_inference_service.g.dart';
 
 /// On-device LLM inference service.
 ///
-/// A 30-second timeout is enforced: on timeout the method returns an empty
+/// A 5-minute timeout is enforced: on timeout the method returns an empty
 /// `List<String>`.
 ///
 /// Multiple concurrent [infer] calls are queued (serialized), not
@@ -23,7 +27,7 @@ part 'llm_inference_service.g.dart';
 class LlmInferenceService {
   LlmInferenceService({
     Future<List<String>> Function(String prompt)? inferenceRunner,
-    Duration timeout = const Duration(seconds: 30),
+    Duration timeout = const Duration(minutes: 5),
   })  : _inferenceRunner = inferenceRunner,
         _timeout = timeout;
 
@@ -36,6 +40,28 @@ class LlmInferenceService {
 
   /// Lock to serialize concurrent inference calls.
   Completer<void>? _lock;
+
+  /// Pre-loads the native model into memory without running inference.
+  ///
+  /// Call this as soon as the model file is ready (ModelReady state) so that
+  /// the first real [infer] call does not pay the cold-start penalty
+  /// (loading a 2 GB file into native memory can take 20-40 s on mid-range
+  /// phones).
+  ///
+  /// Never throws — errors are swallowed and logged.
+  Future<void> warmUp() async {
+    if (_inferenceRunner != null || _model != null) return;
+    try {
+      dev.log('LlmInferenceService: warming up model…', name: 'ai.inference');
+      _model = await FlutterGemma.getActiveModel();
+      dev.log('LlmInferenceService: warm-up complete', name: 'ai.inference');
+    } catch (e) {
+      dev.log(
+        'LlmInferenceService: warm-up failed — $e',
+        name: 'ai.inference',
+      );
+    }
+  }
 
   /// Runs inference with the given [prompt] and returns suggested responses.
   ///

@@ -11,6 +11,8 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'llm_inference_service.dart';
+
 part 'model_manager.g.dart';
 
 // ── ModelDownloadState sealed class ────────────────────────────────────────
@@ -291,9 +293,22 @@ class ModelManagerNotifier extends _$ModelManagerNotifier {
     _initialized = true;
     _stateSubscription = _manager.stateStream.listen((nextState) {
       state = nextState;
+      // Pre-load the native model as soon as it is ready so the first
+      // inference call doesn't pay the cold-start penalty.
+      if (nextState is ModelReady) {
+        unawaited(
+          ref.read(llmInferenceServiceProvider).warmUp(),
+        );
+      }
     });
     await _manager.checkExistingModel();
     state = _manager.currentState;
+    // Also warm up if the model was already on disk on this launch.
+    if (_manager.currentState is ModelReady) {
+      unawaited(
+        ref.read(llmInferenceServiceProvider).warmUp(),
+      );
+    }
   }
 
   /// Whether the model is downloaded and ready.
