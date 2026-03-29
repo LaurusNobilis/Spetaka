@@ -101,14 +101,16 @@ jobs:
         run: |
           flutter build apk --release \
             --target-platform android-arm64 \
-            --build-number ${{ github.run_number }}
+            --build-number ${{ github.run_number }} \
+            --dart-define=SPETAKA_HF_TOKEN=${{ secrets.SPETAKA_HF_TOKEN }}
 
       # ── Build release AAB for Play Store (AC: 1, 4) ───────────────────────
       - name: Build release AAB (Play Store)
         working-directory: spetaka
         run: |
           flutter build appbundle --release \
-            --build-number ${{ github.run_number }}
+            --build-number ${{ github.run_number }} \
+            --dart-define=SPETAKA_HF_TOKEN=${{ secrets.SPETAKA_HF_TOKEN }}
 
       # ── Upload APK artifact ───────────────────────────────────────────────
       - name: Upload APK

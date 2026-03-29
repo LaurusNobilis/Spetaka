@@ -51,6 +51,7 @@ Add the following secrets in **GitHub → Settings → Secrets and variables →
 | `SIGNING_STORE_PASSWORD` | Store password used during keytool generation |
 | `SIGNING_KEY_PASSWORD` | Key password used during keytool generation |
 | `SIGNING_KEY_ALIAS` | `upload` (as set with `-alias` above) |
+| `SPETAKA_HF_TOKEN` | Hugging Face access token (`hf_...`) — required for on-device LLM model download (Gemma 3n is a gated model). Generate at https://huggingface.co/settings/tokens (type: `Read`). You must also accept the model license at https://huggingface.co/google/gemma-3n-E2B-it-litert-preview before the token works. |
 
 Generate the base64 value:
 ```bash
@@ -91,15 +92,21 @@ use your upload key to authenticate uploads.**
 cd spetaka
 
 # Ensure key.properties is present (see Section 1)
-flutter build appbundle --release --build-number <manual_number>
+# --dart-define injects the Hugging Face token for LLM model download (see Section 2)
+flutter build appbundle --release --build-number <manual_number> \
+  --dart-define=SPETAKA_HF_TOKEN=hf_YOUR_TOKEN_HERE
 # Output: build/app/outputs/bundle/release/app-release.aab
 ```
 
 For APK (sideloading / Samsung S25 validation):
 ```bash
-flutter build apk --release --target-platform android-arm64 --build-number <manual_number>
+flutter build apk --release --target-platform android-arm64 --build-number <manual_number> \
+  --dart-define=SPETAKA_HF_TOKEN=hf_YOUR_TOKEN_HERE
 # Output: build/app/outputs/flutter-apk/app-release.apk
 ```
+
+> **Without `SPETAKA_HF_TOKEN`:** The app builds and runs fine, but users will get
+> an HTTP 401 error when attempting to download the AI model from Hugging Face.
 
 ---
 
