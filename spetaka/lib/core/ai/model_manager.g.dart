@@ -45,7 +45,7 @@ final class ModelManagerNotifierProvider
 }
 
 String _$modelManagerNotifierHash() =>
-    r'c3bff25391c8a5da3c4aff7a49850e2828711168';
+    r'282a190f9adf8252ba05f0478b6484c378a71895';
 
 /// Riverpod stream provider for reactive UI updates.
 
