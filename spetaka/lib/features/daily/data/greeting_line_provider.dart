@@ -16,6 +16,7 @@ import '../../../core/ai/greeting_service.dart';
 import '../../../core/ai/llm_inference_service.dart';
 import '../../../core/ai/model_manager.dart';
 import '../../../core/ai/prompt_templates.dart';
+import '../../settings/data/pseudo_provider.dart';
 import '../domain/priority_engine.dart';
 import 'daily_view_provider.dart';
 
@@ -30,6 +31,7 @@ class GreetingLineNotifier extends _$GreetingLineNotifier {
   String build() {
     final dailyAsync = ref.watch(watchDailyViewProvider);
     final modelState = ref.watch(modelManagerProvider);
+    final userName = ref.watch(pseudoProvider);
     final entries = dailyAsync.asData?.value ?? [];
 
     final urgentCount = entries
@@ -38,7 +40,7 @@ class GreetingLineNotifier extends _$GreetingLineNotifier {
     final concernCount = entries
         .where((e) => e.friend.isConcernActive)
         .length;
-    final contextKey = '$urgentCount|$concernCount';
+    final contextKey = '$urgentCount|$concernCount|$userName';
 
     // Fire LLM when the prompt context changes or when the model becomes ready.
     if (dailyAsync is AsyncData &&
@@ -51,11 +53,12 @@ class GreetingLineNotifier extends _$GreetingLineNotifier {
           requestVersion: requestVersion,
           urgentCount: urgentCount,
           concernCount: concernCount,
+          userName: userName,
         ),
       );
     }
 
-    return const GreetingService().staticFallback(
+    return GreetingService(userName: userName).staticFallback(
       urgentCount: urgentCount,
       concernCount: concernCount,
     );
@@ -65,13 +68,14 @@ class GreetingLineNotifier extends _$GreetingLineNotifier {
     required int requestVersion,
     required int urgentCount,
     required int concernCount,
+    required String userName,
   }) async {
     try {
       final modelState = ref.read(modelManagerProvider);
       if (modelState is! ModelReady) return;
 
       final prompt = PromptTemplates.greetingLine(
-        userName: 'Laurus',
+        userName: userName,
         urgentCount: urgentCount,
         concernCount: concernCount,
       );
