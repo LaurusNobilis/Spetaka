@@ -65,37 +65,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  // Ajout : section pseudo
-  Widget _pseudoSection(BuildContext context, WidgetRef ref) {
-    final pseudo = ref.watch(pseudoProvider);
-    final controller = TextEditingController(text: pseudo);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _SectionHeading('Mon pseudo'),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Pseudo',
-              suffixIcon: Icon(Icons.edit),
-            ),
-            onSubmitted: (value) {
-              if (value.trim().isNotEmpty) {
-                ref.read(pseudoProvider.notifier).set(value.trim());
-              }
-            },
-            onChanged: (value) {
-              // Optionnel : mise à jour en live
-              ref.read(pseudoProvider.notifier).set(value.trim());
-            },
-          ),
-        ),
-        const Divider(height: 24),
-      ],
-    );
-  }
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -134,7 +104,7 @@ class SettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _pseudoSection(context, ref),
+            const _PseudoSection(),
             const _BackupSection(),
             const _DisplaySection(),
             const _EventTypesSection(),
@@ -145,6 +115,63 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pseudo section
+// ---------------------------------------------------------------------------
+
+class _PseudoSection extends ConsumerStatefulWidget {
+  const _PseudoSection();
+
+  @override
+  ConsumerState<_PseudoSection> createState() => _PseudoSectionState();
+}
+
+class _PseudoSectionState extends ConsumerState<_PseudoSection> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: ref.read(pseudoProvider));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final value = _controller.text.trim();
+    if (value.isNotEmpty) {
+      ref.read(pseudoProvider.notifier).set(value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading('Mon pseudo'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: TextField(
+            controller: _controller,
+            decoration: const InputDecoration(
+              labelText: 'Pseudo',
+              suffixIcon: Icon(Icons.edit),
+            ),
+            onSubmitted: (_) => _save(),
+            onEditingComplete: _save,
+          ),
+        ),
+        const Divider(height: 24),
+      ],
     );
   }
 }
