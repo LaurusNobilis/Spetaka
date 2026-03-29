@@ -140,6 +140,49 @@ class LlmInferenceService {
     await _model?.close();
     _model = null;
   }
+
+  /// Streams delta tokens from on-device LLM inference.
+  ///
+  /// Each yielded [String] is an incremental token (delta). Callers must
+  /// accumulate tokens to obtain the full response.
+  ///
+  /// Serialized with [infer] via the same lock — only one inference runs at
+  /// a time. Stream closes on error (never throws).
+  Stream<String> inferStream(String prompt) async* {
+    // Test shim: if an inferenceRunner is injected, yield its output tokens.
+    final inferenceRunner = _inferenceRunner;
+    if (inferenceRunner != null) {
+      final tokens = await inferenceRunner(prompt);
+      yield* Stream.fromIterable(tokens);
+      return;
+    }
+
+    // Wait for any ongoing inference to complete.
+    while (_lock != null && !_lock!.isCompleted) {
+      await _lock!.future;
+    }
+    _lock = Completer<void>();
+
+    try {
+      _model ??= await FlutterGemma.getActiveModel();
+      final chat = await _model!.createChat();
+      await chat.addQuery(Message.text(text: prompt, isUser: true));
+      await for (final response in chat.generateChatResponseAsync()) {
+        if (response is TextResponse) {
+          yield response.token;
+        }
+      }
+    } catch (e) {
+      dev.log(
+        'LlmInferenceService: stream inference error — $e',
+        name: 'ai.inference',
+      );
+      await _model?.close();
+      _model = null;
+    } finally {
+      _lock?.complete();
+    }
+  }
 }
 
 /// Riverpod singleton provider — keepAlive prevents disposal.

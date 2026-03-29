@@ -227,7 +227,10 @@ class _DraftMessageSheetContentState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // AC1: small loading indicator at the very top of the sheet.
-          if (draftState is AsyncLoading<DraftMessage?>)
+          // Also shown while streaming (isStreaming == true) so the user sees
+          // continuous feedback even after the first partial variants arrive.
+          if (draftState is AsyncLoading<DraftMessage?> ||
+              draftState.value?.isStreaming == true)
             LinearProgressIndicator(
               color: colorScheme.primary,
               backgroundColor: colorScheme.primaryContainer,

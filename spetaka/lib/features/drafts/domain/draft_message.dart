@@ -17,6 +17,7 @@ class DraftMessage {
     required this.variants,
     this.editedText,
     this.selectedIndex,
+    this.isStreaming = false,
   });
 
   /// ID of the friend for whom the message is being drafted.
@@ -42,6 +43,11 @@ class DraftMessage {
   /// Index of the highlighted variant card (defaults to 0 in the UI).
   final int? selectedIndex;
 
+  /// True while the LLM is still generating tokens (streaming in progress).
+  /// The sheet keeps the progress indicator visible and merges new variants
+  /// without overwriting any user selection or edit.
+  final bool isStreaming;
+
   DraftMessage copyWith({
     String? friendId,
     String? friendName,
@@ -50,6 +56,7 @@ class DraftMessage {
     List<String>? variants,
     Object? editedText = _keep,
     Object? selectedIndex = _keep,
+    bool? isStreaming,
   }) {
     return DraftMessage(
       friendId: friendId ?? this.friendId,
@@ -60,6 +67,7 @@ class DraftMessage {
       editedText: editedText == _keep ? this.editedText : editedText as String?,
       selectedIndex:
           selectedIndex == _keep ? this.selectedIndex : selectedIndex as int?,
+      isStreaming: isStreaming ?? this.isStreaming,
     );
   }
 

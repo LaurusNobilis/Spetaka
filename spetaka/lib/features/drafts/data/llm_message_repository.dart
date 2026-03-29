@@ -74,6 +74,68 @@ class LlmMessageRepository {
     );
   }
 
+  /// Streams [DraftMessage] instances as inference tokens arrive.
+  ///
+  /// Each emission is a partial or final parse of the accumulated model
+  /// output. Intermediate emissions have [DraftMessage.isStreaming] == true.
+  /// The final emission has [DraftMessage.isStreaming] == false.
+  ///
+  /// If no parseable variants are ever produced, a final [DraftMessage] with
+  /// an empty [variants] list is yielded (AC6 — caller shows error state).
+  Stream<DraftMessage> generateSuggestionsStream({
+    required String friendId,
+    required Event event,
+    required String channel,
+  }) async* {
+    final friend = await _friendRepository.findById(friendId);
+    final friendName = friend?.name ?? '';
+
+    final prompt = PromptTemplates.messageSuggestion(
+      friendName: friendName,
+      eventType: event.type,
+      eventNote: event.comment,
+      language: 'fr',
+    );
+
+    dev.log(
+      'LlmMessageRepository: streaming suggestions for friend=$friendId, event=${event.type}',
+      name: 'drafts.repository',
+    );
+
+    final buffer = StringBuffer();
+
+    await for (final token in _llmInferenceService.inferStream(prompt)) {
+      buffer.write(token);
+      final partial = _parseVariants([buffer.toString()]);
+      if (partial.isNotEmpty) {
+        yield DraftMessage(
+          friendId: friendId,
+          friendName: friendName,
+          eventContext: event.type,
+          channel: channel,
+          variants: partial,
+          isStreaming: true,
+        );
+      }
+    }
+
+    // Final complete result — always emitted so the caller can clear the
+    // streaming flag even when no intermediate emissions occurred.
+    final variants = _parseVariants([buffer.toString()]);
+    dev.log(
+      'LlmMessageRepository: stream complete — ${variants.length} variants',
+      name: 'drafts.repository',
+    );
+    yield DraftMessage(
+      friendId: friendId,
+      friendName: friendName,
+      eventContext: event.type,
+      channel: channel,
+      variants: variants,
+      isStreaming: false,
+    );
+  }
+
   /// Parses a numbered list from raw LLM output.
   ///
   /// Handles both `1.` and `1)` bullet styles. Returns an empty list if the
