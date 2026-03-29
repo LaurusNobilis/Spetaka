@@ -42,7 +42,7 @@ final class GreetingLineNotifierProvider
 }
 
 String _$greetingLineNotifierHash() =>
-    r'50c9ca33b3d6a7b72cf636a240e2dfaf5209fd6a';
+    r'ba1359f1c23a44ccfe6298bab707873a46d98289';
 
 abstract class _$GreetingLineNotifier extends $Notifier<String> {
   String build();
