@@ -11,6 +11,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/encryption/encryption_service.dart';
 import '../../../core/errors/app_error.dart';
 import '../../friends/data/friend_repository.dart';
+import '../../voice_profile/data/user_voice_profile_repository.dart';
 import '../domain/backup_payload.dart';
 
 /// Repository responsible for encrypted local backup export and import.
@@ -38,13 +39,16 @@ class BackupRepository {
     required AppDatabase db,
     required EncryptionService encryptionService,
     required FriendRepository friendRepository,
+    required UserVoiceProfileRepository voiceProfileRepository,
   })  : _db = db,
         _encryptionService = encryptionService,
-        _friendRepository = friendRepository;
+        _friendRepository = friendRepository,
+        _voiceProfileRepository = voiceProfileRepository;
 
   final AppDatabase _db;
   final EncryptionService _encryptionService;
   final FriendRepository _friendRepository;
+  final UserVoiceProfileRepository _voiceProfileRepository;
 
   // --------------------------------------------------------------------------
   // File-format constants
@@ -121,6 +125,9 @@ class BackupRepository {
         .toList();
     final eventTypes = await _db.eventTypeDao.getAll();
 
+    // Story 10.6 — include voice profile in backup (AC6).
+    final voiceProfile = await _voiceProfileRepository.getProfile();
+
     // Lightweight settings snapshot (SharedPreferences).
     final prefs = await SharedPreferences.getInstance();
     final settings = BackupSettings(
@@ -137,6 +144,7 @@ class BackupRepository {
       events: events,
       acquittements: decryptedAcqs,
       eventTypes: eventTypes,
+      voiceProfile: voiceProfile,
     );
     final jsonString = jsonEncode(payload.toJson());
 
@@ -257,6 +265,7 @@ class BackupRepository {
       await _db.eventDao.deleteAll();
       await _db.eventTypeDao.deleteAll();
       await _db.friendDao.deleteAll();
+      await _db.userVoiceProfileDao.deleteProfile();
 
       // Re-insert with per-install encryption for sensitive fields.
       for (final friend in payload.friends) {
@@ -270,6 +279,12 @@ class BackupRepository {
       }
       for (final et in payload.eventTypes) {
         await _db.eventTypeDao.insertEventType(et.toCompanion(true));
+      }
+
+      if (payload.voiceProfile != null) {
+        await _db.userVoiceProfileDao.upsertProfile(
+          payload.voiceProfile!.toCompanion(true),
+        );
       }
     });
 

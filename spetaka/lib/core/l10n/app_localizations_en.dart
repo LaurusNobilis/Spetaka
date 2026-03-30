@@ -808,4 +808,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String draftMessageSendSemantics(String channel) {
     return 'Copy and send via $channel';
   }
+
+  @override
+  String get suggestMessageDailyAction => 'Message AI';
+
+  @override
+  String suggestMessageDailySemantics(String name) {
+    return 'Compose an AI-suggested message for $name';
+  }
 }

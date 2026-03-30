@@ -133,6 +133,11 @@ development_status:
   10-2-message-suggestion-draftmessagesheet-with-3-llm-variants: done
   10-3-llm-enriched-daily-greeting-line: done
   10-4-session-draft-auto-save-for-friend-form: done
+  # Story 10.5 added 2026-03-30 from brainstorming-session-2026-03-30 (P2-A + P2-B + P2-C)
+  10-5-enriched-prompt-context-visible-daily-message-button: done
+  # Story 10.6 — ready-for-dev (story file created 2026-03-30 by Bob)
+  # Depends on 10.5 done; start after 10.5 validated in prod (UserVoiceProfile benefits from prompt quality feedback)
+  10-6-user-voice-profile-on-device-learning: done
   epic-10-retrospective: optional
 
 # =============================================================
@@ -154,6 +159,14 @@ phase-2-brainstorm-backlog:
   p2-draft-rotation-for-recurring-cadences: backlog  # 3 variantes en rotation pour contacts récurrents
   p2-llm-palette-vs-composer-mode: backlog           # Mode Compositeur vs Mode Palette (3-5 fragments)
   p2-llm-personal-voice-library: backlog             # Fichier .md éditable (phrases perso) injecté dans prompt LLM
+  # --- LLM Security / Play Store compliance (2026-03-29) ---
+  # Ajouté suite à analyse architecture Winston : token HuggingFace embarqué = violation Play Store Policy +
+  # violation licence Gemma (les CGU Gemma exigent acceptation individuelle par chaque utilisateur).
+  # Solution retenue : Option C — chaque utilisateur saisit son propre token HF dans un écran de setup,
+  # stocké dans flutter_secure_storage (Android Keystore / iOS Keychain), jamais embarqué dans le binaire.
+  # Impact code : HfTokenService (~30 lignes) + étape 'needsToken' dans ModelDownloadScreen + 1 ligne ModelManager.
+  # Aucune feature existante (10.2/10.3/10.4) n'est modifiée.
+  p2-llm-hf-token-user-provided-secure-storage: backlog  # Sécurité/licence : token HF saisi par l'utilisateur, stocké dans Keystore
 
 # =============================================================
 # PHASE 3 BACKLOG — WebDAV Sync + Gamification + Expansion

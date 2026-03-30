@@ -10,6 +10,7 @@ import '../../../core/ai/llm_inference_service.dart';
 import '../../../core/ai/prompt_templates.dart';
 import '../../../core/database/app_database.dart';
 import '../../../features/friends/data/friend_repository.dart';
+import '../../../features/voice_profile/data/user_voice_profile_repository.dart';
 import '../domain/draft_message.dart';
 
 /// Generates on-device LLM message suggestions for a given friend + event.
@@ -20,11 +21,14 @@ class LlmMessageRepository {
   LlmMessageRepository({
     required FriendRepository friendRepository,
     required LlmInferenceService llmInferenceService,
+    required UserVoiceProfileRepository voiceProfileRepository,
   })  : _friendRepository = friendRepository,
-        _llmInferenceService = llmInferenceService;
+        _llmInferenceService = llmInferenceService,
+        _voiceProfileRepository = voiceProfileRepository;
 
   final FriendRepository _friendRepository;
   final LlmInferenceService _llmInferenceService;
+  final UserVoiceProfileRepository _voiceProfileRepository;
 
   /// Generates ≥ 1 message suggestions for [friendId] based on [event].
   ///
@@ -42,12 +46,16 @@ class LlmMessageRepository {
     final friend = await _friendRepository.findById(friendId);
     final friendName = friend?.name ?? '';
 
+    // Story 10.6 — read voice profile for style injection (AC4).
+    final voiceProfile = await _voiceProfileRepository.getProfile();
+
     // AC2: build prompt via PromptTemplates — never inline prompt construction.
     final prompt = PromptTemplates.messageSuggestion(
       friendName: friendName,
       eventType: event.type,
       eventNote: event.comment,
       language: 'fr',
+      voiceProfile: voiceProfile,
     );
 
     dev.log(
@@ -90,11 +98,15 @@ class LlmMessageRepository {
     final friend = await _friendRepository.findById(friendId);
     final friendName = friend?.name ?? '';
 
+    // Story 10.6 — read voice profile for style injection (AC4).
+    final voiceProfile = await _voiceProfileRepository.getProfile();
+
     final prompt = PromptTemplates.messageSuggestion(
       friendName: friendName,
       eventType: event.type,
       eventNote: event.comment,
       language: 'fr',
+      voiceProfile: voiceProfile,
     );
 
     dev.log(

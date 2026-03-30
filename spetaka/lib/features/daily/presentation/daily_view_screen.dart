@@ -1,4 +1,4 @@
-// DailyViewScreen — Stories 4.2 / 4.3 / 4.4 / 4.6 / 5.2
+// DailyViewScreen — Stories 4.2 / 4.3 / 4.4 / 4.6 / 5.2 / 10.5
 //
 // Story 4.4: Greeting banner + density toggle (compact/expanded, shared_prefs).
 // Story 4.6: Inline card expansion, AnimatedSize+AnimatedCrossFade 300ms,
@@ -6,6 +6,8 @@
 //            back-gesture collapse, semantics, 48dp touch targets.
 // Story 5.2: Listen to pendingActionStream; expand card + open acquittement
 //            sheet when origin is `dailyView`.
+// Story 10.5: 4th action button "✶ Message IA" in expanded card, gated by
+//             aiCapabilityCheckerProvider + modelManagerProvider.
 
 import 'dart:async';
 
@@ -13,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/actions/contact_action_service.dart';
+import '../../../core/ai/ai_capability_checker.dart';
+import '../../../core/ai/model_manager.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/l10n/l10n_extension.dart';
@@ -20,6 +24,7 @@ import '../../../core/lifecycle/app_lifecycle_service.dart';
 import '../../../core/router/app_router.dart';
 import '../../../features/acquittement/domain/pending_action_state.dart';
 import '../../../features/acquittement/presentation/acquittement_sheet.dart';
+import '../../../features/drafts/presentation/draft_message_sheet.dart';
 import '../data/daily_view_provider.dart';
 import '../data/density_provider.dart';
 import '../data/greeting_line_provider.dart';
@@ -310,36 +315,34 @@ class _ExpandableFriendCard extends ConsumerWidget {
             width: isExpanded ? 1.5 : 1.0,
           ),
         ),
-        child: InkWell(
-          key: Key('card_${friend.id}'),
-          onTap: onToggleExpand,
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedSize(
+        child: AnimatedSize(
+          duration: _kExpandDuration,
+          curve: _kExpandCurve,
+          alignment: Alignment.topCenter,
+          child: AnimatedCrossFade(
             duration: _kExpandDuration,
-            curve: _kExpandCurve,
-            alignment: Alignment.topCenter,
-            child: AnimatedCrossFade(
-              duration: _kExpandDuration,
-              firstCurve: _kExpandCurve,
-              secondCurve: _kExpandCurve,
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: _CollapsedContent(
-                entry: entry,
-                tierColor: tierColor,
-                tierLabel: tierLabel,
-                hasConcern: hasConcern,
-                verticalPadding: verticalPadding,
-              ),
-              secondChild: _ExpandedContent(
-                entry: entry,
-                tierColor: tierColor,
-                tierLabel: tierLabel,
-                hasConcern: hasConcern,
-                onToggleExpand: onToggleExpand,
-                actionService: ref.read(contactActionServiceProvider),
-              ),
+            firstCurve: _kExpandCurve,
+            secondCurve: _kExpandCurve,
+            crossFadeState: isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            firstChild: _CollapsedContent(
+              cardKey: isExpanded ? null : Key('card_${friend.id}'),
+              onTap: onToggleExpand,
+              entry: entry,
+              tierColor: tierColor,
+              tierLabel: tierLabel,
+              hasConcern: hasConcern,
+              verticalPadding: verticalPadding,
+            ),
+            secondChild: _ExpandedContent(
+              cardKey: isExpanded ? Key('card_${friend.id}') : null,
+              entry: entry,
+              tierColor: tierColor,
+              tierLabel: tierLabel,
+              hasConcern: hasConcern,
+              onToggleExpand: onToggleExpand,
+              actionService: ref.read(contactActionServiceProvider),
             ),
           ),
         ),
@@ -354,6 +357,8 @@ class _ExpandableFriendCard extends ConsumerWidget {
 
 class _CollapsedContent extends StatelessWidget {
   const _CollapsedContent({
+    required this.cardKey,
+    required this.onTap,
     required this.entry,
     required this.tierColor,
     required this.tierLabel,
@@ -361,6 +366,8 @@ class _CollapsedContent extends StatelessWidget {
     required this.verticalPadding,
   });
 
+  final Key? cardKey;
+  final VoidCallback onTap;
   final DailyViewEntry entry;
   final Color tierColor;
   final String tierLabel;
@@ -372,76 +379,81 @@ class _CollapsedContent extends StatelessWidget {
     final theme = Theme.of(context);
     final friend = entry.friend;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: verticalPadding),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: tierColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        friend.name,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (hasConcern) ...[
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        size: 16,
-                        color: theme.colorScheme.error,
-                        semanticLabel: context.l10n.concernActiveSemantics,
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: tierColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              entry.nextEventLabel ?? tierLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
+    return InkWell(
+      key: cardKey,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: verticalPadding),
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              height: 40,
+              decoration: BoxDecoration(
                 color: tierColor,
-                fontWeight: FontWeight.w700,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.expand_more,
-            size: 20,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          friend.name,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (hasConcern) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: theme.colorScheme.error,
+                          semanticLabel: context.l10n.concernActiveSemantics,
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: tierColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                entry.nextEventLabel ?? tierLabel,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: tierColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.expand_more,
+              size: 20,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -451,8 +463,9 @@ class _CollapsedContent extends StatelessWidget {
 // _ExpandedContent
 // ---------------------------------------------------------------------------
 
-class _ExpandedContent extends StatefulWidget {
+class _ExpandedContent extends ConsumerStatefulWidget {
   const _ExpandedContent({
+    required this.cardKey,
     required this.entry,
     required this.tierColor,
     required this.tierLabel,
@@ -461,6 +474,7 @@ class _ExpandedContent extends StatefulWidget {
     required this.actionService,
   });
 
+  final Key? cardKey;
   final DailyViewEntry entry;
   final Color tierColor;
   final String tierLabel;
@@ -469,10 +483,10 @@ class _ExpandedContent extends StatefulWidget {
   final ContactActionService actionService;
 
   @override
-  State<_ExpandedContent> createState() => _ExpandedContentState();
+  ConsumerState<_ExpandedContent> createState() => _ExpandedContentState();
 }
 
-class _ExpandedContentState extends State<_ExpandedContent> {
+class _ExpandedContentState extends ConsumerState<_ExpandedContent> {
   String? _actionError;
 
   Future<void> _handleCall() async {
@@ -528,111 +542,161 @@ class _ExpandedContentState extends State<_ExpandedContent> {
     }
   }
 
+  /// Story 10.5: Opens DraftMessageSheet with the nearest unacknowledged event.
+  Future<void> _handleSuggestMessage(BuildContext context) async {
+    final event = widget.entry.nearestEvent;
+    if (event == null) return;
+    setState(() => _actionError = null);
+    await showDraftMessageSheet(
+      context: context,
+      ref: ref,
+      friendId: widget.entry.friend.id,
+      event: event,
+      origin: AcquittementOrigin.dailyView,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Story 10.5: inline LLM gate — same logic as LlmFeatureGuard but as a bool
+    // so we can conditionally include the button in a Row without widget-wrapping.
+    final isLlmSupported = ref.watch(aiCapabilityCheckerProvider);
+    final modelState = ref.watch(modelManagerProvider);
+    final isModelReady = modelState is ModelReady;
+    final showMessageButton =
+        isLlmSupported && isModelReady && widget.entry.nearestEvent != null;
+
     final theme = Theme.of(context);
     final friend = widget.entry.friend;
+    final actionButtons = <Widget>[
+      Expanded(
+        child: _ActionButton(
+          key: Key('action_call_${friend.id}'),
+          icon: Icons.phone_outlined,
+          label: context.l10n.callAction,
+          onPressed: _handleCall,
+        ),
+      ),
+      const SizedBox(width: 4),
+      Expanded(
+        child: _ActionButton(
+          key: Key('action_sms_${friend.id}'),
+          icon: Icons.sms_outlined,
+          label: context.l10n.smsAction,
+          onPressed: _handleSms,
+        ),
+      ),
+      const SizedBox(width: 4),
+      Expanded(
+        child: _ActionButton(
+          key: Key('action_wa_${friend.id}'),
+          icon: Icons.chat_outlined,
+          label: context.l10n.whatsappAction,
+          onPressed: _handleWhatsApp,
+        ),
+      ),
+    ];
+    if (showMessageButton) {
+      actionButtons.addAll([
+        const SizedBox(width: 4),
+        Expanded(
+          child: _ActionButton(
+            key: Key('action_llm_${friend.id}'),
+            icon: Icons.auto_awesome_outlined,
+            label: context.l10n.suggestMessageDailyAction,
+            semanticsLabel: context.l10n.suggestMessageDailySemantics(friend.name),
+            onPressed: () => _handleSuggestMessage(context),
+          ),
+        ),
+      ]);
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: widget.tierColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+        InkWell(
+          key: widget.cardKey,
+          onTap: widget.onToggleExpand,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: widget.tierColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            friend.name,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                friend.name,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            if (widget.hasConcern) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 16,
+                                color: theme.colorScheme.error,
+                                semanticLabel: context.l10n.concernActiveSemantics,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          localizedSurfacingReason(context, widget.entry.prioritized.daysUntilNextEvent),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                           ),
                         ),
-                        if (widget.hasConcern) ...[
-                          const SizedBox(width: 6),
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            size: 16,
-                            color: theme.colorScheme.error,
-                            semanticLabel: context.l10n.concernActiveSemantics,
-                          ),
-                        ],
                       ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      localizedSurfacingReason(context, widget.entry.prioritized.daysUntilNextEvent),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: widget.tierColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      widget.entry.nextEventLabel ?? widget.tierLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: widget.tierColor,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: widget.tierColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  widget.entry.nextEventLabel ?? widget.tierLabel,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: widget.tierColor,
-                    fontWeight: FontWeight.w700,
                   ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.expand_less,
-                size: 20,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ],
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.expand_less,
+                    size: 20,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ],
+            ),
           ),
         ),
         const Divider(height: 1, indent: 16, endIndent: 16),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
-            children: [
-              _ActionButton(
-                key: Key('action_call_${friend.id}'),
-                icon: Icons.phone_outlined,
-                label: context.l10n.callAction,
-                onPressed: _handleCall,
-              ),
-              _ActionButton(
-                key: Key('action_sms_${friend.id}'),
-                icon: Icons.sms_outlined,
-                label: context.l10n.smsAction,
-                onPressed: _handleSms,
-              ),
-              _ActionButton(
-                key: Key('action_wa_${friend.id}'),
-                icon: Icons.chat_outlined,
-                label: context.l10n.whatsappAction,
-                onPressed: _handleWhatsApp,
-              ),
-            ],
+            children: actionButtons,
           ),
         ),
         if (_actionError != null)
@@ -701,10 +765,12 @@ class _ActionButton extends StatefulWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.semanticsLabel,
   });
 
   final IconData icon;
   final String label;
+  final String? semanticsLabel;
 
   /// Async callback — awaited internally so futures are never dropped.
   final Future<void> Function() onPressed;
@@ -729,14 +795,15 @@ class _ActionButtonState extends State<_ActionButton> {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: widget.label,
+      label: widget.semanticsLabel ?? widget.label,
       button: true,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 72, minHeight: 48),
+        constraints: const BoxConstraints(minHeight: 48),
         child: TextButton(
           onPressed: _busy ? null : _handlePress,
           style: TextButton.styleFrom(
             minimumSize: const Size(48, 48),
+            maximumSize: const Size.fromHeight(56),
             padding: const EdgeInsets.symmetric(vertical: 4),
           ),
           child: Column(

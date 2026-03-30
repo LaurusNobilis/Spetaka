@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spetaka/core/database/app_database.dart';
 import 'package:spetaka/core/l10n/app_localizations.dart';
+import 'package:spetaka/features/acquittement/domain/pending_action_state.dart';
 import 'package:spetaka/features/drafts/domain/draft_message.dart';
 import 'package:spetaka/features/drafts/presentation/draft_message_sheet.dart';
 import 'package:spetaka/features/drafts/providers/draft_message_providers.dart';
@@ -84,9 +85,13 @@ class _ControlledDraftNotifier extends DraftMessageNotifier {
 }
 
 class _SheetLauncher extends ConsumerWidget {
-  const _SheetLauncher({required this.event});
+  const _SheetLauncher({
+    required this.event,
+    this.origin = AcquittementOrigin.friendCard,
+  });
 
   final Event event;
+  final AcquittementOrigin origin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,6 +101,7 @@ class _SheetLauncher extends ConsumerWidget {
         ref: ref,
         friendId: 'f1',
         event: event,
+        origin: origin,
       ),
       child: const Text('Open sheet'),
     );
@@ -313,6 +319,83 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.textContaining('For Sophie — Anniversaire'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+  });
+
+  // Story 10.5 AC2 — enriched event comment header
+  testWidgets('Story 10.5 AC2 — event with comment shows ✎ comment line',
+      (tester) async {
+    // Use a taller surface so the enriched sheet (header + comment line) does
+    // not overflow during layout in the test environment.
+    addTearDown(tester.view.resetPhysicalSize);
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+
+    final eventWithComment = Event(
+      id: 'e1',
+      friendId: 'f1',
+      type: 'Anniversaire',
+      date: DateTime(2026, 4, 1).millisecondsSinceEpoch,
+      isRecurring: false,
+      comment: 'a perdu son père il y a 3 mois',
+      isAcknowledged: false,
+      acknowledgedAt: null,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      cadenceDays: null,
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        draftMessageProvider.overrideWith(
+          () => _ControlledDraftNotifier(initialState: AsyncData(_draft())),
+        ),
+        friendByIdProvider('f1').overrideWith((_) async => _friend()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      _buildHarness(
+        container: container,
+        locale: const Locale('en'),
+        child: _SheetLauncher(event: eventWithComment),
+      ),
+    );
+
+    await tester.tap(find.text('Open sheet'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('✎'), findsOneWidget);
+    expect(find.textContaining('a perdu son père'), findsOneWidget);
+  });
+
+  testWidgets('Story 10.5 AC2 — event without comment shows no ✎ line',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        draftMessageProvider.overrideWith(
+          () => _ControlledDraftNotifier(initialState: AsyncData(_draft())),
+        ),
+        friendByIdProvider('f1').overrideWith((_) async => _friend()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      _buildHarness(
+        container: container,
+        locale: const Locale('en'),
+        child: _SheetLauncher(
+          event: _event(),
+          origin: AcquittementOrigin.dailyView,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open sheet'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('✎'), findsNothing);
   });
 }

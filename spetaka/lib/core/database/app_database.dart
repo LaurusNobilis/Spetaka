@@ -11,11 +11,13 @@ import '../../features/acquittement/domain/acquittement.dart';
 import '../../features/events/domain/event.dart';
 import '../../features/events/domain/event_type_entity.dart';
 import '../../features/friends/domain/friend.dart';
+import '../../features/voice_profile/domain/user_voice_profile.dart';
 import 'daos/acquittement_dao.dart';
 import 'daos/event_dao.dart';
 import 'daos/event_type_dao.dart';
 import 'daos/friend_dao.dart';
 import 'daos/settings_dao.dart';
+import 'daos/user_voice_profile_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -32,8 +34,9 @@ part 'app_database.g.dart';
     Acquittements, // Story 1.7 — field encryption infrastructure
     Events, // Story 3.1 — dated events on friend cards
     EventTypes, // Story 3.4 — personalized event types
+    UserVoiceProfiles, // Story 10.6 — on-device learning style vectors
   ],
-  daos: [FriendDao, EventDao, EventTypeDao, AcquittementDao, SettingsDao],
+  daos: [FriendDao, EventDao, EventTypeDao, AcquittementDao, SettingsDao, UserVoiceProfileDao],
 )
 class AppDatabase extends _$AppDatabase {
   /// Primary constructor.  If [executor] is omitted the production on-disk
@@ -42,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -150,6 +153,11 @@ class AppDatabase extends _$AppDatabase {
                 ['default-autre', 'Autre', -1, nowMs],
               );
             }
+          }
+
+          // Story 10.6 — v9→v10: create user_voice_profiles table (singleton).
+          if (from < 10) {
+            await m.createTable(userVoiceProfiles);
           }
         },
         beforeOpen: (details) async {

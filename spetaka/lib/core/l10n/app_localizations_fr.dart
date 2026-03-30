@@ -821,4 +821,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String draftMessageSendSemantics(String channel) {
     return 'Copier et envoyer via $channel';
   }
+
+  @override
+  String get suggestMessageDailyAction => '✦ Message';
+
+  @override
+  String suggestMessageDailySemantics(String name) {
+    return 'Compose un message suggéré pour $name';
+  }
 }

@@ -4,6 +4,7 @@
 // and editing, then sending via WhatsApp or SMS.
 // No SQLite persistence — draft is in-memory only (AC5, AC7).
 
+import 'dart:async' show unawaited;
 import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import '../../../core/errors/error_messages.dart';
 import '../../../core/l10n/l10n_extension.dart';
 import '../../../features/acquittement/domain/pending_action_state.dart';
 import '../../../features/friends/data/friends_providers.dart';
+import '../../../features/voice_profile/data/user_voice_profile_repository.dart';
 import '../../../shared/utils/relative_date.dart';
 import '../domain/draft_message.dart';
 import '../providers/draft_message_providers.dart';
@@ -36,6 +38,7 @@ Future<void> showDraftMessageSheet({
   required WidgetRef ref,
   required String friendId,
   required Event event,
+  AcquittementOrigin origin = AcquittementOrigin.friendCard,
 }) async {
   try {
     await showModalBottomSheet<void>(
@@ -48,6 +51,7 @@ Future<void> showDraftMessageSheet({
       builder: (ctx) => _DraftMessageSheetContent(
         friendId: friendId,
         event: event,
+        origin: origin,
       ),
     );
   } finally {
@@ -63,10 +67,12 @@ class _DraftMessageSheetContent extends ConsumerStatefulWidget {
   const _DraftMessageSheetContent({
     required this.friendId,
     required this.event,
+    required this.origin,
   });
 
   final String friendId;
   final Event event;
+  final AcquittementOrigin origin;
 
   @override
   ConsumerState<_DraftMessageSheetContent> createState() =>
@@ -132,13 +138,13 @@ class _DraftMessageSheetContentState
         await contactService.whatsapp(
           friend?.mobile ?? '',
           friendId: widget.friendId,
-          origin: AcquittementOrigin.friendCard,
+          origin: widget.origin,
         );
       } else {
         await contactService.sms(
           friend?.mobile ?? '',
           friendId: widget.friendId,
-          origin: AcquittementOrigin.friendCard,
+          origin: widget.origin,
         );
       }
     } on AppError catch (error) {
@@ -160,6 +166,20 @@ class _DraftMessageSheetContentState
     }
 
     // Discard in-memory draft (AC4, AC5).
+    // Story 10.6 — fire-and-forget learning observation (best-effort, never
+    // blocks the UI or fails the send).
+    unawaited(
+      ref
+          .read(userVoiceProfileRepositoryProvider)
+          .observe(sentText: editedText)
+          .catchError((Object e) {
+        dev.log(
+          'DraftMessageSheet: VoiceProfile.observe failed (best-effort) — $e',
+          name: 'drafts.sheet',
+        );
+      }),
+    );
+
     ref.read(draftMessageProvider.notifier).clear();
 
     if (mounted) {
@@ -276,8 +296,11 @@ class _DraftMessageSheetContentState
               colorScheme: colorScheme,
               theme: theme,
               textController: _textController ??= TextEditingController(),
+              friendName: friend?.name,
+              headerContext: _eventHeaderContext(),
               channel: _channel,
               onChannelChanged: _handleChannelChanged,
+              eventComment: widget.event.comment,
               onSend: (_) async => _handleSend(
                 DraftMessage(
                   friendId: widget.friendId,
@@ -301,8 +324,11 @@ class _DraftMessageSheetContentState
                   colorScheme: colorScheme,
                   theme: theme,
                   textController: _textController ??= TextEditingController(),
+                  friendName: friend?.name,
+                  headerContext: _eventHeaderContext(),
                   channel: _channel,
                   onChannelChanged: _handleChannelChanged,
+                  eventComment: widget.event.comment,
                   onSend: (_) async => _handleSend(draft),
                   onDiscard: _handleDiscard,
                 );
@@ -319,6 +345,7 @@ class _DraftMessageSheetContentState
                 textController: _textController!,
                 channel: _channel,
                 headerContext: _eventHeaderContext(),
+                eventComment: widget.event.comment,
                 onChannelChanged: _handleChannelChanged,
                 onVariantSelected: (i) => ref
                     .read(draftMessageProvider.notifier)
@@ -343,6 +370,13 @@ class _DraftMessageSheetContentState
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Private helper
+// ---------------------------------------------------------------------------
+
+String _truncate(String s, int maxChars) =>
+    s.length <= maxChars ? s : '${s.substring(0, maxChars)}…';
 
 // ---------------------------------------------------------------------------
 // Loading body
@@ -376,20 +410,26 @@ class _ErrorBody extends StatelessWidget {
     required this.colorScheme,
     required this.theme,
     required this.textController,
+    required this.headerContext,
     required this.channel,
     required this.onChannelChanged,
     required this.onSend,
     required this.onDiscard,
+    this.friendName,
+    this.eventComment,
   });
 
   final dynamic l10n;
   final ColorScheme colorScheme;
   final ThemeData theme;
   final TextEditingController textController;
+  final String headerContext;
   final String channel;
   final ValueChanged<String> onChannelChanged;
   final ValueChanged<String> onSend;
   final VoidCallback onDiscard;
+  final String? friendName;
+  final String? eventComment;
 
   @override
   Widget build(BuildContext context) {
@@ -398,6 +438,29 @@ class _ErrorBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (friendName != null && friendName!.isNotEmpty) ...[
+          Text(
+            l.draftMessageEventHeader(friendName!, headerContext) as String,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 4),
+        ],
+        if (eventComment != null && eventComment!.isNotEmpty) ...[
+          Semantics(
+            label: 'Contexte : $eventComment',
+            child: Text(
+              '✎ ${_truncate(eventComment!, 80)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         Text(
           l.draftMessageError as String,
           style: theme.textTheme.bodyMedium
@@ -448,6 +511,7 @@ class _DataBody extends StatelessWidget {
     required this.onGenerateMore,
     required this.onSend,
     required this.onDiscard,
+    this.eventComment,
   });
 
   final DraftMessage draft;
@@ -463,6 +527,7 @@ class _DataBody extends StatelessWidget {
   final VoidCallback onGenerateMore;
   final VoidCallback onSend;
   final VoidCallback onDiscard;
+  final String? eventComment;
 
   @override
   Widget build(BuildContext context) {
@@ -482,6 +547,21 @@ class _DataBody extends StatelessWidget {
           style: theme.textTheme.bodySmall
               ?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
+        if (eventComment != null && eventComment!.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Semantics(
+            label: 'Contexte : $eventComment',
+            child: Text(
+              '✎ ${_truncate(eventComment!, 80)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ],
         const SizedBox(height: 12),
 
         // AC3: variant cards.

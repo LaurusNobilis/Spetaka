@@ -45,10 +45,11 @@ class BackupPayload {
     required this.events,
     required this.acquittements,
     required this.eventTypes,
+    this.voiceProfile,
   });
 
   /// Current schema version; increment on breaking layout changes.
-  static const int currentVersion = 1;
+  static const int currentVersion = 2;
 
   /// Backup schema version (written on export, validated on import).
   final int version;
@@ -71,6 +72,9 @@ class BackupPayload {
   /// User-defined event types.
   final List<EventTypeEntry> eventTypes;
 
+  /// On-device learned style profile (Story 10.6, nullable — absent in v1 backups).
+  final UserVoiceProfile? voiceProfile;
+
   // ---------------------------------------------------------------------------
   // Serialization
   // ---------------------------------------------------------------------------
@@ -89,6 +93,15 @@ class BackupPayload {
             acquittements.map((a) => _acquittementToBackupJson(a)).toList(),
         'eventTypes':
             eventTypes.map((t) => _eventTypeToBackupJson(t)).toList(),
+        'voiceProfile': voiceProfile == null
+            ? null
+            : {
+                'formalityScore': voiceProfile!.formalityScore,
+                'avgWordCount': voiceProfile!.avgWordCount,
+                'frequentKeywords': voiceProfile!.frequentKeywords,
+                'observationCount': voiceProfile!.observationCount,
+                'updatedAt': voiceProfile!.updatedAt,
+              },
       };
 
   /// Deserialises from a JSON map produced by [toJson].
@@ -126,6 +139,21 @@ class BackupPayload {
             ),
           )
           .toList(),
+      voiceProfile: json['voiceProfile'] == null
+          ? null
+          : UserVoiceProfile(
+              id: 'user',
+              formalityScore:
+                  (json['voiceProfile']['formalityScore'] as num?)?.toInt() ?? 5,
+              avgWordCount:
+                  (json['voiceProfile']['avgWordCount'] as num?)?.toDouble() ?? 0.0,
+              frequentKeywords:
+                  json['voiceProfile']['frequentKeywords'] as String? ?? '[]',
+              observationCount:
+                  (json['voiceProfile']['observationCount'] as num?)?.toInt() ?? 0,
+              updatedAt:
+                  (json['voiceProfile']['updatedAt'] as num?)?.toInt() ?? 0,
+            ),
     );
   }
 

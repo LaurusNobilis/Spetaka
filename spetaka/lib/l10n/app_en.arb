@@ -1078,5 +1078,16 @@
     "placeholders": {
       "channel": { "type": "String" }
     }
+  },
+  "suggestMessageDailyAction": "Message AI",
+  "@suggestMessageDailyAction": {
+    "description": "Label for the AI message suggestion button in daily view action row — Story 10.5 AC3"
+  },
+  "suggestMessageDailySemantics": "Compose an AI-suggested message for {name}",
+  "@suggestMessageDailySemantics": {
+    "description": "Accessibility semantics for AI message button in daily view — Story 10.5 AC7",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
   }
 }

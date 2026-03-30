@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/encryption/encryption_service_provider.dart';
 import '../../friends/data/friend_repository_provider.dart';
+import '../../voice_profile/data/user_voice_profile_repository.dart';
 import '../data/backup_repository.dart';
 
 part 'backup_providers.g.dart';
@@ -24,6 +25,7 @@ BackupRepository backupRepository(Ref ref) {
     db: ref.watch(appDatabaseProvider),
     encryptionService: ref.watch(encryptionServiceProvider),
     friendRepository: ref.watch(friendRepositoryProvider),
+    voiceProfileRepository: ref.watch(userVoiceProfileRepositoryProvider),
   );
 }
 

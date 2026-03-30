@@ -15,7 +15,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +26,7 @@ import 'package:spetaka/core/errors/app_error.dart';
 import 'package:spetaka/core/lifecycle/app_lifecycle_service.dart';
 import 'package:spetaka/features/backup/data/backup_repository.dart';
 import 'package:spetaka/features/friends/data/friend_repository.dart';
+import 'package:spetaka/features/voice_profile/data/user_voice_profile_repository.dart';
 import 'package:uuid/uuid.dart';
 
 // ---------------------------------------------------------------------------
@@ -60,10 +61,12 @@ Future<
   final db = _buildDb();
   final enc = await _buildService(db);
   final friendRepo = FriendRepository(db: db, encryptionService: enc);
+  final voiceProfileRepo = UserVoiceProfileRepository(db: db);
   final repo = BackupRepository(
     db: db,
     encryptionService: enc,
     friendRepository: friendRepo,
+    voiceProfileRepository: voiceProfileRepo,
   );
   return (repo: repo, db: db, friendRepo: friendRepo, enc: enc);
 }
@@ -105,6 +108,7 @@ Acquittement _makeAcq({required String friendId}) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
 
   // ── (a) Full roundtrip ────────────────────────────────────────────────────
   group('export → import roundtrip', () {
@@ -354,6 +358,7 @@ void main() {
         db: db2,
         encryptionService: enc2,
         friendRepository: friendRepo2,
+        voiceProfileRepository: UserVoiceProfileRepository(db: db2),
       );
 
       final dir = Directory.systemTemp.createTempSync('spetaka_test_');
@@ -390,6 +395,7 @@ void main() {
         db: db2,
         encryptionService: enc2,
         friendRepository: friendRepo2,
+        voiceProfileRepository: UserVoiceProfileRepository(db: db2),
       );
       final newFriend = _makeFriend(name: 'NewData');
       await friendRepo2.insert(newFriend);

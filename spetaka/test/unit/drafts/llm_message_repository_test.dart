@@ -1,11 +1,14 @@
 // Unit tests for LlmMessageRepository — Story 10.2 (AC2, TDD Task 9)
+//                                     — Story 10.5 (AC1, PromptTemplates tonal modifier)
 //
 // Tests cover:
 //   - Happy path: 3 variants parsed from numbered list
 //   - Empty response → empty variants list (AC6)
 //   - Single variant parsed from single-item response
+//   - PromptTemplates.messageSuggestion tonal modifier (Story 10.5 AC1)
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spetaka/core/ai/prompt_templates.dart';
 import 'package:spetaka/features/drafts/data/llm_message_repository.dart';
 
 void main() {
@@ -71,6 +74,83 @@ void main() {
       final variants = LlmMessageRepository.parseVariants(raw);
       expect(variants.length, 1);
       expect(variants[0], 'Valid message');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // PromptTemplates.messageSuggestion — tonal modifier (Story 10.5 AC1)
+  // ---------------------------------------------------------------------------
+
+  group('PromptTemplates.messageSuggestion — tonal modifier (Story 10.5 AC1)',
+      () {
+    test('with eventNote=null → prompt does NOT contain "Contexte important"',
+        () {
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+        eventNote: null,
+      );
+      expect(prompt, isNot(contains('Contexte important')));
+    });
+
+    test('with eventNote="" → prompt does NOT contain "Contexte important"',
+        () {
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+        eventNote: '',
+      );
+      expect(prompt, isNot(contains('Contexte important')));
+    });
+
+    test(
+        'with eventNote non-empty → prompt DOES contain tonal instruction with note',
+        () {
+      // Use a neutral eventNote (no emotion markers) so Story 10.5 toneInstruction
+      // fires; notes with emotion markers now trigger Story 10.6 emotion override.
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+        eventNote: 'prépare un voyage en vacances prochainement',
+      );
+      expect(
+        prompt,
+        contains(
+          'Contexte important : prépare un voyage en vacances prochainement. Adapte le ton',
+        ),
+      );
+    });
+
+    test('prompt always contains "Génère 3 courts messages" (smoke test)', () {
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+      );
+      expect(prompt, contains('Génère 3 courts messages'));
+    });
+
+    test('with note → eventContext combines eventType and eventNote', () {
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+        eventNote: 'a perdu son père',
+      );
+      expect(
+        prompt,
+        contains('Anniversaire — a perdu son père'),
+      );
+    });
+
+    test('without note → eventContext equals eventType only', () {
+      final prompt = PromptTemplates.messageSuggestion(
+        friendName: 'Sophie',
+        eventType: 'Anniversaire',
+      );
+      expect(prompt, contains("l'occasion de : Anniversaire."));
+      expect(
+        prompt,
+        isNot(contains(' — ')),
+      );
     });
   });
 }

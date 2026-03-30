@@ -67,4 +67,4 @@ final class LlmMessageRepositoryProvider extends $FunctionalProvider<
 }
 
 String _$llmMessageRepositoryHash() =>
-    r'f9d1b91baf2e4e002f00da47b12bf768ba85eeb0';
+    r'ded9becede8729f7d03c6d3c6a9ecd5c769b4b99';

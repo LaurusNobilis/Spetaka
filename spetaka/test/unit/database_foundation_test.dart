@@ -20,8 +20,8 @@ void main() {
       expect(result.data['v'], equals(1));
     });
 
-    test('schemaVersion is 9 (naming update — default event types)', () {
-      expect(db.schemaVersion, equals(9));
+    test('schemaVersion is 10 (user voice profile table)', () {
+      expect(db.schemaVersion, equals(10));
     });
 
     test('MigrationStrategy declares an onUpgrade hook', () {

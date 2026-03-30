@@ -1308,6 +1308,12 @@ So that the cadence matches how frequently I want to check in on friends going t
 
 Laurus can tap "Suggest message" on any event in a friend card and receive ≥ 3 warm, contextualised WhatsApp or SMS message variants generated entirely on his device — no network connection, no API key, no passphrase required. He can edit, copy, and send directly via `ContactActionService`. The daily greeting line is enriched by the LLM when a model is available, with a static fallback ensuring zero degraded UX. The friend card form auto-saves draft state in memory during the session, recovered transparently on return.
 
+> **Backlog — Story 10.5 & 10.6 (added 2026-03-30, from brainstorming-session-2026-03-30):**
+> **Story 10.5** (ready-for-dev) : Enriched prompt + context header + "✦ Message" Daily View button (P2-A + P2-B + P2-C)
+> **Story 10.6** (backlog, after 10.5) : UserVoiceProfile — on-device learning of style vectors (P2-D + P2-E)
+>
+> _Note: HuggingFace token story remains tracked in `sprint-status.yaml` > `p2-llm-hf-token-user-provided-secure-storage` (phase-2-brainstorm-backlog)._
+
 ### Story 10.1: LLM Capability Check, Model Download Gate & Infrastructure
 
 As a developer,
@@ -1473,4 +1479,53 @@ So that I never lose a partially-filled friend card due to an accidental back ge
 **Given** `flutter test test/widgets/friend_form_test.dart`
 **Then** tests pass: open form → type name → navigate away → navigate back → draft banner shown → name field pre-filled; save success → draft cleared; discard banner → form reset
 
+---
+
+### Story 10.5: Enriched Prompt + Context Visible + "✦ Message" Button in Daily View _(Phase 2, added 2026-03-30)_
+
+As Laurus,
+I want the LLM message suggestions to leverage the event comment as a tonal modifier, to see the full event context while I choose a variant, and to launch the suggestion from the Daily View action row directly,
+so that each suggestion feels tuned to the real emotional weight of the moment, and I can reach it without navigating away from my daily list.
+
+**Source:** Brainstorming session 2026-03-30 — P2-A (prompt dynamique), P2-B (contexte visible), P2-C (bouton Daily View).
+
+**Acceptance Criteria:**
+
+**Given** `PromptTemplates.messageSuggestion()` is called with `eventNote` non-null and non-empty
+**When** the prompt is constructed
+**Then** the prompt includes `"Contexte important : [eventNote]. Adapte le ton de tes messages en conséquence."` — the comment acts as a tonal modifier (not just concatenation)
+**And** fallback: if `eventNote` is absent → behavior unchanged from Story 10.2
+
+**Given** Laurus opens `DraftMessageSheet` for an event with a comment
+**When** the sheet is in data or error state
+**Then** the event context header shows a second line: `"✎ [commentaire]"` (bodySmall, italic, onSurfaceVariant, truncated at 80 chars)
+**And** if no comment → single-line header unchanged
+
+**Given** the LLM is supported and the model is ready AND `entry.nearestEvent != null`
+**Given** Laurus is on DailyViewScreen, a card is expanded
+**When** the action row renders
+**Then** a 4th button appears: icon `Icons.auto_awesome_outlined`, label `"✦ Message"` (French: `context.l10n.suggestMessageDailyAction`)
+**And** tapping it calls `showDraftMessageSheet(context, ref, friendId, nearestEvent)` — zero additional navigation
+
+**Given** LLM unsupported OR model not ready OR no nearest event
+**Then** the 4th button is hidden — action row shows 3 buttons unchanged
+
+**Given** `DailyViewEntry`
+**Then** it gains an optional `Event? nearestEvent` field populated by `buildDailyView` (no breaking change)
+
+**Given** this story
+**Then** zero new Drift tables, zero `schemaVersion` increment
+
+---
+
+### Story 10.6: UserVoiceProfile — On-Device Implicit Style Learning _(Phase 2, planned)_
+
+As Laurus,
+I want the app to learn my writing style implicitly — tone level, preferred length, recurring keywords — so that the 3 LLM variants match my voice rather than generic ChatGPT output.
+
+**Source:** Brainstorming session 2026-03-30 — P2-D + P2-E. Depends on Story 10.5 being done.
+
+**Planned scope:** `UserVoiceProfile` (Dart class, SQLite persisted) storing formality (0–10), preferred length (word count avg), frequent keywords. Fed automatically on each "Copy & Send" from `DraftMessageSheet` by observing the delta between selected variant and sent text. Injected into prompt as style constraints. Included in the encrypted local backup (Story 6.5 payload).
+
+_Full acceptance criteria to be defined when Story 10.5 is done._
 

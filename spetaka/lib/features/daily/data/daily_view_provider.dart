@@ -29,6 +29,7 @@ class DailyViewEntry {
     required this.friend,
     required this.prioritized,
     this.nextEventLabel,
+    this.nearestEvent,
   });
 
   final Friend friend;
@@ -40,6 +41,13 @@ class DailyViewEntry {
   /// Populated by [buildDailyView] from [Event.type] of the nearest
   /// unacknowledged in-window event. May be null when no event exists.
   final String? nextEventLabel;
+
+  /// The nearest unacknowledged in-window [Event] DB record for this friend.
+  ///
+  /// Populated by [buildDailyView] — same sorting logic as [nextEventLabel].
+  /// Used by Story 10.5 to pre-fill [DraftMessageSheet] from the Daily View.
+  /// Nullable — null when no in-window unacknowledged event exists.
+  final Event? nearestEvent;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,11 +145,12 @@ List<DailyViewEntry> buildDailyView(
     categoryWeights: categoryWeights,
   );
 
-  // Pre-compute the triggering event label for each friend:
+  // Pre-compute the triggering event label and nearest event record for each friend:
   // the nearest unacknowledged in-window event (mirrors the engine's
   // _nearestUnacknowledged ordering — closest absolute day distance).
   final today = DateTime(now.year, now.month, now.day);
   final nextEventLabelByFriend = <String, String?>{};
+  final nearestEventByFriend = <String, Event?>{};   // NEW — Story 10.5
   for (final entry in eventsByFriend.entries) {
     final unack = entry.value.where((e) => !e.isAcknowledged).toList();
     if (unack.isEmpty) continue;
@@ -157,6 +166,7 @@ List<DailyViewEntry> buildDailyView(
       return dA.compareTo(dB);
     });
     nextEventLabelByFriend[entry.key] = unack.first.type;
+    nearestEventByFriend[entry.key] = unack.first;   // NEW — Story 10.5
   }
 
   // Map back to DailyViewEntry, joining with the Friend record.
@@ -169,6 +179,7 @@ List<DailyViewEntry> buildDailyView(
           friend: f,
           prioritized: p,
           nextEventLabel: nextEventLabelByFriend[p.friendId],
+          nearestEvent: nearestEventByFriend[p.friendId],   // NEW — Story 10.5
         );
       })
       .whereType<DailyViewEntry>()

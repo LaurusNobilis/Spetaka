@@ -1549,6 +1549,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy and send via {channel}'**
   String draftMessageSendSemantics(String channel);
+
+  /// Label for the AI message suggestion button in the daily view action row.
+  ///
+  /// Story 10.5 AC3.
+  String get suggestMessageDailyAction;
+
+  /// Accessibility semantics for the AI message button in the daily view.
+  ///
+  /// Story 10.5 AC7.
+  String suggestMessageDailySemantics(String name);
 }
 
 class _AppLocalizationsDelegate

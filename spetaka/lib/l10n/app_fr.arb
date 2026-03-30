@@ -242,5 +242,8 @@
   "draftMessageDiscardSemantics": "Annuler la suggestion",
   "draftMessageError": "Impossible de générer des suggestions pour le moment. Vous pouvez écrire votre message ci-dessous.",
   "draftMessageGenerateMore": "Générer plus",
-  "draftMessageSendSemantics": "Copier et envoyer via {channel}"
+  "draftMessageSendSemantics": "Copier et envoyer via {channel}",
+
+  "suggestMessageDailyAction": "✦ Message",
+  "suggestMessageDailySemantics": "Compose un message suggéré pour {name}"
 }
