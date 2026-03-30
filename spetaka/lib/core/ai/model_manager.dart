@@ -60,7 +60,7 @@ class ModelManager {
         _modelFileResolver = modelFileResolver ?? _defaultModelFile;
 
   static const String _modelDirName = 'spetaka_llm';
-  static const String _modelFileName = 'gemma3n_e2b_it_int4.bin';
+  static const String _modelFileName = 'gemma3n_e2b_it_int4.task';
   static const String _downloadedModelUrl =
       'https://huggingface.co/google/gemma-3n-E2B-it-litert-preview/'
       'resolve/main/gemma-3n-E2B-it-int4.task';
