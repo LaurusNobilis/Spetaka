@@ -31,11 +31,12 @@ class DraftMessageNotifier extends _$DraftMessageNotifier {
   /// Triggers on-device inference and transitions through loading → data/error.
   ///
   /// AC1: sheet opens in AsyncLoading state immediately after this is called.
-  /// Streaming: intermediate AsyncData emissions with isStreaming == true let
-  ///   the sheet display partial variants as they arrive, keeping the progress
-  ///   indicator visible until the final emission (isStreaming == false).
   /// AC6: empty variants list → AsyncData(DraftMessage) with empty variants
   ///   (the sheet renders the error state — no separate AsyncError needed).
+  ///
+  /// Note: uses the non-streaming path (generateSuggestions / generateChatResponse)
+  /// for maximum reliability. The streaming path (generateChatResponseAsync via
+  /// EventChannel) can silently fail on certain devices/model file types.
   Future<void> requestSuggestions({
     required String friendId,
     required Event event,
@@ -49,36 +50,16 @@ class DraftMessageNotifier extends _$DraftMessageNotifier {
       name: 'drafts.notifier',
     );
 
-    try {
-      await for (final draft in ref
-          .read(llmMessageRepositoryProvider)
-          .generateSuggestionsStream(
+    final result = await AsyncValue.guard(
+      () => ref.read(llmMessageRepositoryProvider).generateSuggestions(
             friendId: friendId,
             event: event,
             channel: channel,
-          )) {
-        if (requestVersion != _requestVersion) return;
+          ),
+    );
 
-        // Preserve selected variant and any user-typed text across streaming
-        // updates so the text field doesn't jump while the user is editing.
-        final current = state.value;
-        if (draft.isStreaming && current != null) {
-          state = AsyncData(draft.copyWith(
-            selectedIndex: current.selectedIndex,
-            editedText: current.editedText,
-          ),);
-        } else {
-          state = AsyncData(draft);
-        }
-      }
-    } catch (e, st) {
-      if (requestVersion != _requestVersion) return;
-      dev.log(
-        'DraftMessageNotifier: stream error — $e',
-        name: 'drafts.notifier',
-      );
-      state = AsyncError(e, st);
-    }
+    if (requestVersion != _requestVersion) return;
+    state = result;
   }
 
   /// Selects a different variant card by index.

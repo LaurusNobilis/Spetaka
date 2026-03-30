@@ -147,7 +147,9 @@ class LlmMessageRepository {
     // Matches "1. text" or "1) text" — captures only the text portion.
     // [^\S\n]* = horizontal whitespace only (avoids crossing line boundaries).
     // ([^\n]+) = capture up to (but not including) the next newline.
-    final numberedLine = RegExp(r'^\d+[\.\)][^\S\n]*([^\n]+)', multiLine: true);
+    // Allow optional leading whitespace (spaces/tabs) so the regex matches
+    // even when the model indents its numbered list output.
+    final numberedLine = RegExp(r'^[ \t]*\d+[\.\)][ \t]*([^\n]+)', multiLine: true);
     final matches = numberedLine.allMatches(joined);
     return matches
         .map((m) => m.group(1)!.trim())
