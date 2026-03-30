@@ -28,21 +28,15 @@ import '../providers/draft_message_providers.dart';
 
 /// Opens [DraftMessageSheet] as a modal bottom sheet.
 ///
-/// Immediately calls [DraftMessageNotifier.requestSuggestions] so the sheet
-/// opens in loading state (AC1).
+/// [DraftMessageNotifier.requestSuggestions] is triggered inside the sheet
+/// widget's [initState] so that it always targets the same notifier instance
+/// that [build] subscribes to via [ref.watch] (AC1).
 Future<void> showDraftMessageSheet({
   required BuildContext context,
   required WidgetRef ref,
   required String friendId,
   required Event event,
 }) async {
-  // Trigger inference BEFORE opening the sheet so it starts loading immediately.
-  ref.read(draftMessageProvider.notifier).requestSuggestions(
-        friendId: friendId,
-        event: event,
-        channel: 'whatsapp',
-      );
-
   try {
     await showModalBottomSheet<void>(
       context: context,
@@ -85,6 +79,20 @@ class _DraftMessageSheetContentState
   String _channel = 'whatsapp';
   bool _channelInitialized = false;
   bool _channelChosenByUser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Trigger inference here — inside the widget that watches the provider —
+    // to avoid an auto-dispose race where requestSuggestions targets a
+    // different (disposed + recreated) notifier instance than the one watched
+    // by ref.watch in build().
+    ref.read(draftMessageProvider.notifier).requestSuggestions(
+      friendId: widget.friendId,
+      event: widget.event,
+      channel: 'whatsapp',
+    );
+  }
 
   @override
   void dispose() {
