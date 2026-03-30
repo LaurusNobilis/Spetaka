@@ -66,7 +66,7 @@ final class DraftMessageNotifierProvider
 }
 
 String _$draftMessageNotifierHash() =>
-    r'8ea2d28e5c028d65d9b41bef36bf0ff9b1d670a6';
+    r'ea916ac1566733943c7ff55cf80cd7a792e9d6a9';
 
 /// Holds the in-memory state for [DraftMessageSheet].
 ///
