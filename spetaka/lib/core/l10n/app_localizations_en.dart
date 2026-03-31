@@ -753,10 +753,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hfTokenHowToSteps =>
-      '1. Go to huggingface.co and create a free account (or sign in).\n'
-      '2. Click your avatar → Settings → Access Tokens.\n'
-      '3. Click "New token", choose type Read, give it any name.\n'
-      '4. Copy the token (starts with hf_…) and paste it here.';
+      '1. Go to huggingface.co and create a free account (or sign in).\n2. Click your avatar → Settings → Access Tokens.\n3. Click \"New token\", choose type Read, give it any name.\n4. Copy the token (starts with hf_…) and paste it here.';
 
   @override
   String get hfTokenHowToClose => 'Got it';
@@ -766,9 +763,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelInfoDescription =>
-      'A lightweight 2-billion-parameter model by Google, optimised for mobile devices. '
-      'It runs entirely on your phone — no internet connection required after download, '
-      'no data leaves your device.';
+      'A lightweight 2-billion-parameter model by Google, optimised for mobile devices. It runs entirely on your phone — no internet connection required after download, no data leaves your device.';
 
   @override
   String get modelInfoSize => 'Size: ~2 GB (one-time download)';

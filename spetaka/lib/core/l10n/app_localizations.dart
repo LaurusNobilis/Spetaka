@@ -1442,19 +1442,19 @@ abstract class AppLocalizations {
   /// **'Please enter your HuggingFace token before downloading.'**
   String get hfTokenErrorEmpty;
 
-  /// Title of the "how to get a HF token" info dialog — p2-llm-hf-token
+  /// Title of the how-to dialog for obtaining a HF token — p2-llm-hf-token
   ///
   /// In en, this message translates to:
   /// **'How to get a HuggingFace token'**
   String get hfTokenHowToTitle;
 
-  /// Step-by-step instructions inside the HF token info dialog — p2-llm-hf-token
+  /// Step-by-step instructions in the HF token how-to dialog — p2-llm-hf-token
   ///
   /// In en, this message translates to:
-  /// **'1. Go to huggingface.co and create a free account (or sign in).\n2. Click your avatar → Settings → Access Tokens.\n3. Click "New token", choose type Read, give it any name.\n4. Copy the token (starts with hf_…) and paste it here.'**
+  /// **'1. Go to huggingface.co and create a free account (or sign in).\n2. Click your avatar → Settings → Access Tokens.\n3. Click \"New token\", choose type Read, give it any name.\n4. Copy the token (starts with hf_…) and paste it here.'**
   String get hfTokenHowToSteps;
 
-  /// Close button label for the HF token info dialog — p2-llm-hf-token
+  /// Close button label for the HF token how-to dialog — p2-llm-hf-token
   ///
   /// In en, this message translates to:
   /// **'Got it'**
@@ -1478,7 +1478,7 @@ abstract class AppLocalizations {
   /// **'Size: ~2 GB (one-time download)'**
   String get modelInfoSize;
 
-  /// Tooltip/label for the button that opens the model info dialog — Story 10.1
+  /// Tooltip for the button that opens the model info dialog — Story 10.1
   ///
   /// In en, this message translates to:
   /// **'Model info'**

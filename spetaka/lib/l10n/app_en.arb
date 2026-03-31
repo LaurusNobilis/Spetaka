@@ -992,6 +992,34 @@
   "@hfTokenErrorEmpty": {
     "description": "Validation error when token field is empty — p2-llm-hf-token"
   },
+  "hfTokenHowToTitle": "How to get a HuggingFace token",
+  "@hfTokenHowToTitle": {
+    "description": "Title of the how-to dialog for obtaining a HF token — p2-llm-hf-token"
+  },
+  "hfTokenHowToSteps": "1. Go to huggingface.co and create a free account (or sign in).\n2. Click your avatar → Settings → Access Tokens.\n3. Click \"New token\", choose type Read, give it any name.\n4. Copy the token (starts with hf_…) and paste it here.",
+  "@hfTokenHowToSteps": {
+    "description": "Step-by-step instructions in the HF token how-to dialog — p2-llm-hf-token"
+  },
+  "hfTokenHowToClose": "Got it",
+  "@hfTokenHowToClose": {
+    "description": "Close button label for the HF token how-to dialog — p2-llm-hf-token"
+  },
+  "modelInfoTitle": "Gemma 3n E2B — on-device AI model",
+  "@modelInfoTitle": {
+    "description": "Title of the model info card on the download screen — Story 10.1"
+  },
+  "modelInfoDescription": "A lightweight 2-billion-parameter model by Google, optimised for mobile devices. It runs entirely on your phone — no internet connection required after download, no data leaves your device.",
+  "@modelInfoDescription": {
+    "description": "Description in the model info card explaining why this model was chosen — Story 10.1"
+  },
+  "modelInfoSize": "Size: ~2 GB (one-time download)",
+  "@modelInfoSize": {
+    "description": "Label showing the approximate size of the model — Story 10.1"
+  },
+  "modelInfoButtonTooltip": "Model info",
+  "@modelInfoButtonTooltip": {
+    "description": "Tooltip for the button that opens the model info dialog — Story 10.1"
+  },
   "statusFilterTooltip": "Filter by status",
   "@statusFilterTooltip": {
     "description": "Tooltip for the status filter funnel icon in the friends list AppBar — Story 8.3 AC1"

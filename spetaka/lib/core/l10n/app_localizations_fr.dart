@@ -765,10 +765,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get hfTokenHowToSteps =>
-      '1. Rendez-vous sur huggingface.co et créez un compte gratuit (ou connectez-vous).\n'
-      '2. Cliquez sur votre avatar → Paramètres → Access Tokens.\n'
-      '3. Cliquez sur « New token », choisissez le type Read, donnez-lui un nom.\n'
-      '4. Copiez le token (commence par hf_…) et collez-le ici.';
+      '1. Rendez-vous sur huggingface.co et créez un compte gratuit (ou connectez-vous).\n2. Cliquez sur votre avatar → Paramètres → Access Tokens.\n3. Cliquez sur « New token », choisissez le type Read, donnez-lui un nom.\n4. Copiez le token (commence par hf_…) et collez-le ici.';
 
   @override
   String get hfTokenHowToClose => 'Compris';
@@ -778,9 +775,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get modelInfoDescription =>
-      'Un modèle léger de 2 milliards de paramètres développé par Google, optimisé pour les appareils mobiles. '
-      'Il fonctionne entièrement sur votre téléphone — aucune connexion internet requise après le téléchargement, '
-      'vos données ne quittent jamais votre appareil.';
+      'Un modèle léger de 2 milliards de paramètres développé par Google, optimisé pour les appareils mobiles. Il fonctionne entièrement sur votre téléphone — aucune connexion internet requise après le téléchargement, vos données ne quittent jamais votre appareil.';
 
   @override
   String get modelInfoSize => 'Taille : ~2 Go (téléchargement unique)';
