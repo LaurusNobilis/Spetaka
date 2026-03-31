@@ -70,11 +70,31 @@ void main() {
       expect(manifest, contains('android.permission.READ_CONTACTS'));
     });
 
-    test('AndroidManifest.xml contains exactly 2 uses-permission entries', () {
+    test('AndroidManifest.xml contains exactly 4 uses-permission entries', () {
+      // INTERNET + READ_CONTACTS (original)
+      // FOREGROUND_SERVICE + FOREGROUND_SERVICE_DATA_SYNC (added for LLM model
+      // download to survive screen lock — background_downloader dataSync service)
       final manifest =
           File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
       final matches = RegExp(r'<uses-permission').allMatches(manifest);
-      expect(matches.length, equals(2));
+      expect(matches.length, equals(4));
+    });
+
+    test('AndroidManifest.xml declares FOREGROUND_SERVICE permission', () {
+      final manifest =
+          File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(manifest, contains('android.permission.FOREGROUND_SERVICE'));
+    });
+
+    test(
+        'AndroidManifest.xml declares FOREGROUND_SERVICE_DATA_SYNC permission',
+        () {
+      final manifest =
+          File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(
+        manifest,
+        contains('android.permission.FOREGROUND_SERVICE_DATA_SYNC'),
+      );
     });
   });
 
