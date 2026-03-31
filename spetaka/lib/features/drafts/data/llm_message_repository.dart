@@ -50,12 +50,18 @@ class LlmMessageRepository {
     final voiceProfile = await _voiceProfileRepository.getProfile();
 
     // AC2: build prompt via PromptTemplates — never inline prompt construction.
+    // Inject concern note when the friend has an active concern.
+    final concernNote = (friend != null && friend.isConcernActive)
+        ? friend.concernNote
+        : null;
+
     final prompt = PromptTemplates.messageSuggestion(
       friendName: friendName,
       eventType: event.type,
       eventNote: event.comment,
       language: 'fr',
       voiceProfile: voiceProfile,
+      concernNote: concernNote,
     );
 
     dev.log(
@@ -101,12 +107,18 @@ class LlmMessageRepository {
     // Story 10.6 — read voice profile for style injection (AC4).
     final voiceProfile = await _voiceProfileRepository.getProfile();
 
+    // Inject concern note when the friend has an active concern.
+    final concernNote = (friend != null && friend.isConcernActive)
+        ? friend.concernNote
+        : null;
+
     final prompt = PromptTemplates.messageSuggestion(
       friendName: friendName,
       eventType: event.type,
       eventNote: event.comment,
       language: 'fr',
       voiceProfile: voiceProfile,
+      concernNote: concernNote,
     );
 
     dev.log(

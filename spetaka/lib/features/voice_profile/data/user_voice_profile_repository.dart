@@ -20,19 +20,24 @@ class UserVoiceProfileRepository {
 
   static const _minObservations = 3;
   static const _maxKeywords = 10;
+  static const _maxEmojis = 5;
+  static const _maxExpressions = 10;
 
-  // Formality markers (compared lowercase)
-  static const _vouvoiementMarkers = [
-    'vous', 'votre', 'vos', 'bonjour', 'madame', 'monsieur',
-  ];
-  static const _tutoiementMarkers = [
-    'tu', 'ton', 'ta', 'tes', 'toi', 'coucou', 'salut', 'hey',
-  ];
   static const _stopWords = {
     'cette', 'avec', 'pour', 'dans', 'bien', 'mais', 'aussi', 'comme',
     'plus', 'tout', 'très', 'votre', 'notre', 'leur', 'vous', 'nous',
     'même', 'être', 'avoir', 'faire',
   };
+
+  static final _emojiRegex = RegExp(
+    r'[\u{1F600}-\u{1F64F}]|'
+    r'[\u{1F300}-\u{1F5FF}]|'
+    r'[\u{1F680}-\u{1F6FF}]|'
+    r'[\u{1F1E0}-\u{1F1FF}]|'
+    r'[\u{2600}-\u{26FF}]|'
+    r'[\u{2700}-\u{27BF}]',
+    unicode: true,
+  );
 
   Future<UserVoiceProfile?> getProfile() =>
       _db.userVoiceProfileDao.getProfile();
@@ -49,73 +54,60 @@ class UserVoiceProfileRepository {
     final oldCount = existing?.observationCount ?? 0;
     final newCount = oldCount + 1;
 
-    // ── FormalityScore ──────────────────────────────────────────────────────
     final wordTokens = _tokenizeWords(text);
-    final tokenSet = wordTokens.toSet();
-    var vouCount = 0;
-    var tuCount = 0;
-    for (final marker in _vouvoiementMarkers) {
-      if (tokenSet.contains(marker)) vouCount++;
-    }
-    for (final marker in _tutoiementMarkers) {
-      if (tokenSet.contains(marker)) tuCount++;
-    }
-    final rawScore = 5 + (vouCount - tuCount).clamp(-3, 3);
-    final oldFormality = existing?.formalityScore ?? 5;
-    final newFormalityDouble =
-        ((oldFormality * oldCount) + rawScore) / newCount;
-    final newFormality = newFormalityDouble.round().clamp(0, 10);
-
-    // ── AvgWordCount ────────────────────────────────────────────────────────
-    final wordCount = text
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .length;
-    final oldAvg = existing?.avgWordCount ?? 0.0;
-    final newAvg = ((oldAvg * oldCount) + wordCount) / newCount;
 
     // ── FrequentKeywords ────────────────────────────────────────────────────
-    final tokens = wordTokens
+    final keywordTokens = wordTokens
         .where((word) => word.length >= 4 && !_stopWords.contains(word))
         .toList();
-
-    final freqMap = _decodeKeywordFrequencyMap(existing?.frequentKeywords);
-    for (final token in tokens) {
-      freqMap[token] = (freqMap[token] ?? 0) + 1;
+    final keywordFreqMap = _decodeFrequencyMap(existing?.frequentKeywords);
+    for (final token in keywordTokens) {
+      keywordFreqMap[token] = (keywordFreqMap[token] ?? 0) + 1;
     }
-    final sorted = freqMap.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final trimmedFreqMap = <String, int>{
-      for (final entry in sorted.take(_maxKeywords)) entry.key: entry.value,
-    };
+    final trimmedKeywordMap = _trimFrequencyMap(keywordFreqMap, _maxKeywords);
+
+    // ── FrequentEmoji ───────────────────────────────────────────────────────
+    final emojiFreqMap = _decodeFrequencyMap(existing?.frequentEmoji);
+    for (final emoji in _extractEmojis(text)) {
+      emojiFreqMap[emoji] = (emojiFreqMap[emoji] ?? 0) + 1;
+    }
+    final trimmedEmojiMap = _trimFrequencyMap(emojiFreqMap, _maxEmojis);
+
+    // ── FrequentExpression ──────────────────────────────────────────────────
+    final exprFreqMap = _decodeFrequencyMap(existing?.frequentExpression);
+    for (final expr in _extractExpressions(wordTokens)) {
+      exprFreqMap[expr] = (exprFreqMap[expr] ?? 0) + 1;
+    }
+    final trimmedExprMap = _trimFrequencyMap(exprFreqMap, _maxExpressions);
 
     dev.log(
       'UserVoiceProfileRepository: observation #$newCount — '
-      'formality=$newFormality, avgWords=${newAvg.toStringAsFixed(1)}, '
-      'keywordsCount=${trimmedFreqMap.length}',
+      'keywordsCount=${trimmedKeywordMap.length}, '
+      'emojiCount=${trimmedEmojiMap.length}, '
+      'expressionCount=${trimmedExprMap.length}',
       name: 'voice_profile.repository',
     );
 
     await _db.userVoiceProfileDao.upsertProfile(
       UserVoiceProfilesCompanion(
         id: const Value('user'),
-        formalityScore: Value(newFormality),
-        avgWordCount: Value(newAvg),
-        frequentKeywords: Value(jsonEncode(trimmedFreqMap)),
+        frequentKeywords: Value(jsonEncode(trimmedKeywordMap)),
+        frequentEmoji: Value(jsonEncode(trimmedEmojiMap)),
+        frequentExpression: Value(jsonEncode(trimmedExprMap)),
         observationCount: Value(newCount),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
   }
 
-  /// Restores a profile from backup (AC6 — Story 6.5 restore path).
+  /// Restores a profile from backup (Story 6.5 restore path).
   Future<void> restore(UserVoiceProfile profile) =>
       _db.userVoiceProfileDao.upsertProfile(
         UserVoiceProfilesCompanion(
           id: const Value('user'),
-          formalityScore: Value(profile.formalityScore),
-          avgWordCount: Value(profile.avgWordCount),
           frequentKeywords: Value(profile.frequentKeywords),
+          frequentEmoji: Value(profile.frequentEmoji),
+          frequentExpression: Value(profile.frequentExpression),
           observationCount: Value(profile.observationCount),
           updatedAt: Value(profile.updatedAt),
         ),
@@ -124,22 +116,52 @@ class UserVoiceProfileRepository {
   /// Minimum observations threshold for prompt injection.
   static int get minObservations => _minObservations;
 
-  static List<String> topKeywordsFromJson(
-    String? serializedKeywords, {
+  /// Returns top [limit] items from a JSON frequency map, sorted by frequency.
+  static List<String> topItemsFromJson(
+    String? serialized, {
     int limit = 3,
   }) {
-    final sorted = _decodeKeywordFrequencyMap(serializedKeywords).entries.toList()
+    final sorted = _decodeFrequencyMap(serialized).entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     return sorted.take(limit).map((entry) => entry.key).toList();
   }
 
-  static Map<String, int> _decodeKeywordFrequencyMap(String? serializedKeywords) {
-    if (serializedKeywords == null || serializedKeywords.isEmpty) {
-      return <String, int>{};
-    }
+  /// Alias kept for call-site compatibility.
+  static List<String> topKeywordsFromJson(
+    String? serializedKeywords, {
+    int limit = 3,
+  }) =>
+      topItemsFromJson(serializedKeywords, limit: limit);
 
+  static List<String> _extractEmojis(String text) =>
+      _emojiRegex.allMatches(text).map((m) => m.group(0)!).toList();
+
+  static List<String> _extractExpressions(List<String> wordTokens) {
+    final significant = wordTokens
+        .where((w) => w.length >= 3 && !_stopWords.contains(w))
+        .toList();
+    final bigrams = <String>[];
+    for (var i = 0; i < significant.length - 1; i++) {
+      bigrams.add('${significant[i]} ${significant[i + 1]}');
+    }
+    return bigrams;
+  }
+
+  static Map<String, int> _trimFrequencyMap(
+    Map<String, int> freqMap,
+    int maxEntries,
+  ) {
+    final sorted = freqMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return <String, int>{
+      for (final entry in sorted.take(maxEntries)) entry.key: entry.value,
+    };
+  }
+
+  static Map<String, int> _decodeFrequencyMap(String? serialized) {
+    if (serialized == null || serialized.isEmpty) return <String, int>{};
     try {
-      final decoded = jsonDecode(serializedKeywords);
+      final decoded = jsonDecode(serialized);
       if (decoded is Map<String, dynamic>) {
         return decoded.map(
           (key, value) => MapEntry(key, (value as num).toInt()),
@@ -158,7 +180,6 @@ class UserVoiceProfileRepository {
     } catch (_) {
       // Corrupt JSON — start fresh.
     }
-
     return <String, int>{};
   }
 

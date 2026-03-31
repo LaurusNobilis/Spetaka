@@ -22,21 +22,27 @@ class ManualAcquittementButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        key: const Key('manual_acquittement_button'),
-        icon: const Icon(Icons.check_circle_outline, size: 18),
-        label: Text(context.l10n.logContactTitle),
-        onPressed: () => showAcquittementSheet(
-          context: context,
-          ref: ref,
-          pendingState: PendingActionState(
-            friendId: friendId,
-            origin: AcquittementOrigin.unknown,
-            actionType: 'manual',
-            timestamp: DateTime.now(),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: OutlinedButton.icon(
+          key: const Key('manual_acquittement_button'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          icon: const Icon(Icons.check_circle_outline, size: 18),
+          label: Text(context.l10n.logContactTitle),
+          onPressed: () => showAcquittementSheet(
+            context: context,
+            ref: ref,
+            pendingState: PendingActionState(
+              friendId: friendId,
+              origin: AcquittementOrigin.unknown,
+              actionType: 'manual',
+              timestamp: DateTime.now(),
+            ),
           ),
         ),
       ),

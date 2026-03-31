@@ -1,14 +1,14 @@
 // test/unit/voice_profile/user_voice_profile_repository_test.dart
 //
-// Tests Story 10.6 — UserVoiceProfile on-device learning
+// Tests UserVoiceProfile on-device learning (couche 4 refactor)
 //
 // Coverage:
 //   AC1 — first observation increments observationCount to 1
-//   AC2 — tutoiement text lowers formalityScore below default (5)
-//   AC2 — vouvoiement text raises formalityScore above default (5)
-//   AC3 — avgWordCount tracks word length of sent text
-//   AC4 — three observations reach observationCount == 3
-//   AC7 — restore() faithfully upserts the provided profile values
+//   AC2 — keywords are extracted and stored
+//   AC3 — emoji characters are extracted and stored
+//   AC4 — expressions (bigrams) are extracted and stored
+//   AC5 — three observations reach observationCount == 3
+//   AC6 — restore() faithfully upserts the provided profile values
 
 import 'dart:convert';
 
@@ -37,27 +37,27 @@ void main() {
       expect(profile!.observationCount, equals(1));
     });
 
-    test('tutoiement text drives formalityScore below 5', () async {
-      // "coucou tu vas bien" — contains tutoiement markers (coucou, tu)
-      await repo.observe(sentText: 'Coucou tu vas bien ?');
+    test('keywords are extracted and stored as JSON map', () async {
+      // "famille courage santé" — all ≥4 chars, none are stop words
+      await repo.observe(sentText: 'famille courage santé');
       final profile = await repo.getProfile();
-      expect(profile!.formalityScore, lessThan(5));
+      final keywords = jsonDecode(profile!.frequentKeywords) as Map<String, dynamic>;
+      expect(keywords.keys, containsAll(['famille', 'courage']));
     });
 
-    test('vouvoiement text drives formalityScore above 5', () async {
-      // "Bonjour, comment vous portez-vous" — vouvoiement markers (bonjour, vous)
-      await repo.observe(sentText: 'Bonjour, comment vous portez-vous ?');
+    test('emojis are extracted and stored', () async {
+      await repo.observe(sentText: 'Bravo ! 🎉 Tu as réussi 💪');
       final profile = await repo.getProfile();
-      expect(profile!.formalityScore, greaterThan(5));
+      final emojis = jsonDecode(profile!.frequentEmoji) as Map<String, dynamic>;
+      expect(emojis.keys, isNotEmpty);
     });
 
-    test('avgWordCount reflects word count of observed text', () async {
-      // "un deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize dix-sept dix-huit dix-neuf vingt"
-      // 20 whitespace-delimited tokens
-      final twentyWordText = List.generate(20, (i) => 'mot${i + 1}').join(' ');
-      await repo.observe(sentText: twentyWordText);
+    test('expressions (bigrams) are extracted and stored', () async {
+      // "bonne santé" → bigram of 2 significant words
+      await repo.observe(sentText: 'bonne santé courage famille');
       final profile = await repo.getProfile();
-      expect(profile!.avgWordCount, closeTo(20.0, 0.01));
+      final expressions = jsonDecode(profile!.frequentExpression) as Map<String, dynamic>;
+      expect(expressions.keys, isNotEmpty);
     });
 
     test('three observations reach observationCount == 3', () async {
@@ -66,14 +66,6 @@ void main() {
       await repo.observe(sentText: 'Troisième message envoyé.');
       final profile = await repo.getProfile();
       expect(profile!.observationCount, equals(3));
-    });
-
-    test('keywords are extracted and stored as JSON array', () async {
-      // "famille courage santé" — all ≥4 chars, none are stop words
-      await repo.observe(sentText: 'famille courage santé');
-      final profile = await repo.getProfile();
-      final keywords = jsonDecode(profile!.frequentKeywords) as Map<String, dynamic>;
-      expect(keywords.keys, containsAll(['famille', 'courage']));
     });
 
     test('observe() is idempotent on empty string — no row created', () async {
@@ -88,9 +80,9 @@ void main() {
     test('restore() upserts exactly the provided profile values', () async {
       const source = UserVoiceProfile(
         id: 'user',
-        formalityScore: 8,
-        avgWordCount: 14.5,
-        frequentKeywords: '["famille","courage","santé"]',
+        frequentKeywords: '{"famille":3,"courage":2}',
+        frequentEmoji: '{"🎉":2}',
+        frequentExpression: '{"bonne santé":1}',
         observationCount: 12,
         updatedAt: 1700000000000,
       );
@@ -99,26 +91,26 @@ void main() {
       final stored = await repo.getProfile();
 
       expect(stored, isNotNull);
-      expect(stored!.formalityScore, equals(8));
-      expect(stored.avgWordCount, closeTo(14.5, 0.001));
-      expect(stored.frequentKeywords, equals('["famille","courage","santé"]'));
+      expect(stored!.frequentKeywords, equals('{"famille":3,"courage":2}'));
+      expect(stored.frequentEmoji, equals('{"🎉":2}'));
+      expect(stored.frequentExpression, equals('{"bonne santé":1}'));
       expect(stored.observationCount, equals(12));
     });
 
     test('restore() is idempotent — second call overwrites first', () async {
       const v1 = UserVoiceProfile(
         id: 'user',
-        formalityScore: 3,
-        avgWordCount: 5.0,
-        frequentKeywords: '["old"]',
+        frequentKeywords: '{"old":1}',
+        frequentEmoji: '[]',
+        frequentExpression: '[]',
         observationCount: 2,
         updatedAt: 1000000,
       );
       const v2 = UserVoiceProfile(
         id: 'user',
-        formalityScore: 7,
-        avgWordCount: 20.0,
-        frequentKeywords: '["new"]',
+        frequentKeywords: '{"new":5}',
+        frequentEmoji: '{"😊":3}',
+        frequentExpression: '{"bonne continuation":2}',
         observationCount: 5,
         updatedAt: 2000000,
       );
@@ -127,7 +119,7 @@ void main() {
       await repo.restore(v2);
       final stored = await repo.getProfile();
 
-      expect(stored!.formalityScore, equals(7));
+      expect(stored!.frequentKeywords, equals('{"new":5}'));
       expect(stored.observationCount, equals(5));
     });
   });

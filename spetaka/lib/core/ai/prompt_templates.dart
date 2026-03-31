@@ -2,7 +2,6 @@
 //
 // Central registry for ALL LLM prompt templates.
 // No runtime prompt construction outside this file (architecture rule).
-// Content will be filled in Stories 10.2 and 10.3.
 
 import '../../core/database/app_database.dart';
 import '../../features/voice_profile/data/user_voice_profile_repository.dart';
@@ -12,6 +11,12 @@ import '../../features/voice_profile/data/user_voice_profile_repository.dart';
 /// Every prompt string used by the app lives here.
 /// Prompt construction must ONLY happen in this file.
 abstract final class PromptTemplates {
+  static const _stopWords = {
+    'cette', 'avec', 'pour', 'dans', 'bien', 'mais', 'aussi', 'comme',
+    'plus', 'tout', 'très', 'votre', 'notre', 'leur', 'vous', 'nous',
+    'même', 'être', 'avoir', 'faire',
+  };
+
   /// Message suggestion prompt template.
   ///
   /// Parameters:
@@ -20,38 +25,41 @@ abstract final class PromptTemplates {
   /// - [eventNote]: Optional note/context about the event.
   /// - [language]: Target language for the suggestion.
   /// - [voiceProfile]: Optional on-device learned style profile (Story 10.6).
-  ///
-  /// Content will be implemented in Story 10.2.
+  /// - [concernNote]: Optional concern note from the friend's active concern.
   static String messageSuggestion({
     required String friendName,
     required String eventType,
     String? eventNote,
     String language = 'fr',
-    UserVoiceProfile? voiceProfile, // Story 10.6 — on-device style injection
+    UserVoiceProfile? voiceProfile,
+    String? concernNote,
   }) {
+    // Couche 1 — Base context: event type and comment combined
     final eventContext = eventNote != null && eventNote.isNotEmpty
         ? '$eventType — $eventNote'
         : eventType;
 
-    // Story 10.5 — base tone instruction from event note context
-    final baseToneInstruction = eventNote != null && eventNote.isNotEmpty
-        ? '\nContexte important : $eventNote. Adapte le ton de tes messages en conséquence.'
-        : '';
+    // Couche 2 — Always-on: bienveillant + compatissant, tone adapted to
+    // event type and comment (when present).
+    // Format when note present: "Contexte important : {note}. Adapte le ton..." (Story 10.5 AC1)
+    final toneInstruction = eventNote != null && eventNote.isNotEmpty
+        ? '\nContexte important : $eventNote. Adapte le ton au type d\'événement "$eventType".\nReste toujours bienveillant et compatissant.'
+        : '\nReste toujours bienveillant et compatissant. Adapte le ton au type d\'événement "$eventType".';
 
-    // Story 10.6 AC9 — emotion tone override (Option A, deterministic, offline)
-    final emotionOverride = _detectEmotionTone(eventNote);
-    // If emotionOverride is detected it replaces the Story 10.5 toneInstruction
-    final activeToneInstruction = emotionOverride ?? baseToneInstruction;
-
-    // Story 10.6 AC9 — length instruction driven by commentDepth
+    // Couche 3 — Length instruction based on keyword count in event note
     final lengthInstruction = _buildLengthInstruction(eventNote);
 
-    // Story 10.6 AC3 — style instruction from UserVoiceProfile (≥3 observations)
+    // Couche 4 — Style instruction from UserVoiceProfile (≥3 observations)
     final styleInstruction = _buildStyleInstruction(voiceProfile);
 
-    return '''Tu es un assistant bienveillant qui aide à maintenir des liens sincères avec ses proches.$activeToneInstruction$lengthInstruction$styleInstruction
-Génère 3 courts messages $language chaleureux pour $friendName à l'occasion de : $eventContext.
-Les messages doivent être chaleureux, personnels, naturels, et adaptés à un envoi par $language.
+    // Concern context — inject the friend's concern note when present
+    final concernInstruction = concernNote != null && concernNote.trim().isNotEmpty
+        ? '\nPréoccupation active pour $friendName : $concernNote. Prends cela en compte avec délicatesse dans tes suggestions.'
+        : '';
+
+    return '''Tu es un assistant bienveillant qui aide à maintenir des liens sincères avec ses proches.$toneInstruction$lengthInstruction$styleInstruction$concernInstruction
+Génère 3 courts messages pour $friendName à l'occasion de : $eventContext.
+Les messages doivent être chaleureux, personnels et naturels.
 Formate ta réponse comme une liste numérotée :
 1. [premier message]
 2. [deuxième message]
@@ -60,50 +68,29 @@ Ne génère rien d'autre.''';
   }
 
   // ---------------------------------------------------------------------------
-  // Private helpers — Story 10.6 AC9
+  // Private helpers — Couche 3
   // ---------------------------------------------------------------------------
 
-  // Option A — keyword-based emotion detection, deterministic, offline (AC9)
-  static const _anxietyMarkers = [
-    'anxieux', 'stressé', 'peur', 'kiné', 'douleur', 'difficile', 'inquiet',
-  ];
-  static const _griefMarkers = [
-    'perdu', 'décédé', 'deuil', 'séparation', 'rupture', 'triste',
-  ];
-  static const _joyMarkers = [
-    'heureux', 'fier', 'excité', 'content', 'réussi', 'diplôme', 'bébé',
-    'mariage',
-  ];
-
-  /// Returns an emotion-specific tone override string, or null if no marker
-  /// is detected. When non-null, replaces the Story 10.5 toneInstruction.
-  static String? _detectEmotionTone(String? eventNote) {
-    if (eventNote == null || eventNote.trim().isEmpty) return null;
-    final lower = eventNote.toLowerCase();
-    if (_anxietyMarkers.any(lower.contains)) {
-      return '\nRassure-le/la chaleureusement — il/elle est anxieux/anxieuse à ce sujet.';
-    }
-    if (_griefMarkers.any(lower.contains)) {
-      return "\nAdopte un ton doux et sobre. Pas d'humour. Montre que tu es présent(e).";
-    }
-    if (_joyMarkers.any(lower.contains)) {
-      return "\nCélèbre avec lui/elle — c'est un moment de joie !";
-    }
-    return null;
+  /// Counts meaningful keywords (words ≥ 4 chars, not stop words) in [eventNote].
+  static int _countKeywordsInNote(String? eventNote) {
+    if (eventNote == null || eventNote.trim().isEmpty) return 0;
+    return eventNote
+        .toLowerCase()
+        .split(RegExp(r"[^a-zA-ZÀ-ÿ']+"))
+        .where((w) => w.length >= 4 && !_stopWords.contains(w))
+        .length;
   }
 
-  /// Returns a length constraint instruction based on word count of [eventNote].
+  /// Returns a length constraint instruction based on keyword count of [eventNote].
   static String _buildLengthInstruction(String? eventNote) {
-    final wordCount = eventNote == null
-        ? 0
-        : eventNote.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
-    if (wordCount <= 3) return '\nÉcris un message très court, maximum 8 mots.';
-    if (wordCount <= 15) return '\nÉcris un message court, maximum 20 mots.';
-    return '\nÉcris un message personnalisé, maximum 40 mots.';
+    final count = _countKeywordsInNote(eventNote);
+    if (count <= 1) return '\nÉcris un message court, maximum 15 mots.';
+    if (count <= 4) return '\nÉcris un message de longueur modérée, maximum 40 mots.';
+    return '\nÉcris un message riche et personnalisé, plus de 40 mots.';
   }
 
   // ---------------------------------------------------------------------------
-  // Private helpers — Story 10.6 AC3
+  // Private helpers — Couche 4
   // ---------------------------------------------------------------------------
 
   /// Returns a style constraint instruction from the [voiceProfile], or an
@@ -111,15 +98,29 @@ Ne génère rien d'autre.''';
   /// threshold.
   static String _buildStyleInstruction(UserVoiceProfile? profile) {
     if (profile == null || profile.observationCount < 3) return '';
-    final avgWords = profile.avgWordCount.round();
     final topKeywords = UserVoiceProfileRepository.topKeywordsFromJson(
       profile.frequentKeywords,
     );
-    final wordsPart = avgWords > 0 ? ', ~$avgWords mots par message' : '';
-    final keywordsPart = topKeywords.isNotEmpty
-        ? ', inclure si pertinent : ${topKeywords.join(', ')}'
-        : '';
-    return '\nStyle requis : niveau de formalité ${profile.formalityScore}/10$wordsPart$keywordsPart.';
+    final topEmojis = UserVoiceProfileRepository.topItemsFromJson(
+      profile.frequentEmoji,
+      limit: 3,
+    );
+    final topExpressions = UserVoiceProfileRepository.topItemsFromJson(
+      profile.frequentExpression,
+      limit: 2,
+    );
+    final parts = <String>[];
+    if (topKeywords.isNotEmpty) {
+      parts.add('mots-clés récurrents : ${topKeywords.join(', ')}');
+    }
+    if (topEmojis.isNotEmpty) {
+      parts.add('emojis fréquents : ${topEmojis.join(' ')}');
+    }
+    if (topExpressions.isNotEmpty) {
+      parts.add('expressions fréquentes : ${topExpressions.join(', ')}');
+    }
+    if (parts.isEmpty) return '';
+    return '\nStyle de l\'utilisateur : ${parts.join(' ; ')}.';
   }
 
   /// Greeting line prompt template.

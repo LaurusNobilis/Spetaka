@@ -20,8 +20,8 @@ void main() {
       expect(result.data['v'], equals(1));
     });
 
-    test('schemaVersion is 10 (user voice profile table)', () {
-      expect(db.schemaVersion, equals(10));
+    test('schemaVersion is 11 (user voice profile + migration 11)', () {
+      expect(db.schemaVersion, equals(11));
     });
 
     test('MigrationStrategy declares an onUpgrade hook', () {

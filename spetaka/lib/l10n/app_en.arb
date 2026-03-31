@@ -186,6 +186,10 @@
   "@concernLabel": {
     "description": "Label displayed when concern is active"
   },
+  "concernInactiveSummary": "No concern flagged.",
+  "@concernInactiveSummary": {
+    "description": "Empty-state summary shown when no concern is active for a friend"
+  },
   "concernFlaggedTooltip": "Concern flagged",
   "@concernFlaggedTooltip": {
     "description": "Tooltip shown on the concern warning icon"
@@ -210,7 +214,7 @@
   "@noContactHistory": {
     "description": "Empty state for contact history"
   },
-  "logContactTitle": "Contact completed",
+  "logContactTitle": "Log contact",
   "@logContactTitle": {
     "description": "Tooltip/action to log a contact"
   },
@@ -967,6 +971,26 @@
   "modelDownloadOkButton": "Done",
   "@modelDownloadOkButton": {
     "description": "Button to dismiss the AI model ready screen — Story 10.1 AC5"
+  },
+  "hfTokenSectionTitle": "HuggingFace Access Token",
+  "@hfTokenSectionTitle": {
+    "description": "Section heading in ModelDownloadScreen for token entry — p2-llm-hf-token"
+  },
+  "hfTokenExplainer": "To download the AI model, you need a free HuggingFace account token. Visit huggingface.co/settings/tokens to generate one (read-only access is sufficient).",
+  "@hfTokenExplainer": {
+    "description": "Explanation text shown when user needs to enter their HF token — p2-llm-hf-token"
+  },
+  "hfTokenFieldLabel": "HuggingFace token",
+  "@hfTokenFieldLabel": {
+    "description": "Label for the HuggingFace token text field — p2-llm-hf-token"
+  },
+  "hfTokenSaveAndDownload": "Save & Download",
+  "@hfTokenSaveAndDownload": {
+    "description": "Button that saves the HF token and starts model download — p2-llm-hf-token"
+  },
+  "hfTokenErrorEmpty": "Please enter your HuggingFace token before downloading.",
+  "@hfTokenErrorEmpty": {
+    "description": "Validation error when token field is empty — p2-llm-hf-token"
   },
   "statusFilterTooltip": "Filter by status",
   "@statusFilterTooltip": {

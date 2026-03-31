@@ -1,24 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <!--
     Spetaka app icon — Style F
-    Primary  (terracotta) #C47B5A  → background
-    White                          → bold S
-    Secondary (dusty sage) #7D9E8C → small heart accent (top-right)
+    Premium terracotta #B76044     → background
+    Warm ivory        #FCF6F0      → bold S
+    Deep clay         #5A2F27      → small heart accent (top-right)
   -->
 
-  <rect width="1024" height="1024" rx="228" ry="228" fill="#C47B5A"/>
+  <rect width="1024" height="1024" rx="228" ry="228" fill="#B76044"/>
 
   <text
     x="512" y="700"
-    font-family="Georgia, 'Times New Roman', serif"
+    font-family="DejaVu Serif, 'Times New Roman', serif"
     font-size="720"
     font-weight="bold"
-    fill="#FFFFFF"
+    fill="#FCF6F0"
     text-anchor="middle">S</text>
 
   <path d="M836,152
            C836,152 772,108 736,152
            C717,177 736,204 774,230
            C812,204 840,177 836,152 Z"
-        fill="#7D9E8C"/>
+        fill="#5A2F27"/>
 </svg>

@@ -96,9 +96,9 @@ class BackupPayload {
         'voiceProfile': voiceProfile == null
             ? null
             : {
-                'formalityScore': voiceProfile!.formalityScore,
-                'avgWordCount': voiceProfile!.avgWordCount,
                 'frequentKeywords': voiceProfile!.frequentKeywords,
+                'frequentEmoji': voiceProfile!.frequentEmoji,
+                'frequentExpression': voiceProfile!.frequentExpression,
                 'observationCount': voiceProfile!.observationCount,
                 'updatedAt': voiceProfile!.updatedAt,
               },
@@ -143,12 +143,12 @@ class BackupPayload {
           ? null
           : UserVoiceProfile(
               id: 'user',
-              formalityScore:
-                  (json['voiceProfile']['formalityScore'] as num?)?.toInt() ?? 5,
-              avgWordCount:
-                  (json['voiceProfile']['avgWordCount'] as num?)?.toDouble() ?? 0.0,
               frequentKeywords:
                   json['voiceProfile']['frequentKeywords'] as String? ?? '[]',
+              frequentEmoji:
+                  json['voiceProfile']['frequentEmoji'] as String? ?? '[]',
+              frequentExpression:
+                  json['voiceProfile']['frequentExpression'] as String? ?? '[]',
               observationCount:
                   (json['voiceProfile']['observationCount'] as num?)?.toInt() ?? 0,
               updatedAt:

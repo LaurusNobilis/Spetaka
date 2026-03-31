@@ -43,6 +43,9 @@ dependencies:
   # External actions
   url_launcher: ^6.3.1
 
+  # Secure credential storage — p2-llm-hf-token (Android Keystore / iOS Keychain)
+  flutter_secure_storage: ^9.0.0
+
   # On-device LLM inference — Story 10.1
   flutter_gemma: 0.12.6
 

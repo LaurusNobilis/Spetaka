@@ -45,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   /// Returns the [MigrationStrategy] used by Drift on every open / upgrade.
   ///
@@ -158,6 +158,10 @@ class AppDatabase extends _$AppDatabase {
           // Story 10.6 — v9→v10: create user_voice_profiles table (singleton).
           if (from < 10) {
             await m.createTable(userVoiceProfiles);
+          }
+          // v10→v11: remove formalityScore/avgWordCount, add frequentEmoji/frequentExpression.
+          if (from == 10) {
+            await m.alterTable(TableMigration(userVoiceProfiles));
           }
         },
         beforeOpen: (details) async {

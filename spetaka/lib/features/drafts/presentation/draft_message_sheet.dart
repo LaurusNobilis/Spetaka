@@ -114,8 +114,20 @@ class _DraftMessageSheetContentState
       _textController = TextEditingController(text: text);
     } else if (_textController!.text != text && draft.editedText == null) {
       // Only overwrite when user hasn't manually edited (i.e., variant changed).
-      _textController!.text = text;
-      _textController!.selection = TextSelection.collapsed(offset: text.length);
+      // Defer the mutation to post-frame: mutating a ChangeNotifier during
+      // build triggers Flutter assertions and an immediate re-layout cycle.
+      // Preserve cursor position only for a collapsed (point) selection;
+      // an extended selection across a completely new variant text is meaningless.
+      final savedOffset = _textController!.selection.isValid &&
+              _textController!.selection.isCollapsed
+          ? _textController!.selection.baseOffset
+          : null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _textController!.text = text;
+        final offset = savedOffset?.clamp(0, text.length) ?? text.length;
+        _textController!.selection = TextSelection.collapsed(offset: offset);
+      });
     }
   }
 
@@ -243,130 +255,139 @@ class _DraftMessageSheetContentState
     final friend = asyncFriend.asData?.value;
     _maybeInitializeChannel(friend?.mobile);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 16,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 28,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // AC1: small loading indicator at the very top of the sheet.
-          // Also shown while streaming (isStreaming == true) so the user sees
-          // continuous feedback even after the first partial variants arrive.
-          if (draftState is AsyncLoading<DraftMessage?> ||
-              draftState.value?.isStreaming == true)
-            LinearProgressIndicator(
-              color: colorScheme.primary,
-              backgroundColor: colorScheme.primaryContainer,
-              minHeight: 3,
-            ),
-
-          // ── Drag handle ─────────────────────────────────────────────
-          ExcludeSemantics(
-            child: Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                decoration: BoxDecoration(
-                  color: colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Drag handle (outside scroll — stays fixed at sheet top) ──
+        ExcludeSemantics(
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
+        ),
 
-          // ── Sheet title ──────────────────────────────────────────────
-          Text(
-            l10n.draftMessageSheetTitle,
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-
-          // ── Body — switches between loading / data / error states ────
-          draftState.when(
-            loading: () => _LoadingBody(l10n: l10n),
-            error: (_, __) => _ErrorBody(
-              l10n: l10n,
-              colorScheme: colorScheme,
-              theme: theme,
-              textController: _textController ??= TextEditingController(),
-              friendName: friend?.name,
-              headerContext: _eventHeaderContext(),
-              channel: _channel,
-              onChannelChanged: _handleChannelChanged,
-              eventComment: widget.event.comment,
-              onSend: (_) async => _handleSend(
-                DraftMessage(
-                  friendId: widget.friendId,
-                  friendName: '',
-                  eventContext: widget.event.type,
-                  channel: _channel,
-                  variants: const [],
-                ),
-              ),
-              onDiscard: _handleDiscard,
+        // ── Scrollable content ────────────────────────────────────────
+        Flexible(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 8,
+              bottom: MediaQuery.viewInsetsOf(context).bottom + 28,
             ),
-            data: (draft) {
-              if (draft == null) {
-                // Not yet requested — show minimal placeholder.
-                return _LoadingBody(l10n: l10n);
-              }
-              if (draft.variants.isEmpty) {
-                // AC6: inference returned no parseable variants.
-                return _ErrorBody(
-                  l10n: l10n,
-                  colorScheme: colorScheme,
-                  theme: theme,
-                  textController: _textController ??= TextEditingController(),
-                  friendName: friend?.name,
-                  headerContext: _eventHeaderContext(),
-                  channel: _channel,
-                  onChannelChanged: _handleChannelChanged,
-                  eventComment: widget.event.comment,
-                  onSend: (_) async => _handleSend(draft),
-                  onDiscard: _handleDiscard,
-                );
-              }
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // AC1: small loading indicator at the very top of the sheet.
+                // Also shown while streaming (isStreaming == true) so the user sees
+                // continuous feedback even after the first partial variants arrive.
+                if (draftState is AsyncLoading<DraftMessage?> ||
+                    draftState.value?.isStreaming == true)
+                  LinearProgressIndicator(
+                    color: colorScheme.primary,
+                    backgroundColor: colorScheme.primaryContainer,
+                    minHeight: 3,
+                  ),
 
-              // Sync text controller with current draft state.
-              _syncController(draft);
+                // ── Sheet title ────────────────────────────────────────
+                Text(
+                  l10n.draftMessageSheetTitle,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
 
-              return _DataBody(
-                draft: draft,
-                l10n: l10n,
-                colorScheme: colorScheme,
-                theme: theme,
-                textController: _textController!,
-                channel: _channel,
-                headerContext: _eventHeaderContext(),
-                eventComment: widget.event.comment,
-                onChannelChanged: _handleChannelChanged,
-                onVariantSelected: (i) => ref
-                    .read(draftMessageProvider.notifier)
-                    .selectVariant(i),
-                onTextChanged: (t) => ref
-                    .read(draftMessageProvider.notifier)
-                    .updateEditedText(t),
-                onGenerateMore: () => ref
-                    .read(draftMessageProvider.notifier)
-                    .requestSuggestions(
-                      friendId: widget.friendId,
-                      event: widget.event,
-                      channel: _channel,
+                // ── Body — switches between loading / data / error states ──
+                draftState.when(
+                  loading: () => _LoadingBody(l10n: l10n),
+                  error: (_, __) => _ErrorBody(
+                    l10n: l10n,
+                    colorScheme: colorScheme,
+                    theme: theme,
+                    textController: _textController ??= TextEditingController(),
+                    friendName: friend?.name,
+                    headerContext: _eventHeaderContext(),
+                    channel: _channel,
+                    onChannelChanged: _handleChannelChanged,
+                    eventComment: widget.event.comment,
+                    onSend: (_) async => _handleSend(
+                      DraftMessage(
+                        friendId: widget.friendId,
+                        friendName: '',
+                        eventContext: widget.event.type,
+                        channel: _channel,
+                        variants: const [],
+                      ),
                     ),
-                onSend: () => _handleSend(draft),
-                onDiscard: _handleDiscard,
-              );
-            },
+                    onDiscard: _handleDiscard,
+                  ),
+                  data: (draft) {
+                    if (draft == null) {
+                      // Not yet requested — show minimal placeholder.
+                      return _LoadingBody(l10n: l10n);
+                    }
+                    if (draft.variants.isEmpty) {
+                      // AC6: inference returned no parseable variants.
+                      return _ErrorBody(
+                        l10n: l10n,
+                        colorScheme: colorScheme,
+                        theme: theme,
+                        textController:
+                            _textController ??= TextEditingController(),
+                        friendName: friend?.name,
+                        headerContext: _eventHeaderContext(),
+                        channel: _channel,
+                        onChannelChanged: _handleChannelChanged,
+                        eventComment: widget.event.comment,
+                        onSend: (_) async => _handleSend(draft),
+                        onDiscard: _handleDiscard,
+                      );
+                    }
+
+                    // Sync text controller with current draft state.
+                    _syncController(draft);
+
+                    return _DataBody(
+                      draft: draft,
+                      l10n: l10n,
+                      colorScheme: colorScheme,
+                      theme: theme,
+                      textController: _textController!,
+                      channel: _channel,
+                      headerContext: _eventHeaderContext(),
+                      eventComment: widget.event.comment,
+                      onChannelChanged: _handleChannelChanged,
+                      onVariantSelected: (i) => ref
+                          .read(draftMessageProvider.notifier)
+                          .selectVariant(i),
+                      onTextChanged: (t) => ref
+                          .read(draftMessageProvider.notifier)
+                          .updateEditedText(t),
+                      onGenerateMore: () => ref
+                          .read(draftMessageProvider.notifier)
+                          .requestSuggestions(
+                            friendId: widget.friendId,
+                            event: widget.event,
+                            channel: _channel,
+                          ),
+                      onSend: () => _handleSend(draft),
+                      onDiscard: _handleDiscard,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

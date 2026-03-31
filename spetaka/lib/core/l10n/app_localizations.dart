@@ -362,6 +362,12 @@ abstract class AppLocalizations {
   /// **'Concern'**
   String get concernLabel;
 
+  /// Empty-state summary shown when no concern is active for a friend
+  ///
+  /// In en, this message translates to:
+  /// **'No concern flagged.'**
+  String get concernInactiveSummary;
+
   /// Tooltip shown on the concern warning icon
   ///
   /// In en, this message translates to:
@@ -401,7 +407,7 @@ abstract class AppLocalizations {
   /// Tooltip/action to log a contact
   ///
   /// In en, this message translates to:
-  /// **'Contact completed'**
+  /// **'Log contact'**
   String get logContactTitle;
 
   /// Title of the acquittement sheet
@@ -1405,6 +1411,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get modelDownloadOkButton;
+
+  /// Section heading in ModelDownloadScreen for token entry — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'HuggingFace Access Token'**
+  String get hfTokenSectionTitle;
+
+  /// Explanation text shown when user needs to enter their HF token — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'To download the AI model, you need a free HuggingFace account token. Visit huggingface.co/settings/tokens to generate one (read-only access is sufficient).'**
+  String get hfTokenExplainer;
+
+  /// Label for the HuggingFace token text field — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'HuggingFace token'**
+  String get hfTokenFieldLabel;
+
+  /// Button that saves the HF token and starts model download — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Download'**
+  String get hfTokenSaveAndDownload;
+
+  /// Validation error when token field is empty — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your HuggingFace token before downloading.'**
+  String get hfTokenErrorEmpty;
 
   /// Tooltip for the status filter funnel icon in the friends list AppBar — Story 8.3 AC1
   ///

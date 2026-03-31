@@ -166,7 +166,8 @@ phase-2-brainstorm-backlog:
   # stocké dans flutter_secure_storage (Android Keystore / iOS Keychain), jamais embarqué dans le binaire.
   # Impact code : HfTokenService (~30 lignes) + étape 'needsToken' dans ModelDownloadScreen + 1 ligne ModelManager.
   # Aucune feature existante (10.2/10.3/10.4) n'est modifiée.
-  p2-llm-hf-token-user-provided-secure-storage: backlog  # Sécurité/licence : token HF saisi par l'utilisateur, stocké dans Keystore
+  # Story file created 2026-03-30 by Bob (create-story workflow)
+  p2-llm-hf-token-user-provided-secure-storage: review
 
 # =============================================================
 # PHASE 3 BACKLOG — WebDAV Sync + Gamification + Expansion

@@ -64,9 +64,9 @@ void main() {
         () {
       const source = UserVoiceProfile(
         id: 'user',
-        formalityScore: 7,
-        avgWordCount: 14.5,
-        frequentKeywords: '["famille","courage","santé"]',
+        frequentKeywords: '{"famille":3,"courage":2}',
+        frequentEmoji: '{"🎉":2}',
+        frequentExpression: '{"bonne continuation":1}',
         observationCount: 12,
         updatedAt: 1700000000000,
       );
@@ -76,11 +76,14 @@ void main() {
       final restored = BackupPayload.fromJson(json);
 
       expect(restored.voiceProfile, isNotNull);
-      expect(restored.voiceProfile!.formalityScore, equals(7));
-      expect(restored.voiceProfile!.avgWordCount, closeTo(14.5, 0.001));
       expect(
         restored.voiceProfile!.frequentKeywords,
-        equals('["famille","courage","santé"]'),
+        equals('{"famille":3,"courage":2}'),
+      );
+      expect(restored.voiceProfile!.frequentEmoji, equals('{"🎉":2}'));
+      expect(
+        restored.voiceProfile!.frequentExpression,
+        equals('{"bonne continuation":1}'),
       );
       expect(restored.voiceProfile!.observationCount, equals(12));
       expect(restored.voiceProfile!.updatedAt, equals(1700000000000));

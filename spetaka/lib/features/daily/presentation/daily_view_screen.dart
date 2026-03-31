@@ -13,6 +13,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/actions/contact_action_service.dart';
 import '../../../core/ai/ai_capability_checker.dart';
@@ -424,10 +425,12 @@ class _CollapsedContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    localizedSurfacingReason(context, entry.prioritized.daysUntilNextEvent),
+                    _buildEventSubtitle(context, entry),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ],
               ),
@@ -457,6 +460,28 @@ class _CollapsedContent extends StatelessWidget {
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Helper — event subtitle for collapsed card
+// ---------------------------------------------------------------------------
+
+/// Builds the subtitle line shown in the collapsed daily-view card.
+///
+/// Shows the event date (e.g. "15 mars") followed by the event comment
+/// truncated by [TextOverflow.ellipsis] at the widget level. Falls back
+/// to an empty string when no nearest event is available.
+String _buildEventSubtitle(BuildContext context, DailyViewEntry entry) {
+  final event = entry.nearestEvent;
+  if (event == null) return '';
+  final locale = Localizations.localeOf(context).toString();
+  final dateStr = DateFormat('d MMM', locale)
+      .format(DateTime.fromMillisecondsSinceEpoch(event.date));
+  final comment = event.comment;
+  if (comment != null && comment.isNotEmpty) {
+    return '$dateStr · $comment';
+  }
+  return dateStr;
 }
 
 // ---------------------------------------------------------------------------

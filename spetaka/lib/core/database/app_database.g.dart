@@ -1721,22 +1721,6 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _formalityScoreMeta =
-      const VerificationMeta('formalityScore');
-  @override
-  late final GeneratedColumn<int> formalityScore = GeneratedColumn<int>(
-      'formality_score', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(5));
-  static const VerificationMeta _avgWordCountMeta =
-      const VerificationMeta('avgWordCount');
-  @override
-  late final GeneratedColumn<double> avgWordCount = GeneratedColumn<double>(
-      'avg_word_count', aliasedName, false,
-      type: DriftSqlType.double,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0.0));
   static const VerificationMeta _frequentKeywordsMeta =
       const VerificationMeta('frequentKeywords');
   @override
@@ -1745,6 +1729,22 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('[]'));
+  static const VerificationMeta _frequentEmojiMeta =
+      const VerificationMeta('frequentEmoji');
+  @override
+  late final GeneratedColumn<String> frequentEmoji = GeneratedColumn<String>(
+      'frequent_emoji', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _frequentExpressionMeta =
+      const VerificationMeta('frequentExpression');
+  @override
+  late final GeneratedColumn<String> frequentExpression =
+      GeneratedColumn<String>('frequent_expression', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('[]'));
   static const VerificationMeta _observationCountMeta =
       const VerificationMeta('observationCount');
   @override
@@ -1762,9 +1762,9 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        formalityScore,
-        avgWordCount,
         frequentKeywords,
+        frequentEmoji,
+        frequentExpression,
         observationCount,
         updatedAt
       ];
@@ -1783,23 +1783,23 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('formality_score')) {
-      context.handle(
-          _formalityScoreMeta,
-          formalityScore.isAcceptableOrUnknown(
-              data['formality_score']!, _formalityScoreMeta));
-    }
-    if (data.containsKey('avg_word_count')) {
-      context.handle(
-          _avgWordCountMeta,
-          avgWordCount.isAcceptableOrUnknown(
-              data['avg_word_count']!, _avgWordCountMeta));
-    }
     if (data.containsKey('frequent_keywords')) {
       context.handle(
           _frequentKeywordsMeta,
           frequentKeywords.isAcceptableOrUnknown(
               data['frequent_keywords']!, _frequentKeywordsMeta));
+    }
+    if (data.containsKey('frequent_emoji')) {
+      context.handle(
+          _frequentEmojiMeta,
+          frequentEmoji.isAcceptableOrUnknown(
+              data['frequent_emoji']!, _frequentEmojiMeta));
+    }
+    if (data.containsKey('frequent_expression')) {
+      context.handle(
+          _frequentExpressionMeta,
+          frequentExpression.isAcceptableOrUnknown(
+              data['frequent_expression']!, _frequentExpressionMeta));
     }
     if (data.containsKey('observation_count')) {
       context.handle(
@@ -1824,12 +1824,12 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
     return UserVoiceProfile(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      formalityScore: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}formality_score'])!,
-      avgWordCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}avg_word_count'])!,
       frequentKeywords: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}frequent_keywords'])!,
+      frequentEmoji: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}frequent_emoji'])!,
+      frequentExpression: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}frequent_expression'])!,
       observationCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}observation_count'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -1846,25 +1846,25 @@ class $UserVoiceProfilesTable extends UserVoiceProfiles
 class UserVoiceProfile extends DataClass
     implements Insertable<UserVoiceProfile> {
   final String id;
-  final int formalityScore;
-  final double avgWordCount;
   final String frequentKeywords;
+  final String frequentEmoji;
+  final String frequentExpression;
   final int observationCount;
   final int updatedAt;
   const UserVoiceProfile(
       {required this.id,
-      required this.formalityScore,
-      required this.avgWordCount,
       required this.frequentKeywords,
+      required this.frequentEmoji,
+      required this.frequentExpression,
       required this.observationCount,
       required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['formality_score'] = Variable<int>(formalityScore);
-    map['avg_word_count'] = Variable<double>(avgWordCount);
     map['frequent_keywords'] = Variable<String>(frequentKeywords);
+    map['frequent_emoji'] = Variable<String>(frequentEmoji);
+    map['frequent_expression'] = Variable<String>(frequentExpression);
     map['observation_count'] = Variable<int>(observationCount);
     map['updated_at'] = Variable<int>(updatedAt);
     return map;
@@ -1873,9 +1873,9 @@ class UserVoiceProfile extends DataClass
   UserVoiceProfilesCompanion toCompanion(bool nullToAbsent) {
     return UserVoiceProfilesCompanion(
       id: Value(id),
-      formalityScore: Value(formalityScore),
-      avgWordCount: Value(avgWordCount),
       frequentKeywords: Value(frequentKeywords),
+      frequentEmoji: Value(frequentEmoji),
+      frequentExpression: Value(frequentExpression),
       observationCount: Value(observationCount),
       updatedAt: Value(updatedAt),
     );
@@ -1886,9 +1886,10 @@ class UserVoiceProfile extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserVoiceProfile(
       id: serializer.fromJson<String>(json['id']),
-      formalityScore: serializer.fromJson<int>(json['formalityScore']),
-      avgWordCount: serializer.fromJson<double>(json['avgWordCount']),
       frequentKeywords: serializer.fromJson<String>(json['frequentKeywords']),
+      frequentEmoji: serializer.fromJson<String>(json['frequentEmoji']),
+      frequentExpression:
+          serializer.fromJson<String>(json['frequentExpression']),
       observationCount: serializer.fromJson<int>(json['observationCount']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -1898,9 +1899,9 @@ class UserVoiceProfile extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'formalityScore': serializer.toJson<int>(formalityScore),
-      'avgWordCount': serializer.toJson<double>(avgWordCount),
       'frequentKeywords': serializer.toJson<String>(frequentKeywords),
+      'frequentEmoji': serializer.toJson<String>(frequentEmoji),
+      'frequentExpression': serializer.toJson<String>(frequentExpression),
       'observationCount': serializer.toJson<int>(observationCount),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -1908,31 +1909,31 @@ class UserVoiceProfile extends DataClass
 
   UserVoiceProfile copyWith(
           {String? id,
-          int? formalityScore,
-          double? avgWordCount,
           String? frequentKeywords,
+          String? frequentEmoji,
+          String? frequentExpression,
           int? observationCount,
           int? updatedAt}) =>
       UserVoiceProfile(
         id: id ?? this.id,
-        formalityScore: formalityScore ?? this.formalityScore,
-        avgWordCount: avgWordCount ?? this.avgWordCount,
         frequentKeywords: frequentKeywords ?? this.frequentKeywords,
+        frequentEmoji: frequentEmoji ?? this.frequentEmoji,
+        frequentExpression: frequentExpression ?? this.frequentExpression,
         observationCount: observationCount ?? this.observationCount,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   UserVoiceProfile copyWithCompanion(UserVoiceProfilesCompanion data) {
     return UserVoiceProfile(
       id: data.id.present ? data.id.value : this.id,
-      formalityScore: data.formalityScore.present
-          ? data.formalityScore.value
-          : this.formalityScore,
-      avgWordCount: data.avgWordCount.present
-          ? data.avgWordCount.value
-          : this.avgWordCount,
       frequentKeywords: data.frequentKeywords.present
           ? data.frequentKeywords.value
           : this.frequentKeywords,
+      frequentEmoji: data.frequentEmoji.present
+          ? data.frequentEmoji.value
+          : this.frequentEmoji,
+      frequentExpression: data.frequentExpression.present
+          ? data.frequentExpression.value
+          : this.frequentExpression,
       observationCount: data.observationCount.present
           ? data.observationCount.value
           : this.observationCount,
@@ -1944,9 +1945,9 @@ class UserVoiceProfile extends DataClass
   String toString() {
     return (StringBuffer('UserVoiceProfile(')
           ..write('id: $id, ')
-          ..write('formalityScore: $formalityScore, ')
-          ..write('avgWordCount: $avgWordCount, ')
           ..write('frequentKeywords: $frequentKeywords, ')
+          ..write('frequentEmoji: $frequentEmoji, ')
+          ..write('frequentExpression: $frequentExpression, ')
           ..write('observationCount: $observationCount, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1954,42 +1955,42 @@ class UserVoiceProfile extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, formalityScore, avgWordCount,
-      frequentKeywords, observationCount, updatedAt);
+  int get hashCode => Object.hash(id, frequentKeywords, frequentEmoji,
+      frequentExpression, observationCount, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserVoiceProfile &&
           other.id == this.id &&
-          other.formalityScore == this.formalityScore &&
-          other.avgWordCount == this.avgWordCount &&
           other.frequentKeywords == this.frequentKeywords &&
+          other.frequentEmoji == this.frequentEmoji &&
+          other.frequentExpression == this.frequentExpression &&
           other.observationCount == this.observationCount &&
           other.updatedAt == this.updatedAt);
 }
 
 class UserVoiceProfilesCompanion extends UpdateCompanion<UserVoiceProfile> {
   final Value<String> id;
-  final Value<int> formalityScore;
-  final Value<double> avgWordCount;
   final Value<String> frequentKeywords;
+  final Value<String> frequentEmoji;
+  final Value<String> frequentExpression;
   final Value<int> observationCount;
   final Value<int> updatedAt;
   final Value<int> rowid;
   const UserVoiceProfilesCompanion({
     this.id = const Value.absent(),
-    this.formalityScore = const Value.absent(),
-    this.avgWordCount = const Value.absent(),
     this.frequentKeywords = const Value.absent(),
+    this.frequentEmoji = const Value.absent(),
+    this.frequentExpression = const Value.absent(),
     this.observationCount = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserVoiceProfilesCompanion.insert({
     required String id,
-    this.formalityScore = const Value.absent(),
-    this.avgWordCount = const Value.absent(),
     this.frequentKeywords = const Value.absent(),
+    this.frequentEmoji = const Value.absent(),
+    this.frequentExpression = const Value.absent(),
     this.observationCount = const Value.absent(),
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -1997,18 +1998,18 @@ class UserVoiceProfilesCompanion extends UpdateCompanion<UserVoiceProfile> {
         updatedAt = Value(updatedAt);
   static Insertable<UserVoiceProfile> custom({
     Expression<String>? id,
-    Expression<int>? formalityScore,
-    Expression<double>? avgWordCount,
     Expression<String>? frequentKeywords,
+    Expression<String>? frequentEmoji,
+    Expression<String>? frequentExpression,
     Expression<int>? observationCount,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (formalityScore != null) 'formality_score': formalityScore,
-      if (avgWordCount != null) 'avg_word_count': avgWordCount,
       if (frequentKeywords != null) 'frequent_keywords': frequentKeywords,
+      if (frequentEmoji != null) 'frequent_emoji': frequentEmoji,
+      if (frequentExpression != null) 'frequent_expression': frequentExpression,
       if (observationCount != null) 'observation_count': observationCount,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2017,17 +2018,17 @@ class UserVoiceProfilesCompanion extends UpdateCompanion<UserVoiceProfile> {
 
   UserVoiceProfilesCompanion copyWith(
       {Value<String>? id,
-      Value<int>? formalityScore,
-      Value<double>? avgWordCount,
       Value<String>? frequentKeywords,
+      Value<String>? frequentEmoji,
+      Value<String>? frequentExpression,
       Value<int>? observationCount,
       Value<int>? updatedAt,
       Value<int>? rowid}) {
     return UserVoiceProfilesCompanion(
       id: id ?? this.id,
-      formalityScore: formalityScore ?? this.formalityScore,
-      avgWordCount: avgWordCount ?? this.avgWordCount,
       frequentKeywords: frequentKeywords ?? this.frequentKeywords,
+      frequentEmoji: frequentEmoji ?? this.frequentEmoji,
+      frequentExpression: frequentExpression ?? this.frequentExpression,
       observationCount: observationCount ?? this.observationCount,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2040,14 +2041,14 @@ class UserVoiceProfilesCompanion extends UpdateCompanion<UserVoiceProfile> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (formalityScore.present) {
-      map['formality_score'] = Variable<int>(formalityScore.value);
-    }
-    if (avgWordCount.present) {
-      map['avg_word_count'] = Variable<double>(avgWordCount.value);
-    }
     if (frequentKeywords.present) {
       map['frequent_keywords'] = Variable<String>(frequentKeywords.value);
+    }
+    if (frequentEmoji.present) {
+      map['frequent_emoji'] = Variable<String>(frequentEmoji.value);
+    }
+    if (frequentExpression.present) {
+      map['frequent_expression'] = Variable<String>(frequentExpression.value);
     }
     if (observationCount.present) {
       map['observation_count'] = Variable<int>(observationCount.value);
@@ -2065,9 +2066,9 @@ class UserVoiceProfilesCompanion extends UpdateCompanion<UserVoiceProfile> {
   String toString() {
     return (StringBuffer('UserVoiceProfilesCompanion(')
           ..write('id: $id, ')
-          ..write('formalityScore: $formalityScore, ')
-          ..write('avgWordCount: $avgWordCount, ')
           ..write('frequentKeywords: $frequentKeywords, ')
+          ..write('frequentEmoji: $frequentEmoji, ')
+          ..write('frequentExpression: $frequentExpression, ')
           ..write('observationCount: $observationCount, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2934,9 +2935,9 @@ typedef $$EventTypesTableProcessedTableManager = ProcessedTableManager<
 typedef $$UserVoiceProfilesTableCreateCompanionBuilder
     = UserVoiceProfilesCompanion Function({
   required String id,
-  Value<int> formalityScore,
-  Value<double> avgWordCount,
   Value<String> frequentKeywords,
+  Value<String> frequentEmoji,
+  Value<String> frequentExpression,
   Value<int> observationCount,
   required int updatedAt,
   Value<int> rowid,
@@ -2944,9 +2945,9 @@ typedef $$UserVoiceProfilesTableCreateCompanionBuilder
 typedef $$UserVoiceProfilesTableUpdateCompanionBuilder
     = UserVoiceProfilesCompanion Function({
   Value<String> id,
-  Value<int> formalityScore,
-  Value<double> avgWordCount,
   Value<String> frequentKeywords,
+  Value<String> frequentEmoji,
+  Value<String> frequentExpression,
   Value<int> observationCount,
   Value<int> updatedAt,
   Value<int> rowid,
@@ -2964,15 +2965,15 @@ class $$UserVoiceProfilesTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get formalityScore => $composableBuilder(
-      column: $table.formalityScore,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get avgWordCount => $composableBuilder(
-      column: $table.avgWordCount, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get frequentKeywords => $composableBuilder(
       column: $table.frequentKeywords,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get frequentEmoji => $composableBuilder(
+      column: $table.frequentEmoji, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get frequentExpression => $composableBuilder(
+      column: $table.frequentExpression,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get observationCount => $composableBuilder(
@@ -2995,16 +2996,16 @@ class $$UserVoiceProfilesTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get formalityScore => $composableBuilder(
-      column: $table.formalityScore,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get avgWordCount => $composableBuilder(
-      column: $table.avgWordCount,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get frequentKeywords => $composableBuilder(
       column: $table.frequentKeywords,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get frequentEmoji => $composableBuilder(
+      column: $table.frequentEmoji,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get frequentExpression => $composableBuilder(
+      column: $table.frequentExpression,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get observationCount => $composableBuilder(
@@ -3027,14 +3028,14 @@ class $$UserVoiceProfilesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get formalityScore => $composableBuilder(
-      column: $table.formalityScore, builder: (column) => column);
-
-  GeneratedColumn<double> get avgWordCount => $composableBuilder(
-      column: $table.avgWordCount, builder: (column) => column);
-
   GeneratedColumn<String> get frequentKeywords => $composableBuilder(
       column: $table.frequentKeywords, builder: (column) => column);
+
+  GeneratedColumn<String> get frequentEmoji => $composableBuilder(
+      column: $table.frequentEmoji, builder: (column) => column);
+
+  GeneratedColumn<String> get frequentExpression => $composableBuilder(
+      column: $table.frequentExpression, builder: (column) => column);
 
   GeneratedColumn<int> get observationCount => $composableBuilder(
       column: $table.observationCount, builder: (column) => column);
@@ -3072,36 +3073,36 @@ class $$UserVoiceProfilesTableTableManager extends RootTableManager<
                   $db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<int> formalityScore = const Value.absent(),
-            Value<double> avgWordCount = const Value.absent(),
             Value<String> frequentKeywords = const Value.absent(),
+            Value<String> frequentEmoji = const Value.absent(),
+            Value<String> frequentExpression = const Value.absent(),
             Value<int> observationCount = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserVoiceProfilesCompanion(
             id: id,
-            formalityScore: formalityScore,
-            avgWordCount: avgWordCount,
             frequentKeywords: frequentKeywords,
+            frequentEmoji: frequentEmoji,
+            frequentExpression: frequentExpression,
             observationCount: observationCount,
             updatedAt: updatedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
-            Value<int> formalityScore = const Value.absent(),
-            Value<double> avgWordCount = const Value.absent(),
             Value<String> frequentKeywords = const Value.absent(),
+            Value<String> frequentEmoji = const Value.absent(),
+            Value<String> frequentExpression = const Value.absent(),
             Value<int> observationCount = const Value.absent(),
             required int updatedAt,
             Value<int> rowid = const Value.absent(),
           }) =>
               UserVoiceProfilesCompanion.insert(
             id: id,
-            formalityScore: formalityScore,
-            avgWordCount: avgWordCount,
             frequentKeywords: frequentKeywords,
+            frequentEmoji: frequentEmoji,
+            frequentExpression: frequentExpression,
             observationCount: observationCount,
             updatedAt: updatedAt,
             rowid: rowid,

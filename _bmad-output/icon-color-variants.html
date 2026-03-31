@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spetaka – Variantes couleur d'icône</title>
+  <style>
+    :root {
+      --bg: #f3ece4;
+      --panel: #fffaf5;
+      --ink: #2d241f;
+      --muted: #75675d;
+      --line: rgba(83, 57, 44, 0.12);
+      --shadow: 0 18px 60px rgba(88, 57, 41, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(201, 106, 74, 0.22), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(124, 63, 51, 0.12), transparent 28%),
+        linear-gradient(180deg, #f8f1e9 0%, var(--bg) 100%);
+      padding: 48px 24px 64px;
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      max-width: 760px;
+      margin: 0 0 32px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(255, 250, 245, 0.78);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card.recommended {
+      border-color: rgba(124, 63, 51, 0.34);
+      box-shadow: 0 20px 70px rgba(124, 63, 51, 0.18);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(45, 36, 31, 0.06);
+      color: var(--muted);
+      font-size: 0.77rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .recommended .eyebrow {
+      background: rgba(124, 63, 51, 0.12);
+      color: #6e372c;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 22px 0;
+    }
+
+    .icon-shell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22.5%;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(60, 38, 28, 0.16);
+      flex: 0 0 auto;
+    }
+
+    .large { width: 192px; height: 192px; }
+    .small { width: 72px; height: 72px; }
+
+    .palette {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .swatch {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(45, 36, 31, 0.08);
+      background: white;
+    }
+
+    .chip {
+      height: 42px;
+    }
+
+    .meta {
+      padding: 10px 10px 12px;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .notes {
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Spetaka — Variantes couleur</h1>
+    <p class="intro">
+      Même forme, autre humeur. Ici, on compare la version actuelle avec deux pistes de raffinement sur la base du logo existant : une plus premium, une plus douce. L'objectif est de sortir du vert pâle sans perdre la chaleur relationnelle de l'app.
+    </p>
+
+    <div class="grid">
+      <section class="card">
+        <span class="eyebrow">Actuelle</span>
+        <h2>Base existante</h2>
+        <p>Lisible, mais le cœur sauge reste trop discret. L'icône paraît calme, avec un léger effet effacé.</p>
+        <div class="preview">
+          <div class="icon-shell large">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="192" height="192" aria-label="Icône actuelle grande taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#C47B5A"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FFFFFF" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#7D9E8C"/>
+            </svg>
+          </div>
+          <div class="icon-shell small">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="72" height="72" aria-label="Icône actuelle petite taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#C47B5A"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FFFFFF" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#7D9E8C"/>
+            </svg>
+          </div>
+        </div>
+        <div class="palette">
+          <div class="swatch"><div class="chip" style="background:#C47B5A"></div><div class="meta">Fond<br>#C47B5A</div></div>
+          <div class="swatch"><div class="chip" style="background:#FFFFFF"></div><div class="meta">Lettre<br>#FFFFFF</div></div>
+          <div class="swatch"><div class="chip" style="background:#7D9E8C"></div><div class="meta">Cœur<br>#7D9E8C</div></div>
+        </div>
+        <p class="notes">Sensation : douce, mais un peu trop sage.</p>
+      </section>
+
+      <section class="card recommended">
+        <span class="eyebrow">Premium</span>
+        <h2>Terracotta dense</h2>
+        <p>Plus luxueux, plus posé. Le cœur devient une signature chaude, sans casser l'élégance sobre du S.</p>
+        <div class="preview">
+          <div class="icon-shell large">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="192" height="192" aria-label="Variante premium grande taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#B76044"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FCF6F0" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#5A2F27"/>
+            </svg>
+          </div>
+          <div class="icon-shell small">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="72" height="72" aria-label="Variante premium petite taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#B76044"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FCF6F0" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#5A2F27"/>
+            </svg>
+          </div>
+        </div>
+        <div class="palette">
+          <div class="swatch"><div class="chip" style="background:#B76044"></div><div class="meta">Fond<br>#B76044</div></div>
+          <div class="swatch"><div class="chip" style="background:#FCF6F0"></div><div class="meta">Lettre<br>#FCF6F0</div></div>
+          <div class="swatch"><div class="chip" style="background:#5A2F27"></div><div class="meta">Cœur<br>#5A2F27</div></div>
+        </div>
+        <p class="notes">Sensation : mature, crédible, plus haut de gamme.</p>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Douce</span>
+        <h2>Argile apaisée</h2>
+        <p>La chaleur reste là, mais avec une approche plus tendre et moins intense. L'icône paraît plus accueillante.</p>
+        <div class="preview">
+          <div class="icon-shell large">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="192" height="192" aria-label="Variante douce grande taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#D18167"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FFF8F2" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#9B5B48"/>
+            </svg>
+          </div>
+          <div class="icon-shell small">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="72" height="72" aria-label="Variante douce petite taille">
+              <rect width="1024" height="1024" rx="228" ry="228" fill="#D18167"/>
+              <text x="512" y="700" font-family="Georgia, 'Times New Roman', serif" font-size="720" font-weight="bold" fill="#FFF8F2" text-anchor="middle">S</text>
+              <path d="M836,152 C836,152 772,108 736,152 C717,177 736,204 774,230 C812,204 840,177 836,152 Z" fill="#9B5B48"/>
+            </svg>
+          </div>
+        </div>
+        <div class="palette">
+          <div class="swatch"><div class="chip" style="background:#D18167"></div><div class="meta">Fond<br>#D18167</div></div>
+          <div class="swatch"><div class="chip" style="background:#FFF8F2"></div><div class="meta">Lettre<br>#FFF8F2</div></div>
+          <div class="swatch"><div class="chip" style="background:#9B5B48"></div><div class="meta">Cœur<br>#9B5B48</div></div>
+        </div>
+        <p class="notes">Sensation : rassurante, tendre, moins statutaire que la premium.</p>
+      </section>
+    </div>
+
+    <p class="footer">
+      Lecture rapide : la version premium pousse la présence et la distinction. La version douce reste chaleureuse mais plus légère. Si vous voulez sortir du côté fade sans basculer dans quelque chose de trop intense, la premium est la meilleure rupture contrôlée.
+    </p>
+  </div>
+</body>
+</html>

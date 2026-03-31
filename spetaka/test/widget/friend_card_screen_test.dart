@@ -295,6 +295,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
+      expect(find.text('Concern'), findsOneWidget);
+      expect(find.text('No concern flagged.'), findsOneWidget);
       expect(find.text('Flag concern'), findsOneWidget);
     });
 
@@ -427,6 +429,24 @@ void main() {
           reason: '${entry.key} button must be at least 48dp tall',
         );
       }
+    });
+
+    testWidgets('manual fallback button stays visible with 48dp touch target',
+        (tester) async {
+      await tester.pumpWidget(_harnessWithRouter(friend: _makeFriend()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final fallbackButton = find.byKey(const Key('manual_acquittement_button'));
+
+      expect(fallbackButton, findsOneWidget);
+
+      final rect = tester.getRect(fallbackButton);
+      expect(
+        rect.height,
+        greaterThanOrEqualTo(48),
+        reason: 'Manual fallback button must be at least 48dp tall',
+      );
     });
   });
 

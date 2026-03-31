@@ -146,6 +146,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get concernLabel => 'Concern';
 
   @override
+  String get concernInactiveSummary => 'No concern flagged.';
+
+  @override
   String get concernFlaggedTooltip => 'Concern flagged';
 
   @override
@@ -164,7 +167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noContactHistory => 'No contact history yet.';
 
   @override
-  String get logContactTitle => 'Contact completed';
+  String get logContactTitle => 'Log contact';
 
   @override
   String get confirmContactLog => 'Confirm contact';
@@ -727,6 +730,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelDownloadOkButton => 'Done';
+
+  @override
+  String get hfTokenSectionTitle => 'HuggingFace Access Token';
+
+  @override
+  String get hfTokenExplainer =>
+      'To download the AI model, you need a free HuggingFace account token. Visit huggingface.co/settings/tokens to generate one (read-only access is sufficient).';
+
+  @override
+  String get hfTokenFieldLabel => 'HuggingFace token';
+
+  @override
+  String get hfTokenSaveAndDownload => 'Save & Download';
+
+  @override
+  String get hfTokenErrorEmpty =>
+      'Please enter your HuggingFace token before downloading.';
 
   @override
   String get statusFilterTooltip => 'Filter by status';

@@ -2,20 +2,20 @@
   <!--
     Spetaka adaptive icon foreground — Style F
     NO background (transparent — System provides adaptive bg)
-    White bold S + dusty-sage heart accent
+    Warm ivory bold S + deep-clay heart accent
   -->
 
   <text
     x="512" y="700"
-    font-family="Georgia, 'Times New Roman', serif"
+    font-family="DejaVu Serif, 'Times New Roman', serif"
     font-size="720"
     font-weight="bold"
-    fill="#FFFFFF"
+    fill="#FCF6F0"
     text-anchor="middle">S</text>
 
   <path d="M836,152
            C836,152 772,108 736,152
            C717,177 736,204 774,230
            C812,204 840,177 836,152 Z"
-        fill="#7D9E8C"/>
+        fill="#5A2F27"/>
 </svg>

@@ -456,71 +456,75 @@ class _FriendDetailBodyState extends ConsumerState<_FriendDetailBody> {
             ],
 
             // ── Concern — 2.9 (set when inactive / display+clear when active) ──
-            if (!friend.isConcernActive) ...[
-              // 2.9/AC1: button to activate concern flag.
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                  onPressed: () => _handleSetConcern(context),
-                  icon: const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange,
-                  ),
-                  label: Text(context.l10n.flagConcernTitle),
-                ),
-              ),
-            ] else ...[
-              // 2.9/AC2: concern section with clear action (AC3).
-              _DetailSection(
-                title: context.l10n.concernLabel,
-                titleColor: Colors.orange,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            _DetailSection(
+              title: context.l10n.concernLabel,
+              titleColor: friend.isConcernActive ? Colors.orange : null,
+              trailing: friend.isConcernActive
+                  ? null
+                  : OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 40),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        visualDensity: VisualDensity.compact,
+                        foregroundColor: Colors.orange,
+                      ),
+                      onPressed: () => _handleSetConcern(context),
+                      icon: const Icon(
+                        Icons.warning_amber_rounded,
+                        size: 18,
+                      ),
+                      label: Text(context.l10n.flagConcernTitle),
+                    ),
+              child: friend.isConcernActive
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          color: Colors.orange,
-                          size: 18,
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              context.l10n.concernFlagActive,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          context.l10n.concernFlagActive,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w600,
+                        if (friend.concernNote != null &&
+                            friend.concernNote!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            friend.concernNote!,
+                            style: textTheme.bodyMedium,
                           ),
+                        ],
+                        const SizedBox(height: 10),
+                        // 2.9/AC3: clear concern with confirmation.
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.orange,
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: () => _handleClearConcern(context),
+                          icon: const Icon(Icons.cancel_outlined, size: 16),
+                          label: Text(context.l10n.clearConcernAction),
                         ),
                       ],
-                    ),
-                    if (friend.concernNote != null &&
-                        friend.concernNote!.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        friend.concernNote!,
-                        style: textTheme.bodyMedium,
+                    )
+                  : Text(
+                      context.l10n.concernInactiveSummary,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                    const SizedBox(height: 10),
-                    // 2.9/AC3: clear concern with confirmation.
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                        padding: EdgeInsets.zero,
-                      ),
-                      onPressed: () => _handleClearConcern(context),
-                      icon: const Icon(Icons.cancel_outlined, size: 16),
-                      label: Text(context.l10n.clearConcernAction),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+            ),
+            const SizedBox(height: 20),
 
             // ── Events — Story 3.1 ────────────────────────────────────────
             _EventsSection(friendId: friend.id),

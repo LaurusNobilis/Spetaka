@@ -11,6 +11,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'hf_token_service.dart';
 import 'llm_inference_service.dart';
 
 part 'model_manager.g.dart';
@@ -65,9 +66,6 @@ class ModelManager {
       'https://huggingface.co/google/gemma-3n-E2B-it-litert-preview/'
       'resolve/main/gemma-3n-E2B-it-int4.task';
   static const String _downloadedModelFilename = 'gemma-3n-E2B-it-int4.task';
-  static const String _huggingFaceToken =
-      String.fromEnvironment('SPETAKA_HF_TOKEN');
-
   final _controller = StreamController<ModelDownloadState>.broadcast();
   ModelDownloadState _currentState = const ModelDownloadIdle();
   final Future<String> Function({
@@ -234,7 +232,7 @@ class ModelManager {
       fileType: ModelFileType.task,
     ).fromNetwork(
       _downloadedModelUrl,
-      token: _huggingFaceToken.isEmpty ? null : _huggingFaceToken,
+      token: await const HfTokenService().getToken(),
       foreground: true,
     ).withProgress(onProgress).withCancelToken(cancelToken).install();
 

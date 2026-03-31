@@ -272,7 +272,7 @@ void main() {
       final semanticsWrapper = find.byWidgetPredicate(
         (w) =>
             w is Semantics &&
-            w.properties.label == 'Contact completed' &&
+        w.properties.label == 'Log contact' &&
             w.properties.hint == 'Saves the contact to history',
       );
       expect(semanticsWrapper, findsOneWidget);
@@ -306,7 +306,7 @@ void main() {
       // The drag handle is wrapped in ExcludeSemantics — it must NOT appear
       // as a labelled interactive element. Verify only labelled nodes exist.
       final titleNode =
-          find.bySemanticsLabel(RegExp(r'Contact completed|Prise de contact|Confirm contact'));
+          find.bySemanticsLabel(RegExp(r'Log contact|Noter contact|Confirm contact'));
       expect(titleNode, findsWidgets,
           reason: 'Title and confirm button must be in semantics tree',
       );

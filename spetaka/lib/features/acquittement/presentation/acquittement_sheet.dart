@@ -199,7 +199,7 @@ class _AcquittementSheetState extends ConsumerState<AcquittementSheet> {
 
           // ── Title ────────────────────────────────────────────────────────
           Text(
-            context.l10n.logContactTitle,
+            context.l10n.confirmContactLog,
             key: const Key('acquittement_sheet_title'),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
