@@ -749,6 +749,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please enter your HuggingFace token before downloading.';
 
   @override
+  String get hfTokenHowToTitle => 'How to get a HuggingFace token';
+
+  @override
+  String get hfTokenHowToSteps =>
+      '1. Go to huggingface.co and create a free account (or sign in).\n'
+      '2. Click your avatar → Settings → Access Tokens.\n'
+      '3. Click "New token", choose type Read, give it any name.\n'
+      '4. Copy the token (starts with hf_…) and paste it here.';
+
+  @override
+  String get hfTokenHowToClose => 'Got it';
+
+  @override
+  String get modelInfoTitle => 'Gemma 3n E2B — on-device AI model';
+
+  @override
+  String get modelInfoDescription =>
+      'A lightweight 2-billion-parameter model by Google, optimised for mobile devices. '
+      'It runs entirely on your phone — no internet connection required after download, '
+      'no data leaves your device.';
+
+  @override
+  String get modelInfoSize => 'Size: ~2 GB (one-time download)';
+
+  @override
+  String get modelInfoButtonTooltip => 'Model info';
+
+  @override
   String get statusFilterTooltip => 'Filter by status';
 
   @override

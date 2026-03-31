@@ -122,11 +122,20 @@ class ModelManager {
     _emit(const ModelDownloading(progress: 0.0));
     dev.log('ModelManager: starting download', name: 'ai.model');
 
+    // Clamp progress to be strictly non-decreasing.
+    // The underlying Android Download Manager can report lower values when
+    // a new chunk begins, causing the bar to appear to go backwards.
+    var highWaterProgress = 0.0;
+
     try {
       final installedPath = await _installManagedModel(
         cancelToken: cancelToken,
         onProgress: (progress) {
-          _emit(ModelDownloading(progress: progress / 100.0));
+          final value = (progress / 100.0).clamp(0.0, 1.0);
+          if (value >= highWaterProgress) {
+            highWaterProgress = value;
+            _emit(ModelDownloading(progress: value));
+          }
         },
       );
 

@@ -1442,6 +1442,48 @@ abstract class AppLocalizations {
   /// **'Please enter your HuggingFace token before downloading.'**
   String get hfTokenErrorEmpty;
 
+  /// Title of the "how to get a HF token" info dialog — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'How to get a HuggingFace token'**
+  String get hfTokenHowToTitle;
+
+  /// Step-by-step instructions inside the HF token info dialog — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'1. Go to huggingface.co and create a free account (or sign in).\n2. Click your avatar → Settings → Access Tokens.\n3. Click "New token", choose type Read, give it any name.\n4. Copy the token (starts with hf_…) and paste it here.'**
+  String get hfTokenHowToSteps;
+
+  /// Close button label for the HF token info dialog — p2-llm-hf-token
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get hfTokenHowToClose;
+
+  /// Title of the model info card on the download screen — Story 10.1
+  ///
+  /// In en, this message translates to:
+  /// **'Gemma 3n E2B — on-device AI model'**
+  String get modelInfoTitle;
+
+  /// Description in the model info card explaining why this model was chosen — Story 10.1
+  ///
+  /// In en, this message translates to:
+  /// **'A lightweight 2-billion-parameter model by Google, optimised for mobile devices. It runs entirely on your phone — no internet connection required after download, no data leaves your device.'**
+  String get modelInfoDescription;
+
+  /// Label showing the approximate size of the model — Story 10.1
+  ///
+  /// In en, this message translates to:
+  /// **'Size: ~2 GB (one-time download)'**
+  String get modelInfoSize;
+
+  /// Tooltip/label for the button that opens the model info dialog — Story 10.1
+  ///
+  /// In en, this message translates to:
+  /// **'Model info'**
+  String get modelInfoButtonTooltip;
+
   /// Tooltip for the status filter funnel icon in the friends list AppBar — Story 8.3 AC1
   ///
   /// In en, this message translates to:

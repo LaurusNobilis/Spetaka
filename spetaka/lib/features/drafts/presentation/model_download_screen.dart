@@ -44,12 +44,13 @@ class _ModelDownloadScreenState extends ConsumerState<ModelDownloadScreen> {
         title: Text(l10n.modelDownloadTitle),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 16),
               Icon(
                 Icons.smart_toy_outlined,
                 size: 64,
@@ -61,8 +62,11 @@ class _ModelDownloadScreenState extends ConsumerState<ModelDownloadScreen> {
                 style: theme.textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              _ModelInfoCard(l10n: l10n, theme: theme),
+              const SizedBox(height: 24),
               _buildStateContent(context, state, l10n, theme),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -158,10 +162,24 @@ class _TokenEntryContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.hfTokenSectionTitle,
-          style: theme.textTheme.titleMedium,
-          textAlign: TextAlign.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              l10n.hfTokenSectionTitle,
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.help_outline, size: 20),
+              tooltip: 'Comment obtenir un token ?',
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => _HfTokenHowToDialog(l10n: l10n),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Text(
@@ -322,6 +340,87 @@ class _ErrorContent extends StatelessWidget {
             icon: const Icon(Icons.refresh),
             label: Text(l10n.modelDownloadRetryButton),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Model info card ───────────────────────────────────────────────────────────
+
+class _ModelInfoCard extends StatelessWidget {
+  const _ModelInfoCard({required this.l10n, required this.theme});
+
+  final AppLocalizations l10n;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.modelInfoTitle,
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(color: theme.colorScheme.primary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.modelInfoDescription,
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.modelInfoSize,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── HF token how-to dialog ────────────────────────────────────────────────────
+
+class _HfTokenHowToDialog extends StatelessWidget {
+  const _HfTokenHowToDialog({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AlertDialog(
+      title: Text(l10n.hfTokenHowToTitle),
+      content: SingleChildScrollView(
+        child: Text(
+          l10n.hfTokenHowToSteps,
+          style: theme.textTheme.bodyMedium,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.hfTokenHowToClose),
         ),
       ],
     );
