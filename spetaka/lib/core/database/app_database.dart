@@ -161,6 +161,7 @@ class AppDatabase extends _$AppDatabase {
           }
           // v10→v11: remove formalityScore/avgWordCount, add frequentEmoji/frequentExpression.
           if (from == 10) {
+            // ignore: experimental_member_use
             await m.alterTable(TableMigration(userVoiceProfiles));
           }
         },
